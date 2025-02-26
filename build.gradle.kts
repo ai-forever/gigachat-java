@@ -10,3 +10,9 @@ group = "chat.giga"
 repositories {
     mavenCentral()
 }
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
