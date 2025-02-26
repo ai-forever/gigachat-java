@@ -1,12 +1,5 @@
 plugins {
-    id("java")
-}
-
-group = "chat.giga"
-version = "1.0.0"
-
-repositories {
-    mavenCentral()
+    java
 }
 
 dependencies {
