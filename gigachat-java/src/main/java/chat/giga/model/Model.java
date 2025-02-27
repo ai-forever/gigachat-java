@@ -11,9 +11,11 @@ import lombok.Value;
 @NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class AccessTokenResponse {
-    @JsonProperty("access_token")
-    public String accessToken;
-    @JsonProperty("expires_at")
-    public long expiresAt;
+public class Model {
+
+    private String id;
+    private String object;
+    @JsonProperty("owned_by")
+    private String ownedBy;
+    private String type;
 }

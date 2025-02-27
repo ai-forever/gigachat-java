@@ -1,55 +1,79 @@
 package chat.giga.client;
 
+import chat.giga.http.client.HttpMethod;
+import chat.giga.http.client.HttpRequest;
+import chat.giga.http.client.HttpResponse;
 import chat.giga.model.AccessTokenResponse;
 import chat.giga.model.Scope;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static chat.giga.client.Utils.getOrDefault;
 
 public class GigaChatAuthClientImpl implements GigaChatAuthClient {
 
+    private static final String DEFAULT_AUTH_URL = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth";
+    protected final AtomicReference<AccessToken> accessToken = new AtomicReference<>();
+    private String clientId;
+    private String secret;
+    private Scope scope;
+    private chat.giga.http.client.HttpClient httpClient;
+    private String authApiUrl;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final String AUTH_URL = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth";
+    public GigaChatAuthClientImpl(chat.giga.http.client.HttpClient httpClient, String clientId, String secret, Scope scope, String authApiUrl) {
+        this.httpClient = httpClient;
+        this.clientId = clientId;
+        this.secret = secret;
+        this.scope = scope;
+        this.authApiUrl = authApiUrl;
+    }
 
-    @Override
-    public AccessTokenResponse oauth(String clientId, String secret, Scope scope) {
+    public String retrieveTokenIfExpired() {
+        return accessToken.updateAndGet(t -> {
+            Instant expiresAt = t == null ? null : t.getExpiresAt();
+            return expiresAt != null && Instant.now().isBefore(expiresAt) ? t : refreshToken();
+        }).getToken();
+    }
 
+    public AccessTokenResponse oauth() {
         String formData = "scope=" + scope.name();
-
         String credentials = clientId + ":" + secret;
         String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes());
-        HttpClient client = HttpClient.newBuilder()
-                .version(HttpClient.Version.HTTP_2)
-                .build();
-
         String rqUID = UUID.randomUUID().toString();
 
-
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(AUTH_URL))
+        var request = HttpRequest.builder()
+                .url(getApiUrl())
+                .method(HttpMethod.POST)
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .header("Accept", "application/json")
                 .header("RqUID", rqUID)
                 .header("Authorization", "Basic " + encodedCredentials)
-                .POST(HttpRequest.BodyPublishers.ofString(formData))
+                .body(new ByteArrayInputStream(formData.getBytes(StandardCharsets.UTF_8)))
                 .build();
 
-        HttpResponse<String> response = null;
+        HttpResponse response;
         try {
-            response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            String jsonResponse = response.body();
-            System.out.println("Code: " + response.statusCode());
-            System.out.println("Response: " + jsonResponse);
+            response = httpClient.execute(request);
+            return objectMapper.readValue(response.bodyAsString(), AccessTokenResponse.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         }
-        return new AccessTokenResponse();
+    }
+
+    private AccessToken refreshToken() {
+        AccessTokenResponse token = oauth();
+        return new AccessToken(token.getAccessToken(), Instant.ofEpochMilli(token.getExpiresAt()));
+    }
+
+    private String getApiUrl() {
+        return getOrDefault(this.authApiUrl, DEFAULT_AUTH_URL);
     }
 }
