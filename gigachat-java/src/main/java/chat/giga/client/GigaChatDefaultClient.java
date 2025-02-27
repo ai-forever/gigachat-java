@@ -104,8 +104,7 @@ public class GigaChatDefaultClient implements GigaChatClient {
         try {
             var response = httpClient.execute(rq);
             return objectMapper.readValue(response.body(), EmbeddingResponse.class);
-        } catch (IOException | HttpClientException ex) {
-            System.out.println(ex.getMessage());
+        } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
     }
