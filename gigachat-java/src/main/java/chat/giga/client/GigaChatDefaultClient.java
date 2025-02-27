@@ -1,6 +1,7 @@
 package chat.giga.client;
 
 import chat.giga.http.client.HttpClient;
+import chat.giga.http.client.HttpClientException;
 import chat.giga.http.client.HttpMethod;
 import chat.giga.http.client.HttpRequest;
 import chat.giga.http.client.JdkHttpClientBuilder;
@@ -10,7 +11,10 @@ import chat.giga.model.embedding.EmbeddingResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 import static chat.giga.client.Utils.getOrDefault;
 import static java.time.Duration.ofSeconds;
@@ -87,7 +91,23 @@ public class GigaChatDefaultClient implements GigaChatClient {
 
     @Override
     public EmbeddingResponse embeddings(EmbeddingRequest request) {
-        return null;
+        var rqUID = UUID.randomUUID().toString();
+        var rq = HttpRequest.builder()
+                .url(getApiUrl() + "/embeddings")
+                .method(HttpMethod.POST)
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .header("RqUID", rqUID)
+                .header("Authorization", "Bearer " + getToken())
+                .body(new ByteArrayInputStream(request.toString().getBytes(StandardCharsets.UTF_8)))
+                .build();
+        try {
+            var response = httpClient.execute(rq);
+            return objectMapper.readValue(response.body(), EmbeddingResponse.class);
+        } catch (IOException | HttpClientException ex) {
+            System.out.println(ex.getMessage());
+            throw new RuntimeException(ex);
+        }
     }
 
     @Override
