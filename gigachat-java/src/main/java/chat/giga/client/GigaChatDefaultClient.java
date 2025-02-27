@@ -4,24 +4,15 @@ import chat.giga.http.client.HttpClient;
 import chat.giga.http.client.HttpMethod;
 import chat.giga.http.client.HttpRequest;
 import chat.giga.http.client.JdkHttpClientBuilder;
-import chat.giga.model.CompletionsRequest;
-import chat.giga.model.CompletionsResponse;
-import chat.giga.model.DownloadFileRequest;
-import chat.giga.model.DownloadFileResponse;
-import chat.giga.model.EmbeddingsRequest;
-import chat.giga.model.EmbeddingsResponse;
-import chat.giga.model.ModelsResponse;
-import chat.giga.model.Scope;
-import chat.giga.model.TokensCountResponse;
-import chat.giga.model.UploadFileRequest;
-import chat.giga.model.UploadFileResponse;
+import chat.giga.model.*;
+import chat.giga.model.embedding.EmbeddingRequest;
+import chat.giga.model.embedding.EmbeddingResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
 
 import java.io.IOException;
 
 import static chat.giga.client.Utils.getOrDefault;
-
 import static java.time.Duration.ofSeconds;
 
 
@@ -95,7 +86,7 @@ public class GigaChatDefaultClient implements GigaChatClient {
     }
 
     @Override
-    public EmbeddingsResponse embeddings(EmbeddingsRequest request) {
+    public EmbeddingResponse embeddings(EmbeddingRequest request) {
         return null;
     }
 
