@@ -18,10 +18,16 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EmbeddingRequest {
 
+    /**
+     * Название модели, которая будет использована для создания эмбеддинга.
+     */
     @JsonProperty
     @Default
     String model = "Embeddings";
 
+    /**
+     * Строка или массив строк, которые будут использованы для генерации эмбеддинга.
+     */
     @JsonProperty
     @Singular("addInput")
     List<String> input;
