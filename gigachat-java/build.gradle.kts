@@ -13,10 +13,15 @@ publishing {
 }
 
 dependencies {
+    implementation(project(":gigachat-http-client"))
+    implementation(project(":gigachat-http-client-jdk"))
     implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
+    implementation("org.projectlombok:lombok:1.18.36")
+    annotationProcessor("org.projectlombok:lombok:1.18.36")
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("org.projectlombok:lombok:1.18.36")
 }
 
 tasks.test {
