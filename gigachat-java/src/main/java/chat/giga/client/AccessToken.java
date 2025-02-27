@@ -1,18 +1,7 @@
 package chat.giga.client;
 
-import lombok.Data;
-
 import java.time.Instant;
 
-@Data
-public class AccessToken {
+public record AccessToken(String token, Instant expiresAt) {
 
-    private final String token;
-    private final Instant expiresAt;
-
-
-    public AccessToken(String token, Instant expiresAt) {
-        this.token = token;
-        this.expiresAt = expiresAt;
-    }
 }
