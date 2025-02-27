@@ -1,6 +1,7 @@
 plugins {
     `java-library`
     `maven-publish`
+    id("io.freefair.lombok") version "8.12.2"
     id("org.openapi.generator") version "7.11.0"
 }
 
