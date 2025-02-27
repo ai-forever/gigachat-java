@@ -13,9 +13,24 @@ import lombok.Value;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Model {
 
+    /**
+     * Название модели.
+     */
     private String id;
+
+    /**
+     * Тип сущности в ответе, например, модель.
+     */
     private String object;
+
+    /**
+     * Владелец модели
+     */
     @JsonProperty("owned_by")
     private String ownedBy;
+
+    /**
+     * Тип модели. Значение `chat` указывает, что модель используется для генерации.
+     */
     private String type;
 }

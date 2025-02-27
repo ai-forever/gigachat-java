@@ -18,17 +18,29 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Embedding {
 
+    /**
+     * Тип объекта.
+     */
     @JsonProperty
     @Default
     String object = "embedding";
 
+    /**
+     * Массив чисел, представляющих значения эмбеддинга для предоставленного текста.
+     */
     @JsonProperty
     @Singular("addEmbedding")
     List<Float> embedding;
 
+    /**
+     * Индекс соответствующий индексу текста, полученного в массиве `input` запроса.
+     */
     @JsonProperty
     Integer index;
 
+    /**
+     * Количество токенов в строке, для которой сгенерирован эмбеддинг.
+     */
     @JsonProperty
     EmbeddingUsage usage;
 }

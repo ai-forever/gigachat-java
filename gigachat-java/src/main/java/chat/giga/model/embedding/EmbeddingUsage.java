@@ -14,6 +14,9 @@ import lombok.extern.jackson.Jacksonized;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EmbeddingUsage {
 
+    /**
+     * Количество токенов в строке, для которой сгенерирован эмбеддинг.
+     */
     @JsonProperty("prompt_tokens")
     Integer promptTokens;
 }

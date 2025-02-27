@@ -13,6 +13,14 @@ import java.util.List;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ModelsResponse {
+
+    /**
+     * Массив объектов с данными доступных моделей
+     */
     private List<Model> data;
+
+    /**
+     * Тип сущности в ответе, например, список.
+     */
     private String object;
 }

@@ -18,14 +18,23 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EmbeddingResponse {
 
+    /**
+     * Формат структуры данных.
+     */
     @JsonProperty
     @Default
     String object = "list";
 
+    /**
+     * Объект с данными о векторном представлении текста.
+     */
     @JsonProperty
     @Singular("addData")
     List<Embedding> data;
 
+    /**
+     * Название модели, которая используется для вычисления эмбеддинга.
+     */
     @JsonProperty
     @Default
     String model = "Embeddings";
