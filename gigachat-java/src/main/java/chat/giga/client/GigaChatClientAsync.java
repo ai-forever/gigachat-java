@@ -1,6 +1,8 @@
 package chat.giga.client;
 
 import chat.giga.model.*;
+import chat.giga.model.embedding.EmbeddingRequest;
+import chat.giga.model.embedding.EmbeddingResponse;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -10,7 +12,7 @@ public interface GigaChatClientAsync {
 
     CompletableFuture<CompletionsResponse> completions(CompletionsRequest request);
 
-    CompletableFuture<EmbeddingsResponse> embeddings(EmbeddingsRequest request);
+    CompletableFuture<EmbeddingResponse> embeddings(EmbeddingRequest request);
 
     CompletableFuture<UploadFileResponse> uploadFile(UploadFileRequest request);
 

@@ -1080,7 +1080,7 @@ components:
                 type: array
                 description: Массив чисел, представляющих значения эмбеддинга для предоставленного текста.
                 items:
-                  type: integer
+                  type: number
                   format: float
               index:
                 type: integer
