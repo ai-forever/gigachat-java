@@ -1,6 +1,8 @@
 package chat.giga.client;
 
 import chat.giga.model.*;
+import chat.giga.model.embedding.EmbeddingRequest;
+import chat.giga.model.embedding.EmbeddingResponse;
 
 public interface GigaChatClient {
 
@@ -8,7 +10,7 @@ public interface GigaChatClient {
 
     CompletionsResponse completions(CompletionsRequest request);
 
-    EmbeddingsResponse embeddings(EmbeddingsRequest request);
+    EmbeddingResponse embeddings(EmbeddingRequest request);
 
     UploadFileResponse uploadFile(UploadFileRequest request);
 
