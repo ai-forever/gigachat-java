@@ -6,9 +6,9 @@ import lombok.experimental.Accessors;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Value
 @Builder
@@ -22,7 +22,7 @@ public class HttpRequest {
 
     public static class HttpRequestBuilder {
 
-        Map<String, List<String>> headers = new ConcurrentHashMap<>();
+        Map<String, List<String>> headers = new HashMap<>();
 
         public HttpRequestBuilder header(String name, String value) {
             this.headers.computeIfAbsent(name, k -> new ArrayList<>(1))

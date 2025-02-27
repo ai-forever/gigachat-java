@@ -1,4 +1,4 @@
-package chat.giga.client;
+package chat.giga.util;
 
 public class Utils {
 
