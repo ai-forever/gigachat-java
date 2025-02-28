@@ -1,16 +1,15 @@
 package chat.giga.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import lombok.Builder;
 import lombok.Value;
+import lombok.experimental.Accessors;
+import lombok.extern.jackson.Jacksonized;
 
 @Value
-@NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
-@AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
+@Builder
+@Jacksonized
+@Accessors(fluent = true)
 public class AccessTokenResponse {
 
     /**

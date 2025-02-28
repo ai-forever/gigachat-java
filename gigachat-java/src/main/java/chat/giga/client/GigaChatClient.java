@@ -1,52 +1,72 @@
 package chat.giga.client;
 
-import chat.giga.model.*;
+import chat.giga.client.GigaChatClientImpl.GigaChatClientImplBuilder;
+import chat.giga.model.DownloadFileRequest;
+import chat.giga.model.DownloadFileResponse;
+import chat.giga.model.ModelResponse;
+import chat.giga.model.TokenCountRequest;
+import chat.giga.model.TokenCountResponse;
+import chat.giga.model.UploadFileRequest;
+import chat.giga.model.UploadFileResponse;
+import chat.giga.model.completion.CompletionRequest;
+import chat.giga.model.completion.CompletionResponse;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.embedding.EmbeddingResponse;
 
 public interface GigaChatClient {
 
-
     /**
+     * Получить список моделей
+     *
      * @return массив объектов с данными доступных моделей.
      */
-    ModelsResponse models();
-
+    ModelResponse models();
 
     /**
+     * Получить ответ модели на сообщения
+     *
+     * @param request описание запроса на получение ответа от модели
      * @return ответ модели, сгенерированный на основе переданных сообщений.
      */
-    CompletionsResponse completions(CompletionsRequest request);
+    CompletionResponse completions(CompletionRequest request);
 
     /**
-     * @return векторные представления соответствующих текстовых запросов. Векторное представление выглядит как
-     * массив чисел `embedding`. Каждое значение в массиве представляет одну из характеристик или признаков текста,
-     * учтенных при вычислении эмбеддинга. Значения образуют числовое представление текста и позволяют анализировать и
-     * использовать текст в различных задачах.
+     * Создать эмбендиг
      *
+     * @param request описание запроса на получения эмбендинга
+     * @return векторные представления соответствующих текстовых запросов. Векторное представление выглядит как массив
+     * чисел `embedding`. Каждое значение в массиве представляет одну из характеристик или признаков текста, учтенных
+     * при вычислении эмбеддинга. Значения образуют числовое представление текста и позволяют анализировать и
+     * использовать текст в различных задачах.
      */
     EmbeddingResponse embeddings(EmbeddingRequest request);
 
     /**
-     * Загружает в хранилище текстовые документы или изображения.
-     * @return объект с данными загруженного файла.
-     * Загруженные файлы доступны только вам
+     * Загрузить файл
      *
-     * @param request
-     *
+     * @param request описание запроса запрос на загрузку файла
+     * @return объект с данными загруженного файла. Загруженные файлы доступны только вам
      */
     UploadFileResponse uploadFile(UploadFileRequest request);
 
     /**
-     * @param request
+     * Скачать файл
+     *
+     * @param request описание запроса на скачивание файла
      * @return массив объектов с данными доступных файлов.
      */
     DownloadFileResponse downloadFile(DownloadFileRequest request);
 
     /**
-     * @param request
-     * @return объект с информацией о количестве токенов, подсчитанных заданной моделью в строках.
-     * Строки передаются в массиве input.
+     * Подсчитать количество токенов
+     *
+     * @param request описание запроса на получение количества токенов
+     * @return объект с информацией о количестве токенов, подсчитанных заданной моделью в строках. Строки передаются в
+     * массиве input.
      */
-    TokensCountResponse tokensCount(TokensCountResponse request);
+    TokenCountResponse tokensCount(TokenCountRequest request);
+
+    static GigaChatClientImpl.GigaChatClientImplBuilder builder() {
+        return new GigaChatClientImplBuilder();
+    }
 }

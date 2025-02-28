@@ -1,10 +1,11 @@
 package chat.giga.client;
 
+import chat.giga.http.client.HttpClient;
 import chat.giga.http.client.HttpMethod;
 import chat.giga.http.client.HttpRequest;
-import chat.giga.http.client.HttpResponse;
 import chat.giga.model.AccessTokenResponse;
 import chat.giga.model.Scope;
+import chat.giga.util.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.ByteArrayInputStream;
@@ -15,20 +16,23 @@ import java.util.Base64;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static chat.giga.client.Utils.getOrDefault;
+import static chat.giga.util.Utils.getOrDefault;
 
 public class GigaChatAuthClientImpl implements GigaChatAuthClient {
 
     private static final String DEFAULT_AUTH_URL = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth";
-    protected final AtomicReference<AccessToken> accessToken = new AtomicReference<>();
-    private String clientId;
-    private String secret;
-    private Scope scope;
-    private chat.giga.http.client.HttpClient httpClient;
-    private String authApiUrl;
-    private ObjectMapper objectMapper = new ObjectMapper();
 
-    public GigaChatAuthClientImpl(chat.giga.http.client.HttpClient httpClient, String clientId, String secret, Scope scope, String authApiUrl) {
+    private final String clientId;
+    private final String secret;
+    private final Scope scope;
+    private final HttpClient httpClient;
+    private final String authApiUrl;
+
+    private final ObjectMapper objectMapper = JsonUtils.objectMapper();
+    private final AtomicReference<AccessToken> accessToken = new AtomicReference<>();
+
+    public GigaChatAuthClientImpl(chat.giga.http.client.HttpClient httpClient, String clientId, String secret,
+            Scope scope, String authApiUrl) {
         this.httpClient = httpClient;
         this.clientId = clientId;
         this.secret = secret;
@@ -38,39 +42,36 @@ public class GigaChatAuthClientImpl implements GigaChatAuthClient {
 
     public String retrieveTokenIfExpired() {
         return accessToken.updateAndGet(t -> {
-            Instant expiresAt = t == null ? null : t.getExpiresAt();
+            var expiresAt = t == null ? null : t.expiresAt();
             return expiresAt != null && Instant.now().isBefore(expiresAt) ? t : refreshToken();
-        }).getToken();
+        }).token();
     }
 
     public AccessTokenResponse oauth() {
-        String formData = "scope=" + scope.name();
-        String credentials = clientId + ":" + secret;
-        String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes());
-        String rqUID = UUID.randomUUID().toString();
-
-        var request = HttpRequest.builder()
+        var formData = "scope=" + scope.name();
+        var credentials = clientId + ":" + secret;
+        var encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes());
+        var httpRequest = HttpRequest.builder()
                 .url(getApiUrl())
                 .method(HttpMethod.POST)
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .header("Accept", "application/json")
-                .header("RqUID", rqUID)
+                .header("RqUID", UUID.randomUUID().toString())
                 .header("Authorization", "Basic " + encodedCredentials)
                 .body(new ByteArrayInputStream(formData.getBytes(StandardCharsets.UTF_8)))
                 .build();
 
-        HttpResponse response;
         try {
-            response = httpClient.execute(request);
-            return objectMapper.readValue(response.bodyAsString(), AccessTokenResponse.class);
+            var httpResponse = httpClient.execute(httpRequest);
+            return objectMapper.readValue(httpResponse.body(), AccessTokenResponse.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     private AccessToken refreshToken() {
-        AccessTokenResponse token = oauth();
-        return new AccessToken(token.getAccessToken(), Instant.ofEpochMilli(token.getExpiresAt()));
+        var token = oauth();
+        return new AccessToken(token.accessToken(), Instant.ofEpochMilli(token.expiresAt()));
     }
 
     private String getApiUrl() {
