@@ -8,13 +8,12 @@ import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 
 import java.util.List;
-import java.util.Map;
 
 @Value
 @Builder
 @Jacksonized
 @Accessors(fluent = true)
-public class ChatFunctions {
+public class ChatFunction {
 
     /**
      * Название пользовательской функции, для которой будут сгенерированы аргументы.

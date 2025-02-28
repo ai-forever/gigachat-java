@@ -1,6 +1,5 @@
 package chat.giga.model.completion;
 
-import chat.giga.model.ModelName;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Builder.Default;
@@ -21,7 +20,7 @@ public class CompletionRequest {
      * Название модели.
      */
     @JsonProperty
-    ModelName model;
+    String model;
 
     /**
      * Массив сообщений, которыми пользователь обменивался с моделью.
@@ -38,7 +37,7 @@ public class CompletionRequest {
      */
     @JsonProperty
     @Singular
-    List<ChatFunctions> functions;
+    List<ChatFunction> functions;
 
     /**
      * Температура выборки. Чем выше значение, тем более случайным будет ответ модели. Если значение температуры

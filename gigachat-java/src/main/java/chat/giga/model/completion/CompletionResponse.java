@@ -1,6 +1,5 @@
 package chat.giga.model.completion;
 
-import chat.giga.model.ModelName;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Singular;
@@ -33,7 +32,7 @@ public class CompletionResponse {
      * Название модели.
      */
     @JsonProperty
-    ModelName model;
+    String model;
 
     @JsonProperty
     Usage usage;

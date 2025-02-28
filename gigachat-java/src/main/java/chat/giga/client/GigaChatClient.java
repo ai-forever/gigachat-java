@@ -5,13 +5,15 @@ import chat.giga.model.DownloadFileRequest;
 import chat.giga.model.DownloadFileResponse;
 import chat.giga.model.ModelResponse;
 import chat.giga.model.TokenCountRequest;
-import chat.giga.model.TokenCountResponse;
 import chat.giga.model.UploadFileRequest;
 import chat.giga.model.UploadFileResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.embedding.EmbeddingResponse;
+import chat.giga.model.token.TokenCount;
+
+import java.util.List;
 
 public interface GigaChatClient {
 
@@ -64,7 +66,7 @@ public interface GigaChatClient {
      * @return объект с информацией о количестве токенов, подсчитанных заданной моделью в строках. Строки передаются в
      * массиве input.
      */
-    TokenCountResponse tokensCount(TokenCountRequest request);
+    List<TokenCount> tokensCount(TokenCountRequest request);
 
     static GigaChatClientImpl.GigaChatClientImplBuilder builder() {
         return new GigaChatClientImplBuilder();
