@@ -8,6 +8,7 @@ public class JdkHttpClientBuilder implements HttpClientBuilder {
     private java.net.http.HttpClient.Builder httpClientBuilder = HttpClient.newBuilder();
     private Duration connectTimeout;
     private Duration readTimeout;
+    private SSL ssl;
 
     public java.net.http.HttpClient.Builder httpClientBuilder() {
         return httpClientBuilder;
@@ -43,5 +44,16 @@ public class JdkHttpClientBuilder implements HttpClientBuilder {
     @Override
     public JdkHttpClient build() {
         return new JdkHttpClient(this);
+    }
+
+    @Override
+    public SSL ssl() {
+        return this.ssl;
+    }
+
+    @Override
+    public HttpClientBuilder ssl(SSL ssl) {
+        this.ssl = ssl;
+        return this;
     }
 }

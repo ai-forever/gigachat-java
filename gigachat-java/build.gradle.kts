@@ -14,8 +14,8 @@ publishing {
 }
 
 dependencies {
-    implementation(project(":gigachat-http-client"))
-    implementation(project(":gigachat-http-client-jdk"))
+    api(project(":gigachat-http-client"))
+    api(project(":gigachat-http-client-jdk"))
     implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
     implementation("org.projectlombok:lombok:1.18.36")
     annotationProcessor("org.projectlombok:lombok:1.18.36")
