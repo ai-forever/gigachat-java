@@ -29,5 +29,12 @@ public class HttpRequest {
                     .add(value);
             return this;
         }
+
+        public HttpRequestBuilder headerIf(boolean condition, String name, String value) {
+            if (condition) {
+                header(name, value);
+            }
+            return this;
+        }
     }
 }

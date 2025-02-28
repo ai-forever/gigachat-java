@@ -34,15 +34,18 @@ class GigaChatClientImpl implements GigaChatClient {
 
     private final GigaChatAuthClient gigaChatAuthClient;
     private final HttpClient httpClient;
-    private final String token;
+    private final String accessToken;
+    private final boolean useCertificateAuth;
     private final String apiUrl;
     private final ObjectMapper objectMapper = JsonUtils.objectMapper();
+
 
     @Builder
     GigaChatClientImpl(String clientId,
             String clientSecret,
             Scope scope,
-            String token,
+            String accessToken,
+            boolean useCertificateAuth,
             HttpClient apiHttpClient,
             HttpClient authHtpClient,
             Integer readTimeout,
@@ -50,8 +53,8 @@ class GigaChatClientImpl implements GigaChatClient {
             String apiUrl,
             String authApiUrl
     ) {
-
-        this.token = token;
+        this.accessToken = accessToken;
+        this.useCertificateAuth = useCertificateAuth;
         this.apiUrl = apiUrl;
         this.httpClient = apiHttpClient == null ? new JdkHttpClientBuilder()
                 .readTimeout(ofSeconds(getOrDefault(readTimeout, 15)))
@@ -65,15 +68,24 @@ class GigaChatClientImpl implements GigaChatClient {
                 authApiUrl);
     }
 
+    private String getApiUrl() {
+        return getOrDefault(this.apiUrl, DEFAULT_API_URL);
+    }
+
+    private String getAccessToken() {
+        return accessToken == null && !useCertificateAuth ? gigaChatAuthClient.retrieveTokenIfExpired() : accessToken;
+    }
+
     @Override
     public ModelResponse models() {
         var httpRequest = HttpRequest.builder()
                 .url(getApiUrl() + "/models")
                 .method(HttpMethod.GET)
-                .header("Authorization", "Bearer " + getToken())
+                .headerIf(!useCertificateAuth, "Authorization", "Bearer " + getAccessToken())
                 .header("Accept", "application/json")
                 .header("X-Request-ID", UUID.randomUUID().toString())
                 .build();
+
 
         var httpResponse = httpClient.execute(httpRequest);
 
@@ -84,27 +96,20 @@ class GigaChatClientImpl implements GigaChatClient {
         }
     }
 
-    private String getApiUrl() {
-        return getOrDefault(this.apiUrl, DEFAULT_API_URL);
-    }
-
-    private String getToken() {
-        return token == null ? gigaChatAuthClient.retrieveTokenIfExpired() : token;
-    }
-
     @Override
     public CompletionResponse completions(CompletionRequest request) {
-        var httpRequest = HttpRequest.builder()
-                .url(getApiUrl() + "/chat/completions")
-                .method(HttpMethod.POST)
-                .header("Authorization", "Bearer " + getToken())
-                .header("Accept", "application/json")
-                .header("X-Request-ID", UUID.randomUUID().toString())
-                .build();
-
-        var httpResponse = httpClient.execute(httpRequest);
-
         try {
+            var httpRequest = HttpRequest.builder()
+                    .url(getApiUrl() + "/chat/completions")
+                    .method(HttpMethod.POST)
+                    .headerIf(!useCertificateAuth, "Authorization", "Bearer " + getAccessToken())
+                    .header("Accept", "application/json")
+                    .header("X-Request-ID", UUID.randomUUID().toString())
+                    .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(request)))
+                    .build();
+
+            var httpResponse = httpClient.execute(httpRequest);
+
             return objectMapper.readValue(httpResponse.body(), CompletionResponse.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -119,7 +124,7 @@ class GigaChatClientImpl implements GigaChatClient {
                     .method(HttpMethod.POST)
                     .header("Content-Type", "application/json")
                     .header("Accept", "application/json")
-                    .header("Authorization", "Bearer " + getToken())
+                    .headerIf(!useCertificateAuth, "Authorization", "Bearer " + getAccessToken())
                     .header("X-Request-ID", UUID.randomUUID().toString())
                     .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(request)))
                     .build();
