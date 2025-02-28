@@ -13,4 +13,8 @@ public interface HttpClientBuilder {
     HttpClientBuilder readTimeout(Duration timeout);
 
     HttpClient build();
+
+    SSL ssl();
+
+    HttpClientBuilder ssl(SSL ssl);
 }
