@@ -17,7 +17,7 @@ public class Model {
      * Название модели.
      */
     @JsonProperty
-    ModelName id;
+    String id;
 
     /**
      * Тип сущности в ответе, например, модель.

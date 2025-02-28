@@ -1,27 +1,31 @@
 package chat.giga.client;
 
 import chat.giga.http.client.HttpClient;
+import chat.giga.http.client.HttpHeaders;
 import chat.giga.http.client.HttpMethod;
 import chat.giga.http.client.HttpRequest;
 import chat.giga.http.client.JdkHttpClientBuilder;
+import chat.giga.http.client.MediaType;
 import chat.giga.model.DownloadFileRequest;
 import chat.giga.model.DownloadFileResponse;
 import chat.giga.model.ModelResponse;
 import chat.giga.model.Scope;
 import chat.giga.model.TokenCountRequest;
-import chat.giga.model.TokenCountResponse;
 import chat.giga.model.UploadFileRequest;
 import chat.giga.model.UploadFileResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.embedding.EmbeddingResponse;
+import chat.giga.model.token.TokenCount;
 import chat.giga.util.JsonUtils;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 import static chat.giga.util.Utils.getOrDefault;
@@ -30,7 +34,8 @@ import static java.time.Duration.ofSeconds;
 
 class GigaChatClientImpl implements GigaChatClient {
 
-    private static final String DEFAULT_API_URL = "https://gigachat.devices.sberbank.ru/api/v1";
+    public static final String DEFAULT_API_URL = "https://gigachat.devices.sberbank.ru/api/v1";
+    public static final String REQUEST_ID_HEADER = "X-Request-ID";
 
     private final GigaChatAuthClient gigaChatAuthClient;
     private final HttpClient httpClient;
@@ -38,7 +43,6 @@ class GigaChatClientImpl implements GigaChatClient {
     private final boolean useCertificateAuth;
     private final String apiUrl;
     private final ObjectMapper objectMapper = JsonUtils.objectMapper();
-
 
     @Builder
     GigaChatClientImpl(String clientId,
@@ -55,7 +59,7 @@ class GigaChatClientImpl implements GigaChatClient {
     ) {
         this.accessToken = accessToken;
         this.useCertificateAuth = useCertificateAuth;
-        this.apiUrl = apiUrl;
+        this.apiUrl = getOrDefault(apiUrl, DEFAULT_API_URL);
         this.httpClient = apiHttpClient == null ? new JdkHttpClientBuilder()
                 .readTimeout(ofSeconds(getOrDefault(readTimeout, 15)))
                 .connectTimeout(ofSeconds(getOrDefault(connectTimeout, 15)))
@@ -68,24 +72,15 @@ class GigaChatClientImpl implements GigaChatClient {
                 authApiUrl);
     }
 
-    private String getApiUrl() {
-        return getOrDefault(this.apiUrl, DEFAULT_API_URL);
-    }
-
-    private String getAccessToken() {
-        return accessToken == null && !useCertificateAuth ? gigaChatAuthClient.retrieveTokenIfExpired() : accessToken;
-    }
-
     @Override
     public ModelResponse models() {
         var httpRequest = HttpRequest.builder()
-                .url(getApiUrl() + "/models")
+                .url(apiUrl + "/models")
                 .method(HttpMethod.GET)
-                .headerIf(!useCertificateAuth, "Authorization", "Bearer " + getAccessToken())
-                .header("Accept", "application/json")
-                .header("X-Request-ID", UUID.randomUUID().toString())
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
+                .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
                 .build();
-
 
         var httpResponse = httpClient.execute(httpRequest);
 
@@ -100,11 +95,12 @@ class GigaChatClientImpl implements GigaChatClient {
     public CompletionResponse completions(CompletionRequest request) {
         try {
             var httpRequest = HttpRequest.builder()
-                    .url(getApiUrl() + "/chat/completions")
+                    .url(apiUrl + "/chat/completions")
                     .method(HttpMethod.POST)
-                    .headerIf(!useCertificateAuth, "Authorization", "Bearer " + getAccessToken())
-                    .header("Accept", "application/json")
-                    .header("X-Request-ID", UUID.randomUUID().toString())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                    .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
+                    .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
                     .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(request)))
                     .build();
 
@@ -120,12 +116,12 @@ class GigaChatClientImpl implements GigaChatClient {
     public EmbeddingResponse embeddings(EmbeddingRequest request) {
         try {
             var httpRequest = HttpRequest.builder()
-                    .url(getApiUrl() + "/embeddings")
+                    .url(apiUrl + "/embeddings")
                     .method(HttpMethod.POST)
-                    .header("Content-Type", "application/json")
-                    .header("Accept", "application/json")
-                    .headerIf(!useCertificateAuth, "Authorization", "Bearer " + getAccessToken())
-                    .header("X-Request-ID", UUID.randomUUID().toString())
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                    .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
+                    .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
                     .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(request)))
                     .build();
 
@@ -147,7 +143,31 @@ class GigaChatClientImpl implements GigaChatClient {
     }
 
     @Override
-    public TokenCountResponse tokensCount(TokenCountRequest request) {
-        return null;
+    public List<TokenCount> tokensCount(TokenCountRequest request) {
+        try {
+            var httpRequest = HttpRequest.builder()
+                    .url(apiUrl + "/tokens/count")
+                    .method(HttpMethod.POST)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                    .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
+                    .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
+                    .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(request)))
+                    .build();
+
+            var httpResponse = httpClient.execute(httpRequest);
+            return objectMapper.readValue(httpResponse.body(), new TypeReference<>() {
+            });
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    private String getAccessToken() {
+        return accessToken == null && !useCertificateAuth ? gigaChatAuthClient.retrieveTokenIfExpired() : accessToken;
+    }
+
+    private String buildBearerAuth() {
+        return "Bearer " + getAccessToken();
     }
 }
