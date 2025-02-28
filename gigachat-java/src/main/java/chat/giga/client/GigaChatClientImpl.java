@@ -26,6 +26,7 @@ import lombok.Builder;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static chat.giga.util.Utils.getOrDefault;
@@ -70,6 +71,16 @@ class GigaChatClientImpl implements GigaChatClient {
                 .connectTimeout(ofSeconds(getOrDefault(connectTimeout, 15)))
                 .build() : authHtpClient, clientId, clientSecret, scope,
                 authApiUrl);
+        validateParams(clientId, clientSecret, scope);
+    }
+
+    private void validateParams(String clientId, String clientSecret, Scope scope) {
+        if (!useCertificateAuth && accessToken == null) {
+            Objects.requireNonNull(clientId, "clientId must not be null");
+            Objects.requireNonNull(clientSecret, "clientSecret must not be null");
+            Objects.requireNonNull(scope, "scope must not be null");
+
+        }
     }
 
     @Override
