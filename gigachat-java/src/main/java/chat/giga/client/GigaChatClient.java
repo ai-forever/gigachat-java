@@ -3,15 +3,16 @@ package chat.giga.client;
 import chat.giga.client.GigaChatClientImpl.GigaChatClientImplBuilder;
 import chat.giga.model.DownloadFileRequest;
 import chat.giga.model.DownloadFileResponse;
-import chat.giga.model.ModelResponse;
 import chat.giga.model.TokenCountRequest;
 import chat.giga.model.UploadFileRequest;
 import chat.giga.model.UploadFileResponse;
+import chat.giga.model.BalanceResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.embedding.EmbeddingResponse;
-import chat.giga.model.token.TokenCount;
+import chat.giga.model.ModelResponse;
+import chat.giga.model.TokenCount;
 
 import java.util.List;
 
@@ -67,6 +68,14 @@ public interface GigaChatClient {
      * массиве input.
      */
     List<TokenCount> tokensCount(TokenCountRequest request);
+
+    /**
+     * Получить остаток токенов
+     *
+     * @return Возвращает доступный остаток токенов для каждой из моделей. Метод доступен только при покупке пакетов
+     * токенов.
+     */
+    BalanceResponse balance();
 
     static GigaChatClientImpl.GigaChatClientImplBuilder builder() {
         return new GigaChatClientImplBuilder();
