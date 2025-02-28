@@ -6,6 +6,9 @@ import chat.giga.http.client.HttpMethod;
 import chat.giga.http.client.HttpRequest;
 import chat.giga.http.client.HttpResponse;
 import chat.giga.http.client.MediaType;
+import chat.giga.model.Balance;
+import chat.giga.model.BalanceResponse;
+import chat.giga.model.TokenCount;
 import chat.giga.model.TokenCountRequest;
 import chat.giga.model.completion.ChatFunction;
 import chat.giga.model.completion.ChatFunctionCall;
@@ -19,7 +22,6 @@ import chat.giga.model.completion.ChoiceMessageFunctionCall;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
 import chat.giga.model.completion.Usage;
-import chat.giga.model.token.TokenCount;
 import chat.giga.util.JsonUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -165,6 +167,35 @@ class GigaChatClientImplTest {
             assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
             assertThat(r.headers()).containsKey(GigaChatClientImpl.REQUEST_ID_HEADER);
             assertThat(objectMapper.readValue(r.body(), TokenCountRequest.class)).isEqualTo(request);
+        });
+    }
+
+    @Test
+    void balance() throws JsonProcessingException {
+        var body = BalanceResponse.builder()
+                .addBalance(Balance.builder()
+                        .usage("testModel")
+                        .value(100)
+                        .build())
+                .build();
+
+        when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
+                .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(body)))
+                .build());
+
+        var response = gigaChatClient.balance();
+
+        assertThat(response).isEqualTo(body);
+
+        var captor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient).execute(captor.capture());
+
+        assertThat(captor.getValue()).satisfies(r -> {
+            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/balance");
+            assertThat(r.method()).isEqualTo(HttpMethod.GET);
+            assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
+            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
+            assertThat(r.headers()).containsKey(GigaChatClientImpl.REQUEST_ID_HEADER);
         });
     }
 }

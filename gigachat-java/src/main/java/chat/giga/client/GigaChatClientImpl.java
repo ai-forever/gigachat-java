@@ -6,10 +6,12 @@ import chat.giga.http.client.HttpMethod;
 import chat.giga.http.client.HttpRequest;
 import chat.giga.http.client.JdkHttpClientBuilder;
 import chat.giga.http.client.MediaType;
+import chat.giga.model.BalanceResponse;
 import chat.giga.model.DownloadFileRequest;
 import chat.giga.model.DownloadFileResponse;
 import chat.giga.model.ModelResponse;
 import chat.giga.model.Scope;
+import chat.giga.model.TokenCount;
 import chat.giga.model.TokenCountRequest;
 import chat.giga.model.UploadFileRequest;
 import chat.giga.model.UploadFileResponse;
@@ -17,7 +19,6 @@ import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.embedding.EmbeddingResponse;
-import chat.giga.model.token.TokenCount;
 import chat.giga.util.JsonUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -171,6 +172,25 @@ class GigaChatClientImpl implements GigaChatClient {
             });
         } catch (IOException ex) {
             throw new RuntimeException(ex);
+        }
+    }
+
+    @Override
+    public BalanceResponse balance() {
+        var httpRequest = HttpRequest.builder()
+                .url(apiUrl + "/balance")
+                .method(HttpMethod.GET)
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
+                .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
+                .build();
+
+        var httpResponse = httpClient.execute(httpRequest);
+
+        try {
+            return objectMapper.readValue(httpResponse.body(), BalanceResponse.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

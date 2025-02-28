@@ -1,4 +1,4 @@
-package chat.giga.model.token;
+package chat.giga.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
