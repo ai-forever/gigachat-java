@@ -20,7 +20,7 @@ import static chat.giga.util.Utils.getOrDefault;
 
 public class GigaChatAuthClientImpl implements GigaChatAuthClient {
 
-    private static final String DEFAULT_AUTH_URL = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth";
+    private static final String DEFAULT_AUTH_URL = "https://ngw.devices.sberbank.ru:9443/api/v2";
 
     private final String clientId;
     private final String secret;
@@ -37,7 +37,7 @@ public class GigaChatAuthClientImpl implements GigaChatAuthClient {
         this.clientId = clientId;
         this.secret = secret;
         this.scope = scope;
-        this.authApiUrl = authApiUrl;
+        this.authApiUrl = getOrDefault(authApiUrl, DEFAULT_AUTH_URL);
     }
 
     public String retrieveTokenIfExpired() {
@@ -52,7 +52,7 @@ public class GigaChatAuthClientImpl implements GigaChatAuthClient {
         var credentials = clientId + ":" + secret;
         var encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes());
         var httpRequest = HttpRequest.builder()
-                .url(getApiUrl())
+                .url(authApiUrl + "/oauth")
                 .method(HttpMethod.POST)
                 .header("Content-Type", "application/x-www-form-urlencoded")
                 .header("Accept", "application/json")
@@ -74,7 +74,4 @@ public class GigaChatAuthClientImpl implements GigaChatAuthClient {
         return new AccessToken(token.accessToken(), Instant.ofEpochMilli(token.expiresAt()));
     }
 
-    private String getApiUrl() {
-        return getOrDefault(this.authApiUrl, DEFAULT_AUTH_URL);
-    }
 }
