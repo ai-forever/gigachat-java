@@ -7,14 +7,13 @@ import chat.giga.http.client.HttpRequest;
 import chat.giga.http.client.JdkHttpClientBuilder;
 import chat.giga.http.client.MediaType;
 import chat.giga.model.BalanceResponse;
-import chat.giga.model.DownloadFileRequest;
-import chat.giga.model.DownloadFileResponse;
 import chat.giga.model.ModelResponse;
 import chat.giga.model.Scope;
 import chat.giga.model.TokenCount;
 import chat.giga.model.TokenCountRequest;
-import chat.giga.model.UploadFileRequest;
-import chat.giga.model.UploadFileResponse;
+import chat.giga.model.file.ListAvailableFileResponse;
+import chat.giga.model.file.UploadFileRequest;
+import chat.giga.model.file.FileResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
 import chat.giga.model.embedding.EmbeddingRequest;
@@ -23,7 +22,6 @@ import chat.giga.util.JsonUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
-
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
@@ -145,13 +143,41 @@ class GigaChatClientImpl implements GigaChatClient {
     }
 
     @Override
-    public UploadFileResponse uploadFile(UploadFileRequest request) {
+    public FileResponse uploadFile(UploadFileRequest request) {
         return null;
     }
 
     @Override
-    public DownloadFileResponse downloadFile(DownloadFileRequest request) {
-        return null;
+    public byte[] downloadFile(String fileId, String xClientId) {
+        try {
+            var httpRequest = HttpRequest.builder()
+                    .url(apiUrl + "/files/" + fileId + "/content")
+                    .method(HttpMethod.GET)
+                    .header(HttpHeaders.ACCEPT, MediaType.IMAGE_JPG)
+                    .headerIf(xClientId != null, HttpHeaders.X_CLIENT_ID, xClientId)
+                    .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
+                    .build();
+            var httpResponse = httpClient.execute(httpRequest);
+            return httpResponse.body().readAllBytes();
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    @Override
+    public ListAvailableFileResponse getListAvailableFile() {
+        try {
+            var httpRequest = HttpRequest.builder()
+                    .url(apiUrl + "/files")
+                    .method(HttpMethod.GET)
+                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                    .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
+                    .build();
+            var httpResponse = httpClient.execute(httpRequest);
+            return objectMapper.readValue(httpResponse.body(), ListAvailableFileResponse.class);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     @Override
