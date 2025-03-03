@@ -1,11 +1,10 @@
 package chat.giga.client;
 
 import chat.giga.client.GigaChatClientImpl.GigaChatClientImplBuilder;
-import chat.giga.model.DownloadFileRequest;
-import chat.giga.model.DownloadFileResponse;
+import chat.giga.model.file.ListAvailableFileResponse;
 import chat.giga.model.TokenCountRequest;
-import chat.giga.model.UploadFileRequest;
-import chat.giga.model.UploadFileResponse;
+import chat.giga.model.file.UploadFileRequest;
+import chat.giga.model.file.FileResponse;
 import chat.giga.model.BalanceResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
@@ -50,15 +49,24 @@ public interface GigaChatClient {
      * @param request описание запроса запрос на загрузку файла
      * @return объект с данными загруженного файла. Загруженные файлы доступны только вам
      */
-    UploadFileResponse uploadFile(UploadFileRequest request);
+    FileResponse uploadFile(UploadFileRequest request);
 
     /**
      * Скачать файл
      *
-     * @param request описание запроса на скачивание файла
+     * @param fileId Идентификатор изображения, полученный в ответ на запрос пользователя о генерации изображений
+     * @param xClientId идентификатор клиента
      * @return массив объектов с данными доступных файлов.
      */
-    DownloadFileResponse downloadFile(DownloadFileRequest request);
+
+    byte[] downloadFile(String fileId, String xClientId);
+
+    /**
+     * Получить список доступных файлов
+     *
+     * @return массив объектов с данными доступных файлов.
+     */
+    ListAvailableFileResponse getListAvailableFile();
 
     /**
      * Подсчитать количество токенов
