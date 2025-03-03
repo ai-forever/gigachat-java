@@ -11,7 +11,7 @@ import chat.giga.model.ModelResponse;
 import chat.giga.model.Scope;
 import chat.giga.model.TokenCount;
 import chat.giga.model.TokenCountRequest;
-import chat.giga.model.file.ListAvailableFileResponse;
+import chat.giga.model.file.AvailableFilesResponse;
 import chat.giga.model.file.UploadFileRequest;
 import chat.giga.model.file.FileResponse;
 import chat.giga.model.completion.CompletionRequest;
@@ -22,12 +22,17 @@ import chat.giga.util.JsonUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static chat.giga.util.FIleUtils.createMultiPartBody;
+import static chat.giga.util.FIleUtils.getFileType;
 import static chat.giga.util.Utils.getOrDefault;
 
 import static java.time.Duration.ofSeconds;
@@ -36,6 +41,7 @@ class GigaChatClientImpl implements GigaChatClient {
 
     public static final String DEFAULT_API_URL = "https://gigachat.devices.sberbank.ru/api/v1";
     public static final String REQUEST_ID_HEADER = "X-Request-ID";
+    public static final String X_CLIENT_ID = "X-Client-ID";
 
     private final GigaChatAuthClient gigaChatAuthClient;
     private final HttpClient httpClient;
@@ -144,7 +150,22 @@ class GigaChatClientImpl implements GigaChatClient {
 
     @Override
     public FileResponse uploadFile(UploadFileRequest request) {
-        return null;
+        String boundary = Long.toHexString(System.currentTimeMillis());
+        try {
+            var fileType = getFileType(Files.readAllBytes(request.file().toPath()));
+            var requestBody = createMultiPartBody(request.file(), boundary, request.purpose(), fileType);
+            var httpRequest = HttpRequest.builder()
+                    .url(apiUrl + "/files")
+                    .method(HttpMethod.POST)
+                    .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
+                    .header(HttpHeaders.CONTENT_TYPE, "multipart/form-data; boundary=" + boundary)
+                    .body(new ByteArrayInputStream(requestBody.toString().getBytes(StandardCharsets.UTF_8)))
+                    .build();
+            var response = httpClient.execute(httpRequest);
+            return objectMapper.readValue(response.body(), FileResponse.class);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     @Override
@@ -154,7 +175,7 @@ class GigaChatClientImpl implements GigaChatClient {
                     .url(apiUrl + "/files/" + fileId + "/content")
                     .method(HttpMethod.GET)
                     .header(HttpHeaders.ACCEPT, MediaType.IMAGE_JPG)
-                    .headerIf(xClientId != null, HttpHeaders.X_CLIENT_ID, xClientId)
+                    .headerIf(xClientId != null, X_CLIENT_ID, xClientId)
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                     .build();
             var httpResponse = httpClient.execute(httpRequest);
@@ -165,7 +186,7 @@ class GigaChatClientImpl implements GigaChatClient {
     }
 
     @Override
-    public ListAvailableFileResponse getListAvailableFile() {
+    public AvailableFilesResponse getListAvailableFile() {
         try {
             var httpRequest = HttpRequest.builder()
                     .url(apiUrl + "/files")
@@ -174,7 +195,7 @@ class GigaChatClientImpl implements GigaChatClient {
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                     .build();
             var httpResponse = httpClient.execute(httpRequest);
-            return objectMapper.readValue(httpResponse.body(), ListAvailableFileResponse.class);
+            return objectMapper.readValue(httpResponse.body(), AvailableFilesResponse.class);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }

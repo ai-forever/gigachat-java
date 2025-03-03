@@ -27,10 +27,12 @@ import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.embedding.EmbeddingResponse;
 import chat.giga.model.embedding.EmbeddingUsage;
 import chat.giga.model.file.FileResponse;
-import chat.giga.model.file.ListAvailableFileResponse;
+import chat.giga.model.file.AvailableFilesResponse;
+import chat.giga.model.file.UploadFileRequest;
 import chat.giga.util.JsonUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,16 +41,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+import static chat.giga.client.GigaChatClientImpl.X_CLIENT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -291,13 +291,13 @@ class GigaChatClientImplTest {
             assertThat(r.method()).isEqualTo(HttpMethod.GET);
             assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.IMAGE_JPG));
             assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
-            assertThat(r.headers()).containsEntry(HttpHeaders.X_CLIENT_ID, List.of(xClientId));
+            assertThat(r.headers()).containsEntry(X_CLIENT_ID, List.of(xClientId));
         });
     }
 
     @Test
     void getListAvailableFile() throws JsonProcessingException {
-        var body = ListAvailableFileResponse.builder()
+        var body = AvailableFilesResponse.builder()
                 .data(List.of(FileResponse.builder()
                         .accessPolicy("testPolicy")
                         .bytes(100)
@@ -322,6 +322,43 @@ class GigaChatClientImplTest {
             assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/files");
             assertThat(r.method()).isEqualTo(HttpMethod.GET);
             assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
+            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
+        });
+    }
+
+    @Test
+    void uploadFile() throws IOException {
+        FileUtils.writeByteArrayToFile(new File("file.pdf"), new byte[10000]);
+        var request = UploadFileRequest.builder()
+                .file(new File("file.pdf")).purpose("general").build();
+        var body = FileResponse.builder()
+                .id(UUID.randomUUID())
+                .object("object")
+                .purpose("general")
+                .filename("file.pdf")
+                .createdAt(1741011256)
+                .bytes(2422467)
+                .accessPolicy("private")
+                .build();
+        when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
+                .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(body)))
+                .build());
+        var response = gigaChatClient.uploadFile(request);
+        assertThat(response).isEqualTo(body);
+        assertThat(response.accessPolicy()).isEqualTo(body.accessPolicy());
+        assertThat(response.object()).isEqualTo(body.object());
+        assertThat(response.purpose()).isEqualTo(body.purpose());
+        assertThat(response.id()).isEqualTo(body.id());
+        assertThat(response.filename()).isEqualTo(body.filename());
+        assertThat(response.bytes()).isEqualTo(body.bytes());
+        assertThat(response.createdAt()).isEqualTo(body.createdAt());
+
+        var captor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient).execute(captor.capture());
+
+        assertThat(captor.getValue()).satisfies(r -> {
+            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/files");
+            assertThat(r.method()).isEqualTo(HttpMethod.POST);
             assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
         });
     }

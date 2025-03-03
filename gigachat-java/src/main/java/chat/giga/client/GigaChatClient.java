@@ -1,7 +1,7 @@
 package chat.giga.client;
 
 import chat.giga.client.GigaChatClientImpl.GigaChatClientImplBuilder;
-import chat.giga.model.file.ListAvailableFileResponse;
+import chat.giga.model.file.AvailableFilesResponse;
 import chat.giga.model.TokenCountRequest;
 import chat.giga.model.file.UploadFileRequest;
 import chat.giga.model.file.FileResponse;
@@ -66,7 +66,7 @@ public interface GigaChatClient {
      *
      * @return массив объектов с данными доступных файлов.
      */
-    ListAvailableFileResponse getListAvailableFile();
+    AvailableFilesResponse getListAvailableFile();
 
     /**
      * Подсчитать количество токенов
