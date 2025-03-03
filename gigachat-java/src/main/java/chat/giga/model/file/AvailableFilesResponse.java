@@ -12,7 +12,7 @@ import java.util.List;
 @Builder
 @Jacksonized
 @Accessors(fluent = true)
-public class ListAvailableFileResponse {
+public class AvailableFilesResponse {
 
     /**
      * массив объектов с данными доступных файлов
