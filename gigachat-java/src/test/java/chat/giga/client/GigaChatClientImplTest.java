@@ -303,7 +303,7 @@ class GigaChatClientImplTest {
                         .accessPolicy(AccessPolicy.PRIVATE)
                         .bytes(100)
                         .createdAt(1740942137)
-                        .filename("test")
+                        .fileName("test")
                         .id(UUID.randomUUID())
                         .purpose("general")
                         .object("file")
@@ -329,14 +329,17 @@ class GigaChatClientImplTest {
 
     @Test
     void uploadFile() throws IOException {
-        FileUtils.writeByteArrayToFile(new File("file.pdf"), new byte[10000]);
         var request = UploadFileRequest.builder()
-                .file(new File("file.pdf")).purpose("general").build();
+                .file(new byte[10000])
+                .purpose("general")
+                .fileName("file.pdf")
+                .mimeType("application/pdf")
+                .build();
         var body = FileResponse.builder()
                 .id(UUID.randomUUID())
                 .object("object")
                 .purpose("general")
-                .filename("file.pdf")
+                .fileName("file.pdf")
                 .createdAt(1741011256)
                 .bytes(2422467)
                 .accessPolicy(AccessPolicy.PRIVATE)
@@ -350,7 +353,7 @@ class GigaChatClientImplTest {
         assertThat(response.object()).isEqualTo(body.object());
         assertThat(response.purpose()).isEqualTo(body.purpose());
         assertThat(response.id()).isEqualTo(body.id());
-        assertThat(response.filename()).isEqualTo(body.filename());
+        assertThat(response.fileName()).isEqualTo(body.fileName());
         assertThat(response.bytes()).isEqualTo(body.bytes());
         assertThat(response.createdAt()).isEqualTo(body.createdAt());
 

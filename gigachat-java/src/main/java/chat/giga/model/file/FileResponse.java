@@ -29,8 +29,8 @@ public class FileResponse {
     /**
      * Название файла
      */
-    @JsonProperty
-    String filename;
+    @JsonProperty("filename")
+    String fileName;
 
     /**
      * Идентификатор файла
