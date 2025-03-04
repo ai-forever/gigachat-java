@@ -24,11 +24,17 @@ public class UploadFileRequest {
      * Загружаемый объект
      */
     @JsonProperty
-    File file;
+    byte[] file;
 
     /**
      * MIME-тип файла
      */
     @JsonProperty
     String mimeType;
+
+    /**
+     * Наименование файла
+     */
+    @JsonProperty
+    String fileName;
 }

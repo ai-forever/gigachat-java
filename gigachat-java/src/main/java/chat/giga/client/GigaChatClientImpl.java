@@ -150,7 +150,8 @@ class GigaChatClientImpl implements GigaChatClient {
     public FileResponse uploadFile(UploadFileRequest request) {
         String boundary = Long.toHexString(System.currentTimeMillis());
         try {
-            var requestBody = createMultiPartBody(request.file(), boundary, request.purpose(), request.mimeType());
+            var requestBody = createMultiPartBody(request.file(), boundary, request.purpose(),
+                    request.mimeType(), request.fileName());
             var httpRequest = HttpRequest.builder()
                     .url(apiUrl + "/files")
                     .method(HttpMethod.POST)
