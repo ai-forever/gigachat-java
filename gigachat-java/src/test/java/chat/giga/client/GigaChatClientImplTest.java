@@ -506,9 +506,9 @@ class GigaChatClientImplTest {
 
     @Test
     void getFileInfo() throws JsonProcessingException {
-        var id = UUID.randomUUID();
+        var fileId = UUID.randomUUID();
         var body = FileResponse.builder()
-                .id(id)
+                .id(fileId)
                 .object("object")
                 .purpose("general")
                 .fileName("file.pdf")
@@ -519,7 +519,7 @@ class GigaChatClientImplTest {
         when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
                 .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(body)))
                 .build());
-        var response = gigaChatClient.getFileInfo(id.toString());
+        var response = gigaChatClient.getFileInfo(fileId.toString());
         assertThat(response).isEqualTo(body);
         assertThat(response.accessPolicy()).isEqualTo(body.accessPolicy());
         assertThat(response.object()).isEqualTo(body.object());
@@ -533,7 +533,7 @@ class GigaChatClientImplTest {
         verify(httpClient).execute(captor.capture());
 
         assertThat(captor.getValue()).satisfies(r -> {
-            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/files/" + id);
+            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/files/" + fileId);
             assertThat(r.method()).isEqualTo(HttpMethod.GET);
             assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
             assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
@@ -542,15 +542,15 @@ class GigaChatClientImplTest {
 
     @Test
     void deleteFile() throws JsonProcessingException {
-        var id = UUID.randomUUID();
+        var fileId = UUID.randomUUID();
         var body = FileDeletedResponse.builder()
                 .deleted(true)
-                .id(id.toString())
+                .id(fileId.toString())
                 .build();
         when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
                 .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(body)))
                 .build());
-        var response = gigaChatClient.deleteFile(id.toString());
+        var response = gigaChatClient.deleteFile(fileId.toString());
         assertThat(response).isEqualTo(body);
         assertThat(response.deleted()).isEqualTo(body.deleted());
         assertThat(response.id()).isEqualTo(body.id());
@@ -559,7 +559,7 @@ class GigaChatClientImplTest {
         verify(httpClient).execute(captor.capture());
 
         assertThat(captor.getValue()).satisfies(r -> {
-            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/files/" + id + "/delete");
+            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/files/" + fileId + "/delete");
             assertThat(r.method()).isEqualTo(HttpMethod.POST);
             assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
             assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));

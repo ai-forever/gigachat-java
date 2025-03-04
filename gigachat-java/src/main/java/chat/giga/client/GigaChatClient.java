@@ -81,18 +81,18 @@ public interface GigaChatClient {
     /**
      * Получить информацию о файле
      *
-     * @param file идентификатор файла.
+     * @param fileId идентификатор файла.
      * @return объект с описанием указанного файла.
      */
-    FileResponse getFileInfo(String file);
+    FileResponse getFileInfo(String fileId);
 
     /**
      * Удалить файл
      *
-     * @param file идентификатор файла.
+     * @param fileId идентификатор файла.
      * @return объект с описанием указанного файла.
      */
-    FileDeletedResponse deleteFile(String file);
+    FileDeletedResponse deleteFile(String fileId);
 
     /**
      * Подсчитать количество токенов

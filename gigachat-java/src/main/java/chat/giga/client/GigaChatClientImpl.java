@@ -255,10 +255,10 @@ class GigaChatClientImpl implements GigaChatClient {
     }
 
     @Override
-    public FileResponse getFileInfo(String file) {
+    public FileResponse getFileInfo(String fileId) {
         try {
             var httpRequest = HttpRequest.builder()
-                    .url(apiUrl + "/files/" + file)
+                    .url(apiUrl + "/files/" + fileId)
                     .method(HttpMethod.GET)
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                     .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
@@ -273,10 +273,10 @@ class GigaChatClientImpl implements GigaChatClient {
     }
 
     @Override
-    public FileDeletedResponse deleteFile(String file) {
+    public FileDeletedResponse deleteFile(String fileId) {
         try {
             var httpRequest = HttpRequest.builder()
-                    .url(apiUrl + "/files/" + file + "/delete")
+                    .url(apiUrl + "/files/" + fileId + "/delete")
                     .method(HttpMethod.POST)
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                     .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
