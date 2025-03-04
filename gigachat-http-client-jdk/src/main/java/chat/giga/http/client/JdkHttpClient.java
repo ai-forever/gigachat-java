@@ -1,5 +1,8 @@
 package chat.giga.http.client;
 
+import chat.giga.http.client.sse.SseListener;
+import chat.giga.http.client.sse.SseParser;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,6 +10,7 @@ import java.net.URI;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.net.http.HttpTimeoutException;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
@@ -58,6 +62,30 @@ public class JdkHttpClient implements HttpClient {
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void execute(HttpRequest request, SseListener listener) {
+        var jdkRequest = mapJdkRequest(request);
+
+        var parser = new SseParser(listener);
+        delegate.sendAsync(jdkRequest, BodyHandlers.ofInputStream())
+                .thenAccept(r -> {
+                    if (!isSuccessful(r)) {
+                        listener.onError(new HttpClientException(r.statusCode(), r.body()));
+                        return;
+                    }
+
+                    parser.parse(r.body());
+
+                    listener.onComplete();
+                }).exceptionally(th -> {
+                    if (th.getCause() instanceof HttpTimeoutException) {
+                        listener.onError(th.getCause());
+                    }
+
+                    return null;
+                });
     }
 
     @Override
