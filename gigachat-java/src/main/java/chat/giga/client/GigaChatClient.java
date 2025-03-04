@@ -10,6 +10,7 @@ import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.embedding.EmbeddingResponse;
+import chat.giga.model.file.FileDeletedResponse;
 import chat.giga.model.file.AvailableFilesResponse;
 import chat.giga.model.file.FileResponse;
 import chat.giga.model.file.UploadFileRequest;
@@ -76,6 +77,22 @@ public interface GigaChatClient {
      * @return массив объектов с данными доступных файлов.
      */
     AvailableFilesResponse getListAvailableFile();
+
+    /**
+     * Получить информацию о файле
+     *
+     * @param fileId идентификатор файла.
+     * @return объект с описанием указанного файла.
+     */
+    FileResponse getFileInfo(String fileId);
+
+    /**
+     * Удалить файл
+     *
+     * @param fileId идентификатор файла.
+     * @return объект с описанием указанного файла.
+     */
+    FileDeletedResponse deleteFile(String fileId);
 
     /**
      * Подсчитать количество токенов

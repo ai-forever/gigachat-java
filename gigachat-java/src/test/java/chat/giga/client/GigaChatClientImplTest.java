@@ -35,6 +35,7 @@ import chat.giga.model.embedding.EmbeddingResponse;
 import chat.giga.model.embedding.EmbeddingUsage;
 import chat.giga.model.file.AccessPolicy;
 import chat.giga.model.file.AvailableFilesResponse;
+import chat.giga.model.file.FileDeletedResponse;
 import chat.giga.model.file.FileResponse;
 import chat.giga.model.file.UploadFileRequest;
 import chat.giga.util.JsonUtils;
@@ -501,5 +502,68 @@ class GigaChatClientImplTest {
             assertThat(r.method()).isEqualTo(HttpMethod.POST);
             assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
         });
+    }
+
+    @Test
+    void getFileInfo() throws JsonProcessingException {
+        var fileId = UUID.randomUUID();
+        var body = FileResponse.builder()
+                .id(fileId)
+                .object("object")
+                .purpose("general")
+                .fileName("file.pdf")
+                .createdAt(1741011256)
+                .bytes(2422467)
+                .accessPolicy(AccessPolicy.PRIVATE)
+                .build();
+        when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
+                .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(body)))
+                .build());
+        var response = gigaChatClient.getFileInfo(fileId.toString());
+        assertThat(response).isEqualTo(body);
+        assertThat(response.accessPolicy()).isEqualTo(body.accessPolicy());
+        assertThat(response.object()).isEqualTo(body.object());
+        assertThat(response.purpose()).isEqualTo(body.purpose());
+        assertThat(response.id()).isEqualTo(body.id());
+        assertThat(response.fileName()).isEqualTo(body.fileName());
+        assertThat(response.bytes()).isEqualTo(body.bytes());
+        assertThat(response.createdAt()).isEqualTo(body.createdAt());
+
+        var captor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient).execute(captor.capture());
+
+        assertThat(captor.getValue()).satisfies(r -> {
+            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/files/" + fileId);
+            assertThat(r.method()).isEqualTo(HttpMethod.GET);
+            assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
+            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
+        });
+    }
+
+    @Test
+    void deleteFile() throws JsonProcessingException {
+        var fileId = UUID.randomUUID();
+        var body = FileDeletedResponse.builder()
+                .deleted(true)
+                .id(fileId.toString())
+                .build();
+        when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
+                .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(body)))
+                .build());
+        var response = gigaChatClient.deleteFile(fileId.toString());
+        assertThat(response).isEqualTo(body);
+        assertThat(response.deleted()).isEqualTo(body.deleted());
+        assertThat(response.id()).isEqualTo(body.id());
+
+        var captor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient).execute(captor.capture());
+
+        assertThat(captor.getValue()).satisfies(r -> {
+            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/files/" + fileId + "/delete");
+            assertThat(r.method()).isEqualTo(HttpMethod.POST);
+            assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
+            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
+        });
+
     }
 }

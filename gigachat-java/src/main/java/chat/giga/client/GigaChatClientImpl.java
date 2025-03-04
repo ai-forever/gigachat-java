@@ -19,6 +19,7 @@ import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.embedding.EmbeddingResponse;
 import chat.giga.model.file.AvailableFilesResponse;
 import chat.giga.model.file.FileResponse;
+import chat.giga.model.file.FileDeletedResponse;
 import chat.giga.model.file.UploadFileRequest;
 import chat.giga.util.JsonUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -248,6 +249,42 @@ class GigaChatClientImpl implements GigaChatClient {
             var httpResponse = httpClient.execute(httpRequest);
 
             return objectMapper.readValue(httpResponse.body(), AvailableFilesResponse.class);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    @Override
+    public FileResponse getFileInfo(String fileId) {
+        try {
+            var httpRequest = HttpRequest.builder()
+                    .url(apiUrl + "/files/" + fileId)
+                    .method(HttpMethod.GET)
+                    .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
+                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                    .build();
+
+            var response = httpClient.execute(httpRequest);
+
+            return objectMapper.readValue(response.body(), FileResponse.class);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    @Override
+    public FileDeletedResponse deleteFile(String fileId) {
+        try {
+            var httpRequest = HttpRequest.builder()
+                    .url(apiUrl + "/files/" + fileId + "/delete")
+                    .method(HttpMethod.POST)
+                    .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
+                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                    .build();
+
+            var response = httpClient.execute(httpRequest);
+
+            return objectMapper.readValue(response.body(), FileDeletedResponse.class);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
