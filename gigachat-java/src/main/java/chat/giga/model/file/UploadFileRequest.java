@@ -25,4 +25,10 @@ public class UploadFileRequest {
      */
     @JsonProperty
     File file;
+
+    /**
+     * MIME-тип файла
+     */
+    @JsonProperty
+    String mimeType;
 }

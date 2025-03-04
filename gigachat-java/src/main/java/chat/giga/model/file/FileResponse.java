@@ -54,5 +54,5 @@ public class FileResponse {
      * Доступность файла
      */
     @JsonProperty("access_policy")
-    String accessPolicy;
+    AccessPolicy accessPolicy;
 }
