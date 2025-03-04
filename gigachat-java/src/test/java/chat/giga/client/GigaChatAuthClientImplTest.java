@@ -15,7 +15,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
@@ -61,7 +60,7 @@ public class GigaChatAuthClientImplTest {
             assertThat(r.headers()).containsEntry("Authorization", List.of("Basic Y2xpZW50SWQ6c2VjcmV0"));
             assertThat(r.headers()).containsEntry("Content-Type", List.of("application/x-www-form-urlencoded"));
             assertThat(r.headers()).containsKey("RqUID");
-            assertThat(new String(r.body().readAllBytes(), StandardCharsets.UTF_8)).isEqualTo("scope=" + scope.name());
+            assertThat(new String(r.body(), StandardCharsets.UTF_8)).isEqualTo("scope=" + scope.name());
         });
     }
 
@@ -141,7 +140,7 @@ public class GigaChatAuthClientImplTest {
 
     private HttpResponse getHttpResponse(AccessTokenResponse mockResponse) throws JsonProcessingException {
         return HttpResponse.builder()
-                .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(mockResponse)))
+                .body(objectMapper.writeValueAsBytes(mockResponse))
                 .build();
     }
 }

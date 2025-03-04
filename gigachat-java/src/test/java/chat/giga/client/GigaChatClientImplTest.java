@@ -9,6 +9,8 @@ import chat.giga.http.client.MediaType;
 import chat.giga.http.client.sse.SseListener;
 import chat.giga.model.Balance;
 import chat.giga.model.BalanceResponse;
+import chat.giga.model.Model;
+import chat.giga.model.ModelResponse;
 import chat.giga.model.TokenCount;
 import chat.giga.model.TokenCountRequest;
 import chat.giga.model.completion.ChatFunction;
@@ -48,13 +50,13 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
@@ -154,7 +156,7 @@ class GigaChatClientImplTest {
                 .build();
 
         when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
-                .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(body)))
+                .body(objectMapper.writeValueAsBytes(body))
                 .build());
 
         var response = gigaChatClient.completions(request);
@@ -299,7 +301,7 @@ class GigaChatClientImplTest {
                 .build());
 
         when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
-                .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(body)))
+                .body(objectMapper.writeValueAsBytes(body))
                 .build());
 
         var tokenCounts = gigaChatClient.tokensCount(request);
@@ -330,7 +332,7 @@ class GigaChatClientImplTest {
                 .build();
 
         when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
-                .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(body)))
+                .body(objectMapper.writeValueAsBytes(body))
                 .build());
 
         var response = gigaChatClient.balance();
@@ -368,7 +370,7 @@ class GigaChatClientImplTest {
                         .build()))
                 .build();
         when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
-                .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(body)))
+                .body(objectMapper.writeValueAsBytes(body))
                 .build());
         var response = gigaChatClient.embeddings(request);
 
@@ -394,7 +396,7 @@ class GigaChatClientImplTest {
         var fileId = UUID.randomUUID().toString();
         var body = new byte[10000];
         when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
-                .body(new ByteArrayInputStream(body))
+                .body(body)
                 .build());
         var response = gigaChatClient.downloadFile(fileId, null);
         assertThat(response).isEqualTo(body);
@@ -416,7 +418,7 @@ class GigaChatClientImplTest {
         var clientId = UUID.randomUUID().toString();
         var body = new byte[10000];
         when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
-                .body(new ByteArrayInputStream(body))
+                .body(body)
                 .build());
         var response = gigaChatClient.downloadFile(fileId, clientId);
         assertThat(response).isEqualTo(body);
@@ -447,7 +449,7 @@ class GigaChatClientImplTest {
                         .build()))
                 .build();
         when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
-                .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(body)))
+                .body(objectMapper.writeValueAsBytes(body))
                 .build());
         var response = gigaChatClient.getListAvailableFile();
         assertThat(response).isEqualTo(body);
@@ -482,7 +484,7 @@ class GigaChatClientImplTest {
                 .accessPolicy(AccessPolicy.PRIVATE)
                 .build();
         when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
-                .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(body)))
+                .body(objectMapper.writeValueAsBytes(body))
                 .build());
         var response = gigaChatClient.uploadFile(request);
         assertThat(response).isEqualTo(body);
@@ -517,7 +519,7 @@ class GigaChatClientImplTest {
                 .accessPolicy(AccessPolicy.PRIVATE)
                 .build();
         when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
-                .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(body)))
+                .body(objectMapper.writeValueAsBytes(body))
                 .build());
         var response = gigaChatClient.getFileInfo(fileId.toString());
         assertThat(response).isEqualTo(body);
@@ -548,7 +550,7 @@ class GigaChatClientImplTest {
                 .id(fileId.toString())
                 .build();
         when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
-                .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(body)))
+                .body(objectMapper.writeValueAsBytes(body))
                 .build());
         var response = gigaChatClient.deleteFile(fileId.toString());
         assertThat(response).isEqualTo(body);
@@ -565,5 +567,35 @@ class GigaChatClientImplTest {
             assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
         });
 
+    }
+
+    @Test
+    void models() throws JsonProcessingException {
+        var body = ModelResponse.builder()
+                .addData(Model.builder().id("test").object("test").ownedBy("test").build())
+                .addData(Model.builder().id("test2").object("test2").ownedBy("test2").build())
+                .object("test")
+                .build();
+        when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
+                .body(objectMapper.writeValueAsBytes(body))
+                .build());
+        var response = gigaChatClient.models();
+
+        assertThat(response).isEqualTo(body);
+        var captor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient).execute(captor.capture());
+        assertThat(captor.getValue()).satisfies(r -> {
+            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/models");
+            assertThat(r.method()).isEqualTo(HttpMethod.GET);
+            assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
+            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
+        });
+    }
+
+    @Test
+    void clientWithNullParamsThrowsException() {
+        assertThrows(NullPointerException.class, () -> GigaChatClientImpl.builder()
+                .apiHttpClient(httpClient)
+                .build());
     }
 }

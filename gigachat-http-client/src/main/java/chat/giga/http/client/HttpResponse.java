@@ -5,7 +5,7 @@ import lombok.Builder.Default;
 import lombok.Value;
 import lombok.experimental.Accessors;
 
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,5 +18,9 @@ public class HttpResponse {
     int statusCode;
     @Default
     Map<String, List<String>> headers = new HashMap<>();
-    InputStream body;
+    byte[] body;
+
+    public String bodyAsString() {
+        return new String(body, StandardCharsets.UTF_8);
+    }
 }

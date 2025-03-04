@@ -1,17 +1,14 @@
 package chat.giga.http.client;
 
-import org.apache.commons.io.IOUtils;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 public class HttpClientException extends RuntimeException {
 
     private final int statusCode;
-    private final InputStream body;
+    private final byte[] body;
 
-    public HttpClientException(int statusCode, InputStream body) {
+    public HttpClientException(int statusCode, byte[] body) {
         this.statusCode = statusCode;
         this.body = body;
     }
@@ -21,15 +18,11 @@ public class HttpClientException extends RuntimeException {
     }
 
 
-    public InputStream body() {
+    public byte[] body() {
         return body;
     }
 
     public String bodyAsString() {
-        try {
-            return IOUtils.toString(body, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            return null;
-        }
+        return new String(body, StandardCharsets.UTF_8);
     }
 }

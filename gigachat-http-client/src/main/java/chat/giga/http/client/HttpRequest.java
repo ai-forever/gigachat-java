@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Value;
 import lombok.experimental.Accessors;
 
-import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,7 +18,7 @@ public class HttpRequest {
     HttpMethod method;
     String url;
     Map<String, List<String>> headers;
-    InputStream body;
+    byte[] body;
 
     public static class HttpRequestBuilder {
 
@@ -36,5 +36,9 @@ public class HttpRequest {
             }
             return this;
         }
+    }
+
+    public String bodyAsString() {
+        return new String(body, StandardCharsets.UTF_8);
     }
 }

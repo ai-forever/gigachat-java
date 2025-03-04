@@ -49,4 +49,10 @@ public class ChoiceMessage {
 
     @JsonProperty("function_call")
     ChoiceMessageFunctionCall functionCall;
+
+    public ChatMessage toAssistantMessage() {
+        return ChatMessage.builder()
+                .content(content)
+                .role(ChatMessage.Role.ASSISTANT).build();
+    }
 }

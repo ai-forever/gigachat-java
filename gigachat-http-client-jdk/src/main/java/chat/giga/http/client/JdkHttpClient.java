@@ -49,19 +49,40 @@ public class JdkHttpClient implements HttpClient {
         return new JdkHttpClientBuilder();
     }
 
+    private static HttpResponse mapResponse(java.net.http.HttpResponse<InputStream> jdkResponse) {
+        try (InputStream bodyStream = jdkResponse.body()) {
+            return HttpResponse.builder()
+                    .statusCode(jdkResponse.statusCode())
+                    .headers(jdkResponse.headers().map())
+                    .body(bodyStream.readAllBytes())
+                    .build();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public HttpResponse execute(HttpRequest request) {
         try {
             var jdkResponse = delegate.send(mapJdkRequest(request), BodyHandlers.ofInputStream());
 
             if (!isSuccessful(jdkResponse)) {
-                throw new HttpClientException(jdkResponse.statusCode(), jdkResponse.body());
+                throw getClientException(jdkResponse.statusCode(), jdkResponse.body());
             }
 
             return mapResponse(jdkResponse);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private HttpClientException getClientException(int statusCode, InputStream stream) {
+        try (InputStream bodyStream = stream) {
+            return new HttpClientException(statusCode, bodyStream.readAllBytes());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     @Override
@@ -72,7 +93,7 @@ public class JdkHttpClient implements HttpClient {
         delegate.sendAsync(jdkRequest, BodyHandlers.ofInputStream())
                 .thenAccept(r -> {
                     if (!isSuccessful(r)) {
-                        listener.onError(new HttpClientException(r.statusCode(), r.body()));
+                        listener.onError(getClientException(r.statusCode(), r.body()));
                         return;
                     }
 
@@ -95,10 +116,15 @@ public class JdkHttpClient implements HttpClient {
         return delegate.sendAsync(jdkRequest, BodyHandlers.ofInputStream())
                 .thenApply(r -> {
                     if (!isSuccessful(r)) {
-                        throw new HttpClientException(r.statusCode(), r.body());
+                        throw getClientException(r.statusCode(), r.body());
                     }
                     return mapResponse(r);
                 });
+    }
+
+    private static boolean isSuccessful(java.net.http.HttpResponse<InputStream> jdkResponse) {
+        var statusCode = jdkResponse.statusCode();
+        return statusCode >= 200 && statusCode < 300;
     }
 
     private java.net.http.HttpRequest mapJdkRequest(HttpRequest request) {
@@ -113,7 +139,7 @@ public class JdkHttpClient implements HttpClient {
 
         BodyPublisher bodyPublisher;
         if (request.body() != null) {
-            bodyPublisher = BodyPublishers.ofInputStream(request::body);
+            bodyPublisher = BodyPublishers.ofByteArray(request.body());
         } else {
             bodyPublisher = BodyPublishers.noBody();
         }
@@ -124,19 +150,6 @@ public class JdkHttpClient implements HttpClient {
         }
 
         return builder.build();
-    }
-
-    private static boolean isSuccessful(java.net.http.HttpResponse<InputStream> jdkResponse) {
-        var statusCode = jdkResponse.statusCode();
-        return statusCode >= 200 && statusCode < 300;
-    }
-
-    private static HttpResponse mapResponse(java.net.http.HttpResponse<InputStream> jdkResponse) {
-        return HttpResponse.builder()
-                .statusCode(jdkResponse.statusCode())
-                .headers(jdkResponse.headers().map())
-                .body(jdkResponse.body())
-                .build();
     }
 
     public static SSLContext disableSSLVerification(SSL ssl) {

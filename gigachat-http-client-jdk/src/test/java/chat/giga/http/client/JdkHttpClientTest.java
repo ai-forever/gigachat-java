@@ -1,7 +1,6 @@
 package chat.giga.http.client;
 
 import chat.giga.http.client.sse.SseListener;
-import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,7 +59,7 @@ class JdkHttpClientTest {
                 .url("http://test")
                 .method(HttpMethod.POST)
                 .headers(headers)
-                .body(new ByteArrayInputStream("test".getBytes()))
+                .body("test".getBytes())
                 .build();
 
         var captor = ArgumentCaptor.forClass(java.net.http.HttpRequest.class);
@@ -74,7 +73,7 @@ class JdkHttpClientTest {
         assertThat(response).satisfies(r -> {
             assertThat(r.statusCode()).isEqualTo(200);
             assertThat(r.headers()).containsEntry("testHeader", List.of("testValue"));
-            assertThat(IOUtils.toString(r.body(), StandardCharsets.UTF_8)).isEqualTo("ok");
+            assertThat(new String(r.body(), StandardCharsets.UTF_8)).isEqualTo("ok");
         });
 
         assertThat(captor.getValue()).satisfies(r -> {
@@ -93,7 +92,7 @@ class JdkHttpClientTest {
                 .url("http://test")
                 .method(HttpMethod.POST)
                 .headers(headers)
-                .body(new ByteArrayInputStream("test".getBytes()))
+                .body("test".getBytes())
                 .build();
 
         when(delegate.<InputStream>send(any(), any())).thenReturn(jdkResponse);
@@ -104,7 +103,7 @@ class JdkHttpClientTest {
                 .isThrownBy(() -> httpClient.execute(request))
                 .satisfies(e -> {
                     assertThat(e.statusCode()).isEqualTo(400);
-                    assertThat(IOUtils.toString(e.body(), StandardCharsets.UTF_8)).isEqualTo("error");
+                    assertThat(new String(e.body(), StandardCharsets.UTF_8)).isEqualTo("error");
                 });
     }
 
@@ -116,7 +115,7 @@ class JdkHttpClientTest {
                 .url("http://test")
                 .method(HttpMethod.POST)
                 .headers(headers)
-                .body(new ByteArrayInputStream("test".getBytes()))
+                .body("test".getBytes())
                 .build();
 
         var captor = ArgumentCaptor.forClass(java.net.http.HttpRequest.class);
@@ -131,7 +130,7 @@ class JdkHttpClientTest {
         assertThat(response).satisfies(r -> {
             assertThat(r.statusCode()).isEqualTo(200);
             assertThat(r.headers()).containsEntry("testHeader", List.of("testValue"));
-            assertThat(IOUtils.toString(r.body(), StandardCharsets.UTF_8)).isEqualTo("ok");
+            assertThat(new String(r.body(), StandardCharsets.UTF_8)).isEqualTo("ok");
         });
 
         assertThat(captor.getValue()).satisfies(r -> {
@@ -150,7 +149,7 @@ class JdkHttpClientTest {
                 .url("http://test")
                 .method(HttpMethod.POST)
                 .headers(headers)
-                .body(new ByteArrayInputStream("test".getBytes()))
+                .body("test".getBytes())
                 .build();
 
         when(delegate.<InputStream>sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(jdkResponse));
@@ -173,7 +172,7 @@ class JdkHttpClientTest {
                 .url("http://test")
                 .method(HttpMethod.POST)
                 .headers(headers)
-                .body(new ByteArrayInputStream("sse".getBytes()))
+                .body("sse".getBytes())
                 .build();
 
         var captor = ArgumentCaptor.forClass(java.net.http.HttpRequest.class);
@@ -203,10 +202,11 @@ class JdkHttpClientTest {
                 .url("http://test")
                 .method(HttpMethod.POST)
                 .headers(headers)
-                .body(new ByteArrayInputStream("sse".getBytes()))
+                .body("sse".getBytes())
                 .build();
 
         when(delegate.<InputStream>sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(jdkResponse));
+        when(jdkResponse.body()).thenReturn(new ByteArrayInputStream("data: testData".getBytes()));
         when(jdkResponse.statusCode()).thenReturn(500);
 
         httpClient.execute(request, sseListener);
@@ -222,7 +222,7 @@ class JdkHttpClientTest {
                 .url("http://test")
                 .method(HttpMethod.POST)
                 .headers(headers)
-                .body(new ByteArrayInputStream("sse".getBytes()))
+                .body("sse".getBytes())
                 .build();
 
         when(delegate.<InputStream>sendAsync(any(), any()))
