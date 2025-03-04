@@ -5,6 +5,7 @@ import chat.giga.http.client.HttpHeaders;
 import chat.giga.http.client.HttpMethod;
 import chat.giga.http.client.HttpRequest;
 import chat.giga.http.client.JdkHttpClientBuilder;
+import chat.giga.http.client.LoggingHttpClient;
 import chat.giga.http.client.MediaType;
 import chat.giga.http.client.sse.SseListener;
 import chat.giga.model.BalanceResponse;
@@ -18,8 +19,8 @@ import chat.giga.model.completion.CompletionResponse;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.embedding.EmbeddingResponse;
 import chat.giga.model.file.AvailableFilesResponse;
-import chat.giga.model.file.FileResponse;
 import chat.giga.model.file.FileDeletedResponse;
+import chat.giga.model.file.FileResponse;
 import chat.giga.model.file.UploadFileRequest;
 import chat.giga.util.JsonUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -27,7 +28,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -63,22 +63,30 @@ class GigaChatClientImpl implements GigaChatClient {
             Integer readTimeout,
             Integer connectTimeout,
             String apiUrl,
-            String authApiUrl
+            String authApiUrl,
+            boolean logRequests,
+            boolean logResponses
     ) {
         this.accessToken = accessToken;
         this.useCertificateAuth = useCertificateAuth;
         this.apiUrl = getOrDefault(apiUrl, DEFAULT_API_URL);
-        this.httpClient = apiHttpClient == null ? new JdkHttpClientBuilder()
+        validateParams(clientId, clientSecret, scope);
+
+        var localHttpClient = apiHttpClient == null ? new JdkHttpClientBuilder()
                 .readTimeout(ofSeconds(getOrDefault(readTimeout, 15)))
                 .connectTimeout(ofSeconds(getOrDefault(connectTimeout, 15)))
                 .build() : apiHttpClient;
 
+        if (logRequests || logResponses) {
+            this.httpClient = new LoggingHttpClient(localHttpClient, logRequests, logResponses);
+        } else {
+            this.httpClient = localHttpClient;
+        }
         this.gigaChatAuthClient = new GigaChatAuthClientImpl(authHttpClient == null ? new JdkHttpClientBuilder()
                 .readTimeout(ofSeconds(getOrDefault(readTimeout, 15)))
                 .connectTimeout(ofSeconds(getOrDefault(connectTimeout, 15)))
                 .build() : authHttpClient, clientId, clientSecret, scope,
                 authApiUrl);
-        validateParams(clientId, clientSecret, scope);
     }
 
     private void validateParams(String clientId, String clientSecret, Scope scope) {
@@ -118,9 +126,9 @@ class GigaChatClientImpl implements GigaChatClient {
                     .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                     .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
-                    .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(request.toBuilder()
+                    .body(objectMapper.writeValueAsBytes(request.toBuilder()
                             .stream(false)
-                            .build())))
+                            .build()))
                     .build();
 
             var httpResponse = httpClient.execute(httpRequest);
@@ -141,9 +149,9 @@ class GigaChatClientImpl implements GigaChatClient {
                     .header(HttpHeaders.ACCEPT, MediaType.TEXT_EVENT_STREAM)
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                     .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
-                    .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(request.toBuilder()
+                    .body(objectMapper.writeValueAsBytes(request.toBuilder()
                             .stream(true)
-                            .build())))
+                            .build()))
                     .build();
 
             httpClient.execute(httpRequest, new SseListener() {
@@ -182,7 +190,7 @@ class GigaChatClientImpl implements GigaChatClient {
                     .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                     .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
-                    .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(request)))
+                    .body(objectMapper.writeValueAsBytes(request))
                     .build();
 
             var httpResponse = httpClient.execute(httpRequest);
@@ -204,7 +212,7 @@ class GigaChatClientImpl implements GigaChatClient {
                     .method(HttpMethod.POST)
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                     .header(HttpHeaders.CONTENT_TYPE, "multipart/form-data; boundary=" + boundary)
-                    .body(new ByteArrayInputStream(requestBody.toString().getBytes(StandardCharsets.UTF_8)))
+                    .body(requestBody.toString().getBytes(StandardCharsets.UTF_8))
                     .build();
 
             var response = httpClient.execute(httpRequest);
@@ -217,23 +225,17 @@ class GigaChatClientImpl implements GigaChatClient {
 
     @Override
     public byte[] downloadFile(String fileId, String clientId) {
-        try {
-            var httpRequest = HttpRequest.builder()
-                    .url(apiUrl + "/files/" + fileId + "/content")
-                    .method(HttpMethod.GET)
-                    .header(HttpHeaders.ACCEPT, MediaType.IMAGE_JPG)
-                    .headerIf(clientId != null, CLIENT_ID_HEADER, clientId)
-                    .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
-                    .build();
+        var httpRequest = HttpRequest.builder()
+                .url(apiUrl + "/files/" + fileId + "/content")
+                .method(HttpMethod.GET)
+                .header(HttpHeaders.ACCEPT, MediaType.IMAGE_JPG)
+                .headerIf(clientId != null, CLIENT_ID_HEADER, clientId)
+                .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
+                .build();
 
-            var httpResponse = httpClient.execute(httpRequest);
+        var httpResponse = httpClient.execute(httpRequest);
+        return httpResponse.body();
 
-            try (var body = httpResponse.body()) {
-                return body.readAllBytes();
-            }
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
     }
 
     @Override
@@ -300,7 +302,7 @@ class GigaChatClientImpl implements GigaChatClient {
                     .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                     .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
-                    .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(request)))
+                    .body(objectMapper.writeValueAsBytes(request))
                     .build();
 
             var httpResponse = httpClient.execute(httpRequest);

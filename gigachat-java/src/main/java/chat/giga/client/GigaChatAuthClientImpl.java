@@ -8,7 +8,6 @@ import chat.giga.model.Scope;
 import chat.giga.util.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -58,7 +57,7 @@ public class GigaChatAuthClientImpl implements GigaChatAuthClient {
                 .header("Accept", "application/json")
                 .header("RqUID", UUID.randomUUID().toString())
                 .header("Authorization", "Basic " + encodedCredentials)
-                .body(new ByteArrayInputStream(formData.getBytes(StandardCharsets.UTF_8)))
+                .body(formData.getBytes(StandardCharsets.UTF_8))
                 .build();
 
         try {
