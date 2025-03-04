@@ -10,7 +10,7 @@ import lombok.extern.jackson.Jacksonized;
 @Builder
 @Jacksonized
 @Accessors(fluent = true)
-public class ChoiceMessage {
+public class ChoiceMessageChunk {
 
     /**
      * Роль автора сообщения.  Роль `function_in_progress` используется при работе встроенных функций в режиме потоковой
@@ -25,26 +25,6 @@ public class ChoiceMessage {
      */
     @JsonProperty
     String content;
-
-    /**
-     * Передается в сообщениях с ролью`function_in_progress`. Содержит информацию о том, когда был создан фрагмент
-     * сообщения.
-     */
-    @JsonProperty
-    Integer created;
-
-    /**
-     * Название вызванной встроенной функции. Передается в сообщениях с ролью`function_in_progress`.
-     */
-    @JsonProperty
-    String name;
-
-    /**
-     * Идентификатор, который объединяет массив функций, переданных в запросе. Возвращается в ответе модели (сообщение с
-     * `\"role\": \"assistant\"`) при вызове встроенных или собственных функций.
-     */
-    @JsonProperty("functions_state_id")
-    String functionsStateId;
 
 
     @JsonProperty("function_call")
