@@ -7,14 +7,13 @@ import chat.giga.http.client.HttpRequest;
 import chat.giga.http.client.JdkHttpClientBuilder;
 import chat.giga.http.client.MediaType;
 import chat.giga.model.BalanceResponse;
-import chat.giga.model.DownloadFileRequest;
-import chat.giga.model.DownloadFileResponse;
 import chat.giga.model.ModelResponse;
 import chat.giga.model.Scope;
 import chat.giga.model.TokenCount;
 import chat.giga.model.TokenCountRequest;
-import chat.giga.model.UploadFileRequest;
-import chat.giga.model.UploadFileResponse;
+import chat.giga.model.file.AvailableFilesResponse;
+import chat.giga.model.file.UploadFileRequest;
+import chat.giga.model.file.FileResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
 import chat.giga.model.embedding.EmbeddingRequest;
@@ -26,10 +25,12 @@ import lombok.Builder;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static chat.giga.util.FileUtils.createMultiPartBody;
 import static chat.giga.util.Utils.getOrDefault;
 
 import static java.time.Duration.ofSeconds;
@@ -38,6 +39,7 @@ class GigaChatClientImpl implements GigaChatClient {
 
     public static final String DEFAULT_API_URL = "https://gigachat.devices.sberbank.ru/api/v1";
     public static final String REQUEST_ID_HEADER = "X-Request-ID";
+    public static final String X_CLIENT_ID = "X-Client-ID";
 
     private final GigaChatAuthClient gigaChatAuthClient;
     private final HttpClient httpClient;
@@ -145,13 +147,56 @@ class GigaChatClientImpl implements GigaChatClient {
     }
 
     @Override
-    public UploadFileResponse uploadFile(UploadFileRequest request) {
-        return null;
+    public FileResponse uploadFile(UploadFileRequest request) {
+        String boundary = Long.toHexString(System.currentTimeMillis());
+        try {
+            var requestBody = createMultiPartBody(request.file(), boundary, request.purpose(),
+                    request.mimeType(), request.fileName());
+            var httpRequest = HttpRequest.builder()
+                    .url(apiUrl + "/files")
+                    .method(HttpMethod.POST)
+                    .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
+                    .header(HttpHeaders.CONTENT_TYPE, "multipart/form-data; boundary=" + boundary)
+                    .body(new ByteArrayInputStream(requestBody.toString().getBytes(StandardCharsets.UTF_8)))
+                    .build();
+            var response = httpClient.execute(httpRequest);
+            return objectMapper.readValue(response.body(), FileResponse.class);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     @Override
-    public DownloadFileResponse downloadFile(DownloadFileRequest request) {
-        return null;
+    public byte[] downloadFile(String fileId, String xClientId) {
+        try {
+            var httpRequest = HttpRequest.builder()
+                    .url(apiUrl + "/files/" + fileId + "/content")
+                    .method(HttpMethod.GET)
+                    .header(HttpHeaders.ACCEPT, MediaType.IMAGE_JPG)
+                    .headerIf(xClientId != null, X_CLIENT_ID, xClientId)
+                    .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
+                    .build();
+            var httpResponse = httpClient.execute(httpRequest);
+            return httpResponse.body().readAllBytes();
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    @Override
+    public AvailableFilesResponse getListAvailableFile() {
+        try {
+            var httpRequest = HttpRequest.builder()
+                    .url(apiUrl + "/files")
+                    .method(HttpMethod.GET)
+                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                    .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
+                    .build();
+            var httpResponse = httpClient.execute(httpRequest);
+            return objectMapper.readValue(httpResponse.body(), AvailableFilesResponse.class);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     @Override
