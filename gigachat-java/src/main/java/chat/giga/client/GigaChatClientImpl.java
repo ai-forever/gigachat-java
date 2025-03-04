@@ -6,19 +6,22 @@ import chat.giga.http.client.HttpMethod;
 import chat.giga.http.client.HttpRequest;
 import chat.giga.http.client.JdkHttpClientBuilder;
 import chat.giga.http.client.MediaType;
+import chat.giga.http.client.sse.SseListener;
 import chat.giga.model.BalanceResponse;
 import chat.giga.model.ModelResponse;
 import chat.giga.model.Scope;
 import chat.giga.model.TokenCount;
 import chat.giga.model.TokenCountRequest;
-import chat.giga.model.file.AvailableFilesResponse;
-import chat.giga.model.file.UploadFileRequest;
-import chat.giga.model.file.FileResponse;
+import chat.giga.model.completion.CompletionChunkResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.embedding.EmbeddingResponse;
+import chat.giga.model.file.AvailableFilesResponse;
+import chat.giga.model.file.FileResponse;
+import chat.giga.model.file.UploadFileRequest;
 import chat.giga.util.JsonUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
@@ -39,7 +42,7 @@ class GigaChatClientImpl implements GigaChatClient {
 
     public static final String DEFAULT_API_URL = "https://gigachat.devices.sberbank.ru/api/v1";
     public static final String REQUEST_ID_HEADER = "X-Request-ID";
-    public static final String X_CLIENT_ID = "X-Client-ID";
+    public static final String CLIENT_ID_HEADER = "X-Client-ID";
 
     private final GigaChatAuthClient gigaChatAuthClient;
     private final HttpClient httpClient;
@@ -55,7 +58,7 @@ class GigaChatClientImpl implements GigaChatClient {
             String accessToken,
             boolean useCertificateAuth,
             HttpClient apiHttpClient,
-            HttpClient authHtpClient,
+            HttpClient authHttpClient,
             Integer readTimeout,
             Integer connectTimeout,
             String apiUrl,
@@ -69,10 +72,10 @@ class GigaChatClientImpl implements GigaChatClient {
                 .connectTimeout(ofSeconds(getOrDefault(connectTimeout, 15)))
                 .build() : apiHttpClient;
 
-        this.gigaChatAuthClient = new GigaChatAuthClientImpl(authHtpClient == null ? new JdkHttpClientBuilder()
+        this.gigaChatAuthClient = new GigaChatAuthClientImpl(authHttpClient == null ? new JdkHttpClientBuilder()
                 .readTimeout(ofSeconds(getOrDefault(readTimeout, 15)))
                 .connectTimeout(ofSeconds(getOrDefault(connectTimeout, 15)))
-                .build() : authHtpClient, clientId, clientSecret, scope,
+                .build() : authHttpClient, clientId, clientSecret, scope,
                 authApiUrl);
         validateParams(clientId, clientSecret, scope);
     }
@@ -82,7 +85,6 @@ class GigaChatClientImpl implements GigaChatClient {
             Objects.requireNonNull(clientId, "clientId must not be null");
             Objects.requireNonNull(clientSecret, "clientSecret must not be null");
             Objects.requireNonNull(scope, "scope must not be null");
-
         }
     }
 
@@ -115,12 +117,55 @@ class GigaChatClientImpl implements GigaChatClient {
                     .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                     .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
-                    .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(request)))
+                    .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(request.toBuilder()
+                            .stream(false)
+                            .build())))
                     .build();
 
             var httpResponse = httpClient.execute(httpRequest);
 
             return objectMapper.readValue(httpResponse.body(), CompletionResponse.class);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void completions(CompletionRequest request, ResponseHandler<CompletionChunkResponse> handler) {
+        try {
+            var httpRequest = HttpRequest.builder()
+                    .url(apiUrl + "/chat/completions")
+                    .method(HttpMethod.POST)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.ACCEPT, MediaType.TEXT_EVENT_STREAM)
+                    .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
+                    .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
+                    .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(request.toBuilder()
+                            .stream(true)
+                            .build())))
+                    .build();
+
+            httpClient.execute(httpRequest, new SseListener() {
+                @Override
+                public void onData(String data) {
+                    try {
+                        handler.onNext(objectMapper.readValue(data, CompletionChunkResponse.class));
+                    } catch (JsonProcessingException e) {
+                        handler.onError(e);
+                    }
+                }
+
+                @Override
+                public void onComplete() {
+                    handler.onComplete();
+                }
+
+                @Override
+                public void onError(Throwable th) {
+                    handler.onError(th);
+                }
+            });
+
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -140,6 +185,7 @@ class GigaChatClientImpl implements GigaChatClient {
                     .build();
 
             var httpResponse = httpClient.execute(httpRequest);
+
             return objectMapper.readValue(httpResponse.body(), EmbeddingResponse.class);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
@@ -159,7 +205,9 @@ class GigaChatClientImpl implements GigaChatClient {
                     .header(HttpHeaders.CONTENT_TYPE, "multipart/form-data; boundary=" + boundary)
                     .body(new ByteArrayInputStream(requestBody.toString().getBytes(StandardCharsets.UTF_8)))
                     .build();
+
             var response = httpClient.execute(httpRequest);
+
             return objectMapper.readValue(response.body(), FileResponse.class);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
@@ -167,17 +215,21 @@ class GigaChatClientImpl implements GigaChatClient {
     }
 
     @Override
-    public byte[] downloadFile(String fileId, String xClientId) {
+    public byte[] downloadFile(String fileId, String clientId) {
         try {
             var httpRequest = HttpRequest.builder()
                     .url(apiUrl + "/files/" + fileId + "/content")
                     .method(HttpMethod.GET)
                     .header(HttpHeaders.ACCEPT, MediaType.IMAGE_JPG)
-                    .headerIf(xClientId != null, X_CLIENT_ID, xClientId)
+                    .headerIf(clientId != null, CLIENT_ID_HEADER, clientId)
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                     .build();
+
             var httpResponse = httpClient.execute(httpRequest);
-            return httpResponse.body().readAllBytes();
+
+            try (var body = httpResponse.body()) {
+                return body.readAllBytes();
+            }
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -192,7 +244,9 @@ class GigaChatClientImpl implements GigaChatClient {
                     .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                     .build();
+
             var httpResponse = httpClient.execute(httpRequest);
+
             return objectMapper.readValue(httpResponse.body(), AvailableFilesResponse.class);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
@@ -213,6 +267,7 @@ class GigaChatClientImpl implements GigaChatClient {
                     .build();
 
             var httpResponse = httpClient.execute(httpRequest);
+
             return objectMapper.readValue(httpResponse.body(), new TypeReference<>() {
             });
         } catch (IOException ex) {

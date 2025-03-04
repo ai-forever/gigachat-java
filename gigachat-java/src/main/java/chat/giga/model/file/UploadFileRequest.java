@@ -6,8 +6,6 @@ import lombok.Value;
 import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 
-import java.io.File;
-
 @Value
 @Builder
 @Jacksonized

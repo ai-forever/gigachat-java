@@ -1,5 +1,6 @@
 package chat.giga.http.client;
 
+import chat.giga.http.client.sse.SseListener;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
+import java.net.http.HttpTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +25,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,6 +37,8 @@ class JdkHttpClientTest {
     java.net.http.HttpClient delegate;
     @Mock
     HttpResponse<InputStream> jdkResponse;
+    @Mock
+    SseListener sseListener;
 
     HttpClient httpClient;
 
@@ -89,8 +96,7 @@ class JdkHttpClientTest {
                 .body(new ByteArrayInputStream("test".getBytes()))
                 .build();
 
-        var captor = ArgumentCaptor.forClass(java.net.http.HttpRequest.class);
-        when(delegate.<InputStream>send(captor.capture(), any())).thenReturn(jdkResponse);
+        when(delegate.<InputStream>send(any(), any())).thenReturn(jdkResponse);
         when(jdkResponse.statusCode()).thenReturn(400);
         when(jdkResponse.body()).thenReturn(new ByteArrayInputStream("error".getBytes()));
 
@@ -114,8 +120,8 @@ class JdkHttpClientTest {
                 .build();
 
         var captor = ArgumentCaptor.forClass(java.net.http.HttpRequest.class);
-        when(delegate.<InputStream>sendAsync(captor.capture(), any())).thenReturn(
-                CompletableFuture.completedFuture(jdkResponse));
+        when(delegate.<InputStream>sendAsync(captor.capture(), any()))
+                .thenReturn(CompletableFuture.completedFuture(jdkResponse));
         when(jdkResponse.statusCode()).thenReturn(200);
         when(jdkResponse.headers()).thenReturn(HttpHeaders.of(headers, (hn, hv) -> true));
         when(jdkResponse.body()).thenReturn(new ByteArrayInputStream("ok".getBytes()));
@@ -147,9 +153,7 @@ class JdkHttpClientTest {
                 .body(new ByteArrayInputStream("test".getBytes()))
                 .build();
 
-        var captor = ArgumentCaptor.forClass(java.net.http.HttpRequest.class);
-        when(delegate.<InputStream>sendAsync(captor.capture(), any())).thenReturn(
-                CompletableFuture.completedFuture(jdkResponse));
+        when(delegate.<InputStream>sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(jdkResponse));
         when(jdkResponse.statusCode()).thenReturn(500);
         when(jdkResponse.body()).thenReturn(new ByteArrayInputStream("error".getBytes()));
 
@@ -160,5 +164,73 @@ class JdkHttpClientTest {
                     assertThat(e.statusCode()).isEqualTo(500);
                     assertThat(e.body()).isNotEmpty();
                 });
+    }
+
+    @Test
+    void executeWithSse() {
+        var headers = Map.of("testHeader", List.of("testValue"));
+        var request = HttpRequest.builder()
+                .url("http://test")
+                .method(HttpMethod.POST)
+                .headers(headers)
+                .body(new ByteArrayInputStream("sse".getBytes()))
+                .build();
+
+        var captor = ArgumentCaptor.forClass(java.net.http.HttpRequest.class);
+        when(delegate.<InputStream>sendAsync(captor.capture(), any()))
+                .thenReturn(CompletableFuture.completedFuture(jdkResponse));
+        when(jdkResponse.statusCode()).thenReturn(200);
+        when(jdkResponse.body()).thenReturn(new ByteArrayInputStream("data: testData".getBytes()));
+
+        httpClient.execute(request, sseListener);
+
+        verify(sseListener).onData(any());
+        verify(sseListener).onComplete();
+
+        assertThat(captor.getValue()).satisfies(r -> {
+            assertThat(r.uri()).asString().isEqualTo("http://test");
+            assertThat(r.method()).isEqualTo("POST");
+            assertThat(r.headers().map()).containsEntry("testHeader", List.of("testValue"));
+            assertThat(r.bodyPublisher().isPresent()).isTrue();
+            assertThat(r.bodyPublisher().get().contentLength()).isNotZero();
+        });
+    }
+
+    @Test
+    void executeWithSseFailedWhenInvalidStatusCode() {
+        var headers = Map.of("testHeader", List.of("testValue"));
+        var request = HttpRequest.builder()
+                .url("http://test")
+                .method(HttpMethod.POST)
+                .headers(headers)
+                .body(new ByteArrayInputStream("sse".getBytes()))
+                .build();
+
+        when(delegate.<InputStream>sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(jdkResponse));
+        when(jdkResponse.statusCode()).thenReturn(500);
+
+        httpClient.execute(request, sseListener);
+
+        verify(sseListener, times(1)).onError(any(HttpClientException.class));
+        verify(sseListener, never()).onComplete();
+    }
+
+    @Test
+    void executeWithSseFailedWhenResponseTimeout() {
+        var headers = Map.of("testHeader", List.of("testValue"));
+        var request = HttpRequest.builder()
+                .url("http://test")
+                .method(HttpMethod.POST)
+                .headers(headers)
+                .body(new ByteArrayInputStream("sse".getBytes()))
+                .build();
+
+        when(delegate.<InputStream>sendAsync(any(), any()))
+                .thenReturn(CompletableFuture.failedFuture(new HttpTimeoutException("timeout")));
+
+        httpClient.execute(request, sseListener);
+
+        verify(sseListener, times(1)).onError(any(HttpTimeoutException.class));
+        verify(sseListener, never()).onComplete();
     }
 }

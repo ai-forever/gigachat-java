@@ -11,7 +11,7 @@ import lombok.extern.jackson.Jacksonized;
 import java.util.List;
 
 @Value
-@Builder
+@Builder(toBuilder = true)
 @Jacksonized
 @Accessors(fluent = true)
 public class CompletionRequest {

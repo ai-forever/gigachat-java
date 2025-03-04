@@ -4,12 +4,13 @@ import chat.giga.model.BalanceResponse;
 import chat.giga.model.ModelResponse;
 import chat.giga.model.TokenCount;
 import chat.giga.model.TokenCountRequest;
-import chat.giga.model.file.UploadFileRequest;
-import chat.giga.model.file.FileResponse;
+import chat.giga.model.completion.CompletionChunkResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.embedding.EmbeddingResponse;
+import chat.giga.model.file.FileResponse;
+import chat.giga.model.file.UploadFileRequest;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
@@ -20,6 +21,8 @@ public interface GigaChatClientAsync {
     CompletableFuture<ModelResponse> models();
 
     CompletableFuture<CompletionResponse> completions(CompletionRequest request);
+
+    CompletableFuture<Void> completions(CompletionRequest request, ResponseHandler<CompletionChunkResponse> handler);
 
     CompletableFuture<EmbeddingResponse> embeddings(EmbeddingRequest request);
 

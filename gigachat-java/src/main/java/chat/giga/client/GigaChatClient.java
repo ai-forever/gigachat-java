@@ -1,17 +1,18 @@
 package chat.giga.client;
 
 import chat.giga.client.GigaChatClientImpl.GigaChatClientImplBuilder;
-import chat.giga.model.file.AvailableFilesResponse;
-import chat.giga.model.TokenCountRequest;
-import chat.giga.model.file.UploadFileRequest;
-import chat.giga.model.file.FileResponse;
 import chat.giga.model.BalanceResponse;
+import chat.giga.model.ModelResponse;
+import chat.giga.model.TokenCount;
+import chat.giga.model.TokenCountRequest;
+import chat.giga.model.completion.CompletionChunkResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.embedding.EmbeddingResponse;
-import chat.giga.model.ModelResponse;
-import chat.giga.model.TokenCount;
+import chat.giga.model.file.AvailableFilesResponse;
+import chat.giga.model.file.FileResponse;
+import chat.giga.model.file.UploadFileRequest;
 
 import java.util.List;
 
@@ -31,6 +32,14 @@ public interface GigaChatClient {
      * @return ответ модели, сгенерированный на основе переданных сообщений.
      */
     CompletionResponse completions(CompletionRequest request);
+
+    /**
+     * Получить ответ модели на сообщения (stream = true)
+     *
+     * @param request описание запроса на получение ответа от модели
+     * @param handler обработчик сообщений, сгенерированный на основе переданных сообщений.
+     */
+    void completions(CompletionRequest request, ResponseHandler<CompletionChunkResponse> handler);
 
     /**
      * Создать эмбендиг
@@ -55,11 +64,11 @@ public interface GigaChatClient {
      * Скачать файл
      *
      * @param fileId Идентификатор изображения, полученный в ответ на запрос пользователя о генерации изображений
-     * @param xClientId идентификатор клиента
+     * @param clientId идентификатор клиента
      * @return массив объектов с данными доступных файлов.
      */
 
-    byte[] downloadFile(String fileId, String xClientId);
+    byte[] downloadFile(String fileId, String clientId);
 
     /**
      * Получить список доступных файлов

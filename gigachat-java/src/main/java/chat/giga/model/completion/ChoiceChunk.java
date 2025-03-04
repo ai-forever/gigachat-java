@@ -10,10 +10,10 @@ import lombok.extern.jackson.Jacksonized;
 @Builder
 @Jacksonized
 @Accessors(fluent = true)
-public class Choice {
+public class ChoiceChunk {
 
     @JsonProperty
-    ChoiceMessage message;
+    ChoiceMessageChunk delta;
 
     /**
      * Индекс сообщения в массиве, начиная с ноля.
