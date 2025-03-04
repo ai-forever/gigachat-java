@@ -1,24 +1,13 @@
 package chat.giga.util;
 
 import lombok.experimental.UtilityClass;
-import org.apache.tika.Tika;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
 @UtilityClass
-public class FIleUtils {
-    private static final Tika TIKA = new Tika();
-
-    public static String getFileType(byte[] bytes) {
-        try {
-            return TIKA.detect(new ByteArrayInputStream(bytes));
-        } catch (IOException ex) {
-            throw new RuntimeException();
-        }
-    }
+public class FileUtils {
 
     public static StringBuilder createMultiPartBody(File file, String boundary, String purpose, String contentType)
             throws IOException {

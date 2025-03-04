@@ -26,6 +26,7 @@ import chat.giga.model.embedding.Embedding;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.embedding.EmbeddingResponse;
 import chat.giga.model.embedding.EmbeddingUsage;
+import chat.giga.model.file.AccessPolicy;
 import chat.giga.model.file.FileResponse;
 import chat.giga.model.file.AvailableFilesResponse;
 import chat.giga.model.file.UploadFileRequest;
@@ -299,7 +300,7 @@ class GigaChatClientImplTest {
     void getListAvailableFile() throws JsonProcessingException {
         var body = AvailableFilesResponse.builder()
                 .data(List.of(FileResponse.builder()
-                        .accessPolicy("testPolicy")
+                        .accessPolicy(AccessPolicy.PRIVATE)
                         .bytes(100)
                         .createdAt(1740942137)
                         .filename("test")
@@ -338,7 +339,7 @@ class GigaChatClientImplTest {
                 .filename("file.pdf")
                 .createdAt(1741011256)
                 .bytes(2422467)
-                .accessPolicy("private")
+                .accessPolicy(AccessPolicy.PRIVATE)
                 .build();
         when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
                 .body(new ByteArrayInputStream(objectMapper.writeValueAsBytes(body)))

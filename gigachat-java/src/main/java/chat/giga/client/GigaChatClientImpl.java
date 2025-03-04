@@ -26,13 +26,11 @@ import lombok.Builder;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import static chat.giga.util.FIleUtils.createMultiPartBody;
-import static chat.giga.util.FIleUtils.getFileType;
+import static chat.giga.util.FileUtils.createMultiPartBody;
 import static chat.giga.util.Utils.getOrDefault;
 
 import static java.time.Duration.ofSeconds;
@@ -152,8 +150,7 @@ class GigaChatClientImpl implements GigaChatClient {
     public FileResponse uploadFile(UploadFileRequest request) {
         String boundary = Long.toHexString(System.currentTimeMillis());
         try {
-            var fileType = getFileType(Files.readAllBytes(request.file().toPath()));
-            var requestBody = createMultiPartBody(request.file(), boundary, request.purpose(), fileType);
+            var requestBody = createMultiPartBody(request.file(), boundary, request.purpose(), request.mimeType());
             var httpRequest = HttpRequest.builder()
                     .url(apiUrl + "/files")
                     .method(HttpMethod.POST)
