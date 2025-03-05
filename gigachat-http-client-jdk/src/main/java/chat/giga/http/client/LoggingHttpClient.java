@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import static chat.giga.http.client.HttpHeaders.CONTENT_TYPE;
+import static chat.giga.http.client.MediaType.APPLICATION_JSON;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 
@@ -36,10 +38,16 @@ public class LoggingHttpClient implements HttpClient {
                             - headers: {}
                             - body: {}
                             """,
-                    httpRequest.method(), httpRequest.url(), format(httpRequest.headers()), httpRequest.bodyAsString());
+                    httpRequest.method(), httpRequest.url(), format(httpRequest.headers()), isJson(httpRequest.headers()) ? httpRequest.bodyAsString() : "");
         } catch (Exception e) {
             log.error("Exception while logging HTTP request: {}", e.getMessage(), e);
         }
+    }
+
+    private boolean isJson(Map<String, List<String>> headers) {
+        return headers.entrySet().stream()
+                .filter(headerKey -> headerKey.getKey().equalsIgnoreCase(CONTENT_TYPE))
+                .anyMatch(e -> e.getValue().stream().anyMatch(ee -> ee.contains(APPLICATION_JSON)));
     }
 
     private void logResponse(String responseDataPart) {
@@ -62,7 +70,7 @@ public class LoggingHttpClient implements HttpClient {
                             - headers: {}
                             - body: {}
                             """,
-                    response.statusCode(), format(response.headers()), response.bodyAsString());
+                    response.statusCode(), format(response.headers()), isJson(response.headers()) ? response.bodyAsString() : "");
         } catch (Exception e) {
             log.error("Exception while logging HTTP response: {}", e.getMessage(), e);
         }

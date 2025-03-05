@@ -1,6 +1,7 @@
 package chat.giga.client;
 
 import chat.giga.http.client.HttpClient;
+import chat.giga.http.client.HttpHeaders;
 import chat.giga.http.client.HttpMethod;
 import chat.giga.http.client.HttpRequest;
 import chat.giga.model.AccessTokenResponse;
@@ -15,6 +16,9 @@ import java.util.Base64;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static chat.giga.client.GigaChatClientImpl.USER_AGENT;
+import static chat.giga.client.GigaChatClientImpl.USER_AGENT_VALUE;
+import static chat.giga.http.client.MediaType.APPLICATION_JSON;
 import static chat.giga.util.Utils.getOrDefault;
 
 public class GigaChatAuthClientImpl implements GigaChatAuthClient {
@@ -53,10 +57,11 @@ public class GigaChatAuthClientImpl implements GigaChatAuthClient {
         var httpRequest = HttpRequest.builder()
                 .url(authApiUrl + "/oauth")
                 .method(HttpMethod.POST)
-                .header("Content-Type", "application/x-www-form-urlencoded")
-                .header("Accept", "application/json")
+                .header(HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded")
+                .header(HttpHeaders.ACCEPT, APPLICATION_JSON)
                 .header("RqUID", UUID.randomUUID().toString())
-                .header("Authorization", "Basic " + encodedCredentials)
+                .header(HttpHeaders.AUTHORIZATION, "Basic " + encodedCredentials)
+                .header(USER_AGENT, USER_AGENT_VALUE)
                 .body(formData.getBytes(StandardCharsets.UTF_8))
                 .build();
 
