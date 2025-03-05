@@ -2,13 +2,11 @@ package chat.giga.util;
 
 import lombok.experimental.UtilityClass;
 
-import java.io.IOException;
-
 @UtilityClass
 public class FileUtils {
 
     public static StringBuilder createMultiPartBody(byte[] file, String boundary, String purpose, String contentType,
-            String fileName) throws IOException {
+            String fileName) {
         var requestBody = new StringBuilder();
         requestBody.append("--").append(boundary).append("\r\n");
         requestBody.append("Content-Disposition: form-data; name=\"purpose\"\r\n\r\n");

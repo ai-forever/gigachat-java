@@ -28,13 +28,13 @@ public class ChatFunction {
     String description;
 
     /**
-     * Объект с набором пар ключ-значение, которые описывают аргументы функции.
+     * Набор пар ключ-значение, которые описывают аргументы функции.
      */
     @JsonProperty
     ChatFunctionParameters parameters;
 
     /**
-     * Объекты с парами `запрос_пользователя`-`параметры_функции`, которые будут служить модели примерами ожидаемого
+     * Список с парами `запрос_пользователя`-`параметры_функции`, которые будут служить модели примерами ожидаемого
      * результата.
      */
     @JsonProperty("few_shot_examples")
@@ -42,7 +42,7 @@ public class ChatFunction {
     List<ChatFunctionsFewShotExamples> fewShotExamples;
 
     /**
-     * Объект с описанием параметров, которые может вернуть ваша функция.
+     * Описание параметров, которые может вернуть ваша функция.
      */
     @JsonProperty("return_parameters")
     ChatFunctionParameters returnParameters;

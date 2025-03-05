@@ -12,7 +12,7 @@ import chat.giga.model.completion.CompletionRequest;
 
 import java.net.http.HttpClient;
 
-public class UseCertificateAuth {
+public class UseCertificateAuthExample {
 
     public static void main(String[] args) {
         GigaChatClient client = GigaChatClient.builder()

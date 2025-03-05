@@ -22,7 +22,7 @@ public class ChatFunctionsFewShotExamples {
     String request;
 
     /**
-     * Пример заполнения параметров пользовательской функции.
+     * Набор заполнения параметров пользовательской функции.
      */
     @JsonProperty
     @Singular

@@ -24,7 +24,7 @@ public class EmbeddingResponse {
     String object = "list";
 
     /**
-     * Объект с данными о векторном представлении текста.
+     * Список с данными о векторном представлении текста.
      */
     @JsonProperty
     @Singular("addData")

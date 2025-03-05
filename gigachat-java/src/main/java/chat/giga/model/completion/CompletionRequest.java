@@ -23,7 +23,7 @@ public class CompletionRequest {
     String model;
 
     /**
-     * Массив сообщений, которыми пользователь обменивался с моделью.
+     * Список сообщений, которыми пользователь обменивался с моделью.
      */
     @JsonProperty
     @Singular
@@ -33,7 +33,7 @@ public class CompletionRequest {
     ChatFunctionCall functionCall;
 
     /**
-     * Массив с описанием пользовательских функций.
+     * Список с описанием пользовательских функций.
      */
     @JsonProperty
     @Singular

@@ -1,9 +1,11 @@
 package chat.giga.client;
 
 import chat.giga.http.client.HttpClient;
+import chat.giga.http.client.HttpHeaders;
 import chat.giga.http.client.HttpMethod;
 import chat.giga.http.client.HttpRequest;
 import chat.giga.http.client.HttpResponse;
+import chat.giga.http.client.MediaType;
 import chat.giga.model.AccessTokenResponse;
 import chat.giga.model.Scope;
 import chat.giga.util.JsonUtils;
@@ -57,9 +59,11 @@ public class GigaChatAuthClientImplTest {
         assertThat(captor.getValue()).satisfies(r -> {
             assertThat(r.method()).isEqualTo(HttpMethod.POST);
             assertThat(r.url()).asString().isEqualTo("https://ngw.devices.sberbank.ru:9443/api/v2/oauth");
-            assertThat(r.headers()).containsEntry("Authorization", List.of("Basic Y2xpZW50SWQ6c2VjcmV0"));
-            assertThat(r.headers()).containsEntry("Content-Type", List.of("application/x-www-form-urlencoded"));
-            assertThat(r.headers()).containsKey("RqUID");
+            assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
+            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Basic Y2xpZW50SWQ6c2VjcmV0"));
+            assertThat(r.headers()).containsEntry(HttpHeaders.CONTENT_TYPE,
+                    List.of(MediaType.APPLICATION_X_WWW_FORM_URLENCODED));
+            assertThat(r.headers()).containsKey(GigaChatAuthClientImpl.RQ_UID_HEADER);
             assertThat(new String(r.body(), StandardCharsets.UTF_8)).isEqualTo("scope=" + scope.name());
         });
     }
@@ -133,9 +137,8 @@ public class GigaChatAuthClientImplTest {
 
         var captor = ArgumentCaptor.forClass(HttpRequest.class);
         verify(httpClient).execute(captor.capture());
-        assertThat(captor.getValue()).satisfies(r -> {
-            assertThat(r.url()).asString().isEqualTo("https://test.com/oauth");
-        });
+        assertThat(captor.getValue()).satisfies(r ->
+                assertThat(r.url()).asString().isEqualTo("https://test.com/oauth"));
     }
 
     private HttpResponse getHttpResponse(AccessTokenResponse mockResponse) throws JsonProcessingException {
