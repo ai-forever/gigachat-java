@@ -22,7 +22,7 @@ public class TokenCountRequest {
     String model;
 
     /**
-     * Строка или массив строк, в которых надо подсчитать количество токенов.
+     * Список строк, в которых надо подсчитать количество токенов.
      */
     @JsonProperty
     @Singular("addInput")

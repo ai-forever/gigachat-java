@@ -24,7 +24,7 @@ public class EmbeddingRequest {
     String model = "Embeddings";
 
     /**
-     * Строка или массив строк, которые будут использованы для генерации эмбеддинга.
+     * Список строк, которые будут использованы для генерации эмбеддинга.
      */
     @JsonProperty
     @Singular("addInput")
