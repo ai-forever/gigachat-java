@@ -44,6 +44,8 @@ class GigaChatClientImpl implements GigaChatClient {
     public static final String DEFAULT_API_URL = "https://gigachat.devices.sberbank.ru/api/v1";
     public static final String REQUEST_ID_HEADER = "X-Request-ID";
     public static final String CLIENT_ID_HEADER = "X-Client-ID";
+    public static final String USER_AGENT = "User-Agent";
+    public static final String USER_AGENT_VALUE = "GigaChat-java-lib";
 
     private final GigaChatAuthClient gigaChatAuthClient;
     private final HttpClient httpClient;
@@ -105,6 +107,7 @@ class GigaChatClientImpl implements GigaChatClient {
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                 .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                 .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
+                .header(USER_AGENT, USER_AGENT_VALUE)
                 .build();
 
         var httpResponse = httpClient.execute(httpRequest);
@@ -126,6 +129,7 @@ class GigaChatClientImpl implements GigaChatClient {
                     .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                     .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
+                    .header(USER_AGENT, USER_AGENT_VALUE)
                     .body(objectMapper.writeValueAsBytes(request.toBuilder()
                             .stream(false)
                             .build()))
@@ -149,6 +153,7 @@ class GigaChatClientImpl implements GigaChatClient {
                     .header(HttpHeaders.ACCEPT, MediaType.TEXT_EVENT_STREAM)
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                     .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
+                    .header(USER_AGENT, USER_AGENT_VALUE)
                     .body(objectMapper.writeValueAsBytes(request.toBuilder()
                             .stream(true)
                             .build()))
@@ -190,6 +195,7 @@ class GigaChatClientImpl implements GigaChatClient {
                     .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                     .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
+                    .header(USER_AGENT, USER_AGENT_VALUE)
                     .body(objectMapper.writeValueAsBytes(request))
                     .build();
 
@@ -212,6 +218,7 @@ class GigaChatClientImpl implements GigaChatClient {
                     .method(HttpMethod.POST)
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                     .header(HttpHeaders.CONTENT_TYPE, "multipart/form-data; boundary=" + boundary)
+                    .header(USER_AGENT, USER_AGENT_VALUE)
                     .body(requestBody.toString().getBytes(StandardCharsets.UTF_8))
                     .build();
 
@@ -231,11 +238,11 @@ class GigaChatClientImpl implements GigaChatClient {
                 .header(HttpHeaders.ACCEPT, MediaType.IMAGE_JPG)
                 .headerIf(clientId != null, CLIENT_ID_HEADER, clientId)
                 .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
+                .header(USER_AGENT, USER_AGENT_VALUE)
                 .build();
 
         var httpResponse = httpClient.execute(httpRequest);
         return httpResponse.body();
-
     }
 
     @Override
@@ -246,6 +253,7 @@ class GigaChatClientImpl implements GigaChatClient {
                     .method(HttpMethod.GET)
                     .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
+                    .header(USER_AGENT, USER_AGENT_VALUE)
                     .build();
 
             var httpResponse = httpClient.execute(httpRequest);
@@ -264,6 +272,7 @@ class GigaChatClientImpl implements GigaChatClient {
                     .method(HttpMethod.GET)
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                     .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                    .header(USER_AGENT, USER_AGENT_VALUE)
                     .build();
 
             var response = httpClient.execute(httpRequest);
@@ -282,6 +291,7 @@ class GigaChatClientImpl implements GigaChatClient {
                     .method(HttpMethod.POST)
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                     .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                    .header(USER_AGENT, USER_AGENT_VALUE)
                     .build();
 
             var response = httpClient.execute(httpRequest);
@@ -302,6 +312,7 @@ class GigaChatClientImpl implements GigaChatClient {
                     .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                     .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                     .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
+                    .header(USER_AGENT, USER_AGENT_VALUE)
                     .body(objectMapper.writeValueAsBytes(request))
                     .build();
 
@@ -322,6 +333,7 @@ class GigaChatClientImpl implements GigaChatClient {
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                 .headerIf(!useCertificateAuth, HttpHeaders.AUTHORIZATION, buildBearerAuth())
                 .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
+                .header(USER_AGENT, USER_AGENT_VALUE)
                 .build();
 
         var httpResponse = httpClient.execute(httpRequest);

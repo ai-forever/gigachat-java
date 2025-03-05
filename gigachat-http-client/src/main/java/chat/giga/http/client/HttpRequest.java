@@ -39,6 +39,10 @@ public class HttpRequest {
     }
 
     public String bodyAsString() {
-        return new String(body, StandardCharsets.UTF_8);
+        if (body != null && body.length > 0) {
+            return new String(body, StandardCharsets.UTF_8);
+        } else {
+            return null;
+        }
     }
 }
