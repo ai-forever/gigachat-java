@@ -4,24 +4,21 @@ import chat.giga.http.client.sse.SseListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import static chat.giga.http.client.HttpHeaders.CONTENT_TYPE;
-import static chat.giga.http.client.MediaType.APPLICATION_JSON;
-import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 
 public class LoggingHttpClient implements HttpClient {
 
     private static final Logger log = LoggerFactory.getLogger(LoggingHttpClient.class);
-    private static final Set<String> SECRET_HEADERS = new HashSet<>(asList("authorization"));
+    private static final Set<String> SECRET_HEADERS = Set.of("authorization");
+
+    private final HttpClient client;
     private final boolean logRequests;
     private final boolean logResponses;
-    private final HttpClient client;
 
     public LoggingHttpClient(HttpClient client, Boolean logRequests, Boolean logResponses) {
         this.client = client;
@@ -38,16 +35,17 @@ public class LoggingHttpClient implements HttpClient {
                             - headers: {}
                             - body: {}
                             """,
-                    httpRequest.method(), httpRequest.url(), format(httpRequest.headers()), isJson(httpRequest.headers()) ? httpRequest.bodyAsString() : "");
+                    httpRequest.method(), httpRequest.url(), format(httpRequest.headers()),
+                    isJsonBody(httpRequest.headers()) ? httpRequest.bodyAsString() : "");
         } catch (Exception e) {
             log.error("Exception while logging HTTP request: {}", e.getMessage(), e);
         }
     }
 
-    private boolean isJson(Map<String, List<String>> headers) {
+    private boolean isJsonBody(Map<String, List<String>> headers) {
         return headers.entrySet().stream()
-                .filter(headerKey -> headerKey.getKey().equalsIgnoreCase(CONTENT_TYPE))
-                .anyMatch(e -> e.getValue().stream().anyMatch(ee -> ee.contains(APPLICATION_JSON)));
+                .filter(headerKey -> headerKey.getKey().equalsIgnoreCase(HttpHeaders.CONTENT_TYPE))
+                .anyMatch(e -> e.getValue().contains(MediaType.APPLICATION_JSON));
     }
 
     private void logResponse(String responseDataPart) {
@@ -70,7 +68,8 @@ public class LoggingHttpClient implements HttpClient {
                             - headers: {}
                             - body: {}
                             """,
-                    response.statusCode(), format(response.headers()), isJson(response.headers()) ? response.bodyAsString() : "");
+                    response.statusCode(), format(response.headers()),
+                    isJsonBody(response.headers()) ? response.bodyAsString() : "");
         } catch (Exception e) {
             log.error("Exception while logging HTTP response: {}", e.getMessage(), e);
         }
@@ -88,11 +87,12 @@ public class LoggingHttpClient implements HttpClient {
         if (logRequests) {
             logRequest(request);
         }
-        HttpResponse response = client.execute(request);
 
+        HttpResponse response = client.execute(request);
         if (logResponses) {
             logResponse(response);
         }
+
         return response;
     }
 
@@ -101,27 +101,27 @@ public class LoggingHttpClient implements HttpClient {
         if (logRequests) {
             logRequest(request);
         }
-        if (logResponses) {
-            client.execute(request, new SseListener() {
-                @Override
-                public void onData(String data) {
+
+        client.execute(request, new SseListener() {
+            @Override
+            public void onData(String data) {
+                if (logResponses) {
                     logResponse(data);
-                    listener.onData(data);
                 }
 
-                @Override
-                public void onComplete() {
-                    listener.onComplete();
-                }
+                listener.onData(data);
+            }
 
-                @Override
-                public void onError(Throwable th) {
-                    listener.onError(th);
-                }
-            });
-        } else {
-            client.execute(request, listener);
-        }
+            @Override
+            public void onComplete() {
+                listener.onComplete();
+            }
+
+            @Override
+            public void onError(Throwable th) {
+                listener.onError(th);
+            }
+        });
     }
 
     @Override
@@ -129,8 +129,8 @@ public class LoggingHttpClient implements HttpClient {
         if (logRequests) {
             logRequest(request);
         }
-        CompletableFuture<HttpResponse> response = client.executeAsync(request);
 
+        CompletableFuture<HttpResponse> response = client.executeAsync(request);
         return response.thenApply(e -> {
             if (logResponses) {
                 logResponse(e);

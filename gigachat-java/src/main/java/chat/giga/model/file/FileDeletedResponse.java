@@ -6,6 +6,8 @@ import lombok.Value;
 import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 
+import java.util.UUID;
+
 @Value
 @Builder
 @Jacksonized
@@ -16,7 +18,7 @@ public class FileDeletedResponse {
      * Идентификатор файла
      */
     @JsonProperty
-    String id;
+    UUID id;
 
     /**
      * Признак удаления файла

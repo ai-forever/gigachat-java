@@ -10,8 +10,8 @@ import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.embedding.EmbeddingResponse;
-import chat.giga.model.file.FileDeletedResponse;
 import chat.giga.model.file.AvailableFilesResponse;
+import chat.giga.model.file.FileDeletedResponse;
 import chat.giga.model.file.FileResponse;
 import chat.giga.model.file.UploadFileRequest;
 
@@ -22,7 +22,7 @@ public interface GigaChatClient {
     /**
      * Получить список моделей
      *
-     * @return массив объектов с данными доступных моделей.
+     * @return список данных доступных моделей.
      */
     ModelResponse models();
 
@@ -43,7 +43,7 @@ public interface GigaChatClient {
     void completions(CompletionRequest request, ResponseHandler<CompletionChunkResponse> handler);
 
     /**
-     * Создать эмбендиг
+     * Создать эмбендинг
      *
      * @param request описание запроса на получения эмбендинга
      * @return векторные представления соответствующих текстовых запросов. Векторное представление выглядит как массив
@@ -57,24 +57,23 @@ public interface GigaChatClient {
      * Загрузить файл
      *
      * @param request описание запроса запрос на загрузку файла
-     * @return объект с данными загруженного файла. Загруженные файлы доступны только вам
+     * @return данные загруженного файла. Загруженные файлы доступны только вам
      */
     FileResponse uploadFile(UploadFileRequest request);
 
     /**
      * Скачать файл
      *
-     * @param fileId Идентификатор изображения, полученный в ответ на запрос пользователя о генерации изображений
+     * @param fileId   Идентификатор изображения, полученный в ответ на запрос пользователя о генерации изображений
      * @param clientId идентификатор клиента
-     * @return массив объектов с данными доступных файлов.
+     * @return массив байт файла.
      */
-
     byte[] downloadFile(String fileId, String clientId);
 
     /**
      * Получить список доступных файлов
      *
-     * @return массив объектов с данными доступных файлов.
+     * @return список с данными доступных файлов.
      */
     AvailableFilesResponse getListAvailableFile();
 
@@ -82,7 +81,7 @@ public interface GigaChatClient {
      * Получить информацию о файле
      *
      * @param fileId идентификатор файла.
-     * @return объект с описанием указанного файла.
+     * @return описание указанного файла.
      */
     FileResponse getFileInfo(String fileId);
 
@@ -90,7 +89,7 @@ public interface GigaChatClient {
      * Удалить файл
      *
      * @param fileId идентификатор файла.
-     * @return объект с описанием указанного файла.
+     * @return описание удаленного файла.
      */
     FileDeletedResponse deleteFile(String fileId);
 
@@ -98,20 +97,19 @@ public interface GigaChatClient {
      * Подсчитать количество токенов
      *
      * @param request описание запроса на получение количества токенов
-     * @return объект с информацией о количестве токенов, подсчитанных заданной моделью в строках. Строки передаются в
-     * массиве input.
+     * @return список с информацией о количестве токенов, подсчитанных заданной моделью в строках.
      */
     List<TokenCount> tokensCount(TokenCountRequest request);
 
     /**
      * Получить остаток токенов
      *
-     * @return Возвращает доступный остаток токенов для каждой из моделей. Метод доступен только при покупке пакетов
+     * @return возвращает доступный остаток токенов для каждой из моделей. Метод доступен только при покупке пакетов
      * токенов.
      */
     BalanceResponse balance();
 
-    static GigaChatClientImpl.GigaChatClientImplBuilder builder() {
+    static GigaChatClientImplBuilder builder() {
         return new GigaChatClientImplBuilder();
     }
 }

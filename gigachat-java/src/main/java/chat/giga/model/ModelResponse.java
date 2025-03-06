@@ -16,7 +16,7 @@ import java.util.List;
 public class ModelResponse {
 
     /**
-     * Массив объектов с данными доступных моделей
+     * Список объектов с данными доступных моделей
      */
     @JsonProperty
     @Singular("addData")

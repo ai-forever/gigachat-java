@@ -15,7 +15,7 @@ import java.util.List;
 public class AvailableFilesResponse {
 
     /**
-     * массив объектов с данными доступных файлов
+     * Список объектов с данными доступных файлов
      */
     @JsonProperty
     List<FileResponse> data;
