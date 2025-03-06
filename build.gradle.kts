@@ -30,11 +30,11 @@ publishing {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
             groupId = project.group.toString()
-            artifactId = "gigachat-sdk-java"
+            artifactId = "gigachat-java"
             version = project.version.toString()
 
             pom {
-                name.set("GigaChat SDK Java")
+                name.set("GigaChat Java")
                 url.set("https://github.com/ai-forever/gigachat-java")
                 licenses {
                     license {
@@ -60,11 +60,19 @@ publishing {
     repositories {
         maven {
             name = "MavenCentral"
-            url = uri("https://s01.oss.sonatype.org/repository/maven-releases/")
+            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
             credentials {
                 username = project.findProperty("OSSRH_USERNAME") as String? ?: ""
                 password = project.findProperty("OSSRH_PASSWORD") as String? ?: ""
             }
         }
+    }
+}
+
+tasks.withType {
+    doFirst {
+        val modulePaths = project.sourceSets.flatMap { it.allSource.srcDirs }
+                .filterNot { it.name == "gigachat-java-example" }
+        project.setProperty("mavenPublishModulePaths", modulePaths.joinToString(","))
     }
 }
