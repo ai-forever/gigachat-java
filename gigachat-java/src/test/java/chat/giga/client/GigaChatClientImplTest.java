@@ -1,5 +1,6 @@
 package chat.giga.client;
 
+import chat.giga.client.auth.AuthClient;
 import chat.giga.http.client.HttpClient;
 import chat.giga.http.client.HttpHeaders;
 import chat.giga.http.client.HttpMethod;
@@ -49,7 +50,7 @@ class GigaChatClientImplTest {
     void setUp() {
         gigaChatClient = GigaChatClientImpl.builder()
                 .apiHttpClient(httpClient)
-                .accessToken("testToken")
+                .authClient(AuthClient.builder().withProvidedTokenAuth("testToken").build())
                 .build();
     }
 

@@ -1,6 +1,8 @@
 package chat.giga;
 
 import chat.giga.client.GigaChatClient;
+import chat.giga.client.auth.AuthClient;
+import chat.giga.client.auth.AuthClientBuilder;
 import chat.giga.http.client.HttpClientException;
 import chat.giga.model.ModelName;
 import chat.giga.model.Scope;
@@ -16,9 +18,13 @@ public class CompletionConversationExample {
         GigaChatClient client = GigaChatClient.builder()
                 .logRequests(true)
                 .logResponses(true)
-                .clientId("test-client-id")
-                .clientSecret("test-scope")
-                .scope(Scope.GIGACHAT_API_PERS)
+                .authClient(AuthClient.builder()
+                        .withOAuth(AuthClientBuilder.OAuthBuilder.builder()
+                                .scope(Scope.GIGACHAT_API_PERS)
+                                .clientId("test-client-id")
+                                .clientSecret("test-scope")
+                                .build())
+                        .build())
                 .build();
 
         CompletionRequest.CompletionRequestBuilder builder = CompletionRequest.builder()

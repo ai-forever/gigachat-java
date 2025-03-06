@@ -1,9 +1,9 @@
 package chat.giga.client;
 
+import chat.giga.client.auth.AuthClient;
 import chat.giga.http.client.HttpClient;
 import chat.giga.model.BalanceResponse;
 import chat.giga.model.ModelResponse;
-import chat.giga.model.Scope;
 import chat.giga.model.TokenCount;
 import chat.giga.model.TokenCountRequest;
 import chat.giga.model.completion.CompletionChunkResponse;
@@ -27,11 +27,14 @@ import java.util.concurrent.CompletableFuture;
 class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaChatClientAsync {
 
     @Builder
-    GigaChatClientAsyncImpl(String clientId, String clientSecret, Scope scope, String accessToken,
-            boolean useCertificateAuth, HttpClient apiHttpClient, HttpClient authHttpClient, Integer readTimeout,
-            Integer connectTimeout, String apiUrl, String authApiUrl, boolean logRequests, boolean logResponses) {
-        super(clientId, clientSecret, scope, accessToken, useCertificateAuth, apiHttpClient, authHttpClient,
-                readTimeout, connectTimeout, apiUrl, authApiUrl, logRequests, logResponses);
+    GigaChatClientAsyncImpl(HttpClient apiHttpClient,
+            AuthClient authClient,
+            Integer readTimeout,
+            Integer connectTimeout,
+            String apiUrl,
+            boolean logRequests,
+            boolean logResponses) {
+        super(apiHttpClient, authClient, readTimeout, connectTimeout, apiUrl, logRequests, logResponses);
     }
 
     @Override
