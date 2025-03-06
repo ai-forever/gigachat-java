@@ -166,7 +166,7 @@ abstract class BaseGigaChatClient {
                 .url(apiUrl + "/files/" + fileId + "/content")
                 .method(HttpMethod.GET)
                 .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
-                .header(HttpHeaders.ACCEPT, MediaType.IMAGE_JPG)
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_OCTET_STREAM)
                 .headerIf(clientId != null, CLIENT_ID_HEADER, clientId);
 
         return authClient.authenticateRequest(requestBuilder).build();
