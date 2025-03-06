@@ -228,7 +228,7 @@ class GigaChatClientAsyncImplTest {
             assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/files/" + fileId + "/content");
             assertThat(r.method()).isEqualTo(HttpMethod.GET);
             assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
-            assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.IMAGE_JPG));
+            assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_OCTET_STREAM));
             assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
         });
     }
@@ -253,7 +253,7 @@ class GigaChatClientAsyncImplTest {
             assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/files/" + fileId + "/content");
             assertThat(r.method()).isEqualTo(HttpMethod.GET);
             assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
-            assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.IMAGE_JPG));
+            assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_OCTET_STREAM));
             assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
             assertThat(r.headers()).containsEntry(GigaChatClientImpl.CLIENT_ID_HEADER, List.of(clientId));
         });
