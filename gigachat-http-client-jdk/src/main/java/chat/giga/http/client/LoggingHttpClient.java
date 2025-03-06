@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import static chat.giga.http.client.MediaType.APPLICATION_JSON;
+
 import static java.util.stream.Collectors.joining;
 
 public class LoggingHttpClient implements HttpClient {
@@ -45,7 +47,7 @@ public class LoggingHttpClient implements HttpClient {
     private boolean isJsonBody(Map<String, List<String>> headers) {
         return headers.entrySet().stream()
                 .filter(headerKey -> headerKey.getKey().equalsIgnoreCase(HttpHeaders.CONTENT_TYPE))
-                .anyMatch(e -> e.getValue().contains(MediaType.APPLICATION_JSON));
+                .anyMatch(e -> e.getValue().stream().anyMatch(ee -> ee.contains(APPLICATION_JSON)));
     }
 
     private void logResponse(String responseDataPart) {

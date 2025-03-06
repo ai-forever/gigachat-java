@@ -1,6 +1,8 @@
 package chat.giga;
 
 import chat.giga.client.GigaChatClient;
+import chat.giga.client.auth.AuthClient;
+import chat.giga.client.auth.AuthClientBuilder.OAuthBuilder;
 import chat.giga.http.client.HttpClientException;
 import chat.giga.model.Scope;
 
@@ -12,9 +14,13 @@ public class DownloadExample {
     public static void main(String[] args) {
 
         GigaChatClient client = GigaChatClient.builder()
-                .clientId("test-client-id")
-                .clientSecret("test-scope")
-                .scope(Scope.GIGACHAT_API_PERS)
+                .authClient(AuthClient.builder()
+                        .withOAuth(OAuthBuilder.builder()
+                                .scope(Scope.GIGACHAT_API_PERS)
+                                .clientId("test-client-id")
+                                .clientSecret("test-scope")
+                                .build())
+                        .build())
                 .build();
         try {
             System.out.println(Arrays.toString(client.downloadFile(UUID.randomUUID().toString(), null)));

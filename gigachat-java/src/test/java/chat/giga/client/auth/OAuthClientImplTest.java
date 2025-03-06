@@ -1,4 +1,4 @@
-package chat.giga.client;
+package chat.giga.client.auth;
 
 import chat.giga.http.client.HttpClient;
 import chat.giga.http.client.HttpHeaders;
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class GigaChatAuthClientImplTest {
+public class OAuthClientImplTest {
 
     String clientId = "clientId";
     String secret = "secret";
@@ -42,7 +42,7 @@ public class GigaChatAuthClientImplTest {
 
     @Test
     public void oauth() throws Exception {
-        GigaChatAuthClientImpl authClient = new GigaChatAuthClientImpl(httpClient, clientId, secret, scope, null);
+        OAuthClientImpl authClient = new OAuthClientImpl(httpClient, clientId, secret, scope, null);
         AccessTokenResponse mockResponse = AccessTokenResponse.builder()
                 .accessToken(token)
                 .expiresAt(Instant.now()
@@ -59,18 +59,18 @@ public class GigaChatAuthClientImplTest {
         assertThat(captor.getValue()).satisfies(r -> {
             assertThat(r.method()).isEqualTo(HttpMethod.POST);
             assertThat(r.url()).asString().isEqualTo("https://ngw.devices.sberbank.ru:9443/api/v2/oauth");
-            assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
+            assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(TokenBasedAuth.USER_AGENT_NAME));
             assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Basic Y2xpZW50SWQ6c2VjcmV0"));
             assertThat(r.headers()).containsEntry(HttpHeaders.CONTENT_TYPE,
                     List.of(MediaType.APPLICATION_X_WWW_FORM_URLENCODED));
-            assertThat(r.headers()).containsKey(GigaChatAuthClientImpl.RQ_UID_HEADER);
+            assertThat(r.headers()).containsKey(OAuthClientImpl.RQ_UID_HEADER);
             assertThat(new String(r.body(), StandardCharsets.UTF_8)).isEqualTo("scope=" + scope.name());
         });
     }
 
     @Test
     public void retrieveTokenWhenTokenIsNew() throws Exception {
-        GigaChatAuthClientImpl authClient = new GigaChatAuthClientImpl(httpClient, clientId, secret, scope, null);
+        OAuthClientImpl authClient = new OAuthClientImpl(httpClient, clientId, secret, scope, null);
         AccessTokenResponse mockResponse = AccessTokenResponse.builder()
                 .accessToken(token)
                 .expiresAt(Instant.now()
@@ -86,7 +86,7 @@ public class GigaChatAuthClientImplTest {
 
     @Test
     public void retrieveTokenWhenTokenExistsAndIsOk() throws Exception {
-        GigaChatAuthClientImpl authClient = new GigaChatAuthClientImpl(httpClient, clientId, secret, scope, null);
+        OAuthClientImpl authClient = new OAuthClientImpl(httpClient, clientId, secret, scope, null);
         AccessTokenResponse mockResponse = AccessTokenResponse.builder()
                 .accessToken(token)
                 .expiresAt(Instant.now()
@@ -105,7 +105,7 @@ public class GigaChatAuthClientImplTest {
 
     @Test
     public void retrieveTokenTokenWhenTokenExistsAndIsExpired() throws Exception {
-        GigaChatAuthClientImpl authClient = new GigaChatAuthClientImpl(httpClient, clientId, secret, scope, null);
+        OAuthClientImpl authClient = new OAuthClientImpl(httpClient, clientId, secret, scope, null);
         AccessTokenResponse mockResponse = AccessTokenResponse.builder()
                 .accessToken(token)
                 .expiresAt(Instant.now()
@@ -124,7 +124,7 @@ public class GigaChatAuthClientImplTest {
 
     @Test
     public void checkCustomUrl() throws Exception {
-        GigaChatAuthClientImpl authClient = new GigaChatAuthClientImpl(httpClient, clientId, secret, scope,
+        OAuthClientImpl authClient = new OAuthClientImpl(httpClient, clientId, secret, scope,
                 "https://test.com");
         AccessTokenResponse mockResponse = AccessTokenResponse.builder()
                 .accessToken("test")
