@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 import java.util.UUID;
 
 import static chat.giga.util.Utils.getOrDefault;
@@ -50,6 +51,7 @@ abstract class BaseGigaChatClient {
 
         this.apiUrl = getOrDefault(apiUrl, DEFAULT_API_URL);
         this.authClient = authClient;
+        Objects.requireNonNull(authClient, "authClient must not be null");
 
         var client = authClient.supportsHttpClient() ? authClient.getHttpClient()
                 : (apiHttpClient == null ? new JdkHttpClientBuilder()
@@ -62,8 +64,6 @@ abstract class BaseGigaChatClient {
         } else {
             this.httpClient = client;
         }
-
-
     }
 
     protected HttpRequest createModelHttpRequest() {
