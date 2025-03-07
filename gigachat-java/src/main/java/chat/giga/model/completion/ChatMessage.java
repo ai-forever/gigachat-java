@@ -49,6 +49,17 @@ public class ChatMessage {
     @Singular
     List<String> attachments;
 
+    /**
+     * Имя пользовательской функции из function_call.name
+     */
+    @JsonProperty
+    String name;
+
+    public static ChatMessage of(ChoiceMessage message) {
+        return new ChatMessage(Role.fromValue(message.role().value()), message.content(), message.functionsStateId(),
+                null, null);
+    }
+
     public enum Role {
 
         SYSTEM("system"), USER("user"), ASSISTANT("assistant"), FUNCTION("function");

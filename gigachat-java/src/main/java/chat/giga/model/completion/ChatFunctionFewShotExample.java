@@ -13,7 +13,7 @@ import java.util.Map;
 @Builder
 @Jacksonized
 @Accessors(fluent = true)
-public class ChatFunctionsFewShotExamples {
+public class ChatFunctionFewShotExample {
 
     /**
      * Запрос пользователя.
