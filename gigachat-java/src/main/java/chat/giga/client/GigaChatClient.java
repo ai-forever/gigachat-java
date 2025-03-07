@@ -5,7 +5,6 @@ import chat.giga.model.BalanceResponse;
 import chat.giga.model.ModelResponse;
 import chat.giga.model.TokenCount;
 import chat.giga.model.TokenCountRequest;
-import chat.giga.model.completion.CompletionChunkResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
 import chat.giga.model.embedding.EmbeddingRequest;
@@ -33,14 +32,6 @@ public interface GigaChatClient {
      * @return ответ модели, сгенерированный на основе переданных сообщений.
      */
     CompletionResponse completions(CompletionRequest request);
-
-    /**
-     * Получить ответ модели на сообщения (stream = true)
-     *
-     * @param request описание запроса на получение ответа от модели
-     * @param handler обработчик сообщений, сгенерированный на основе переданных сообщений.
-     */
-    void completions(CompletionRequest request, ResponseHandler<CompletionChunkResponse> handler);
 
     /**
      * Создать эмбендинг

@@ -7,7 +7,6 @@ import chat.giga.http.client.HttpClientException;
 import chat.giga.model.ModelName;
 import chat.giga.model.Scope;
 import chat.giga.model.completion.ChatFunction;
-import chat.giga.model.completion.ChatFunctionCallEnum;
 import chat.giga.model.completion.ChatFunctionFewShotExample;
 import chat.giga.model.completion.ChatFunctionParameters;
 import chat.giga.model.completion.ChatFunctionParametersProperty;
@@ -90,7 +89,6 @@ public class FunctionExample {
             var response = client.completions(CompletionRequest.builder()
                     .model(ModelName.GIGA_CHAT_PRO)
                     .messages(messages)
-                    .functionCall(ChatFunctionCallEnum.AUTO)
                     .function(function)
                     .build());
 
@@ -106,7 +104,6 @@ public class FunctionExample {
             response = client.completions(CompletionRequest.builder()
                     .model(ModelName.GIGA_CHAT_PRO)
                     .messages(messages)
-                    .functionCall(ChatFunctionCallEnum.AUTO)
                     .function(function)
                     .build());
 

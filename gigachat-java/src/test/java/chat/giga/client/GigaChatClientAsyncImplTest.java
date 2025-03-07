@@ -9,6 +9,7 @@ import chat.giga.http.client.HttpResponse;
 import chat.giga.http.client.MediaType;
 import chat.giga.http.client.sse.SseListener;
 import chat.giga.model.TokenCountRequest;
+import chat.giga.model.completion.ChatFunctionCallEnum;
 import chat.giga.model.completion.CompletionChunkResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.embedding.EmbeddingRequest;
@@ -83,7 +84,10 @@ class GigaChatClientAsyncImplTest {
                 .body(objectMapper.writeValueAsBytes(body))
                 .build()));
 
-        var request = TestData.completionRequest();
+        var request = TestData.completionRequest()
+                .toBuilder()
+                .functionCall(ChatFunctionCallEnum.AUTO)
+                .build();
         var response = gigaChatClientAsync.completions(request).get();
 
         assertThat(response).isEqualTo(body);
@@ -104,7 +108,7 @@ class GigaChatClientAsyncImplTest {
     }
 
     @Test
-    void completionStream() throws Exception {
+    void completionStream() {
         var body = TestData.completionChunkResponse();
         doAnswer(i -> {
             var listener = i.getArgument(1, SseListener.class);
@@ -113,13 +117,13 @@ class GigaChatClientAsyncImplTest {
             listener.onError(new Exception());
 
             return null;
-        }).when(httpClient).execute(any(), any());
+        }).when(httpClient).executeAsync(any(), any());
 
         var request = TestData.completionRequest();
-        gigaChatClientAsync.completions(request, completionChunkResponseHandler).get();
+        gigaChatClientAsync.completions(request, completionChunkResponseHandler);
 
         var requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
-        verify(httpClient).execute(requestCaptor.capture(), any());
+        verify(httpClient).executeAsync(requestCaptor.capture(), any());
 
         assertThat(requestCaptor.getValue()).satisfies(r -> {
             assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/chat/completions");
@@ -142,15 +146,16 @@ class GigaChatClientAsyncImplTest {
     }
 
     @Test
-    void completionStreamFailed() throws Exception {
+    void completionStreamFailed() {
         doAnswer(i -> {
             var listener = i.getArgument(1, SseListener.class);
             listener.onError(new Exception());
 
             return null;
-        }).when(httpClient).execute(any(), any());
+        }).when(httpClient).executeAsync(any(), any());
 
-        gigaChatClientAsync.completions(CompletionRequest.builder().build(), completionChunkResponseHandler).get();
+        gigaChatClientAsync.completions(CompletionRequest.builder(ChatFunctionCallEnum.AUTO).build(),
+                completionChunkResponseHandler);
 
         verify(completionChunkResponseHandler).onError(any(Exception.class));
     }

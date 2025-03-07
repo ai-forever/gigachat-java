@@ -1,6 +1,5 @@
 package chat.giga;
 
-
 import chat.giga.client.GigaChatClient;
 import chat.giga.client.auth.AuthClient;
 import chat.giga.http.client.HttpClientException;

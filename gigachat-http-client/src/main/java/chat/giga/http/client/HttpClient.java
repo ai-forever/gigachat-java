@@ -8,7 +8,7 @@ public interface HttpClient {
 
     HttpResponse execute(HttpRequest request);
 
-    void execute(HttpRequest request, SseListener listener);
+    void executeAsync(HttpRequest request, SseListener listener);
 
     CompletableFuture<HttpResponse> executeAsync(HttpRequest request);
 }

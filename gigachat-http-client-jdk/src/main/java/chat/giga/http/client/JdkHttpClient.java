@@ -86,7 +86,7 @@ public class JdkHttpClient implements HttpClient {
     }
 
     @Override
-    public void execute(HttpRequest request, SseListener listener) {
+    public void executeAsync(HttpRequest request, SseListener listener) {
         var jdkRequest = mapJdkRequest(request);
 
         var parser = new SseParser(listener);
@@ -98,8 +98,6 @@ public class JdkHttpClient implements HttpClient {
                     }
 
                     parser.parse(r.body());
-
-                    listener.onComplete();
                 }).exceptionally(th -> {
                     if (th.getCause() instanceof HttpTimeoutException) {
                         listener.onError(th.getCause());

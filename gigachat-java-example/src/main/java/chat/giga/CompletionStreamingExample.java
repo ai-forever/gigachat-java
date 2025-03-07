@@ -1,6 +1,6 @@
 package chat.giga;
 
-import chat.giga.client.GigaChatClient;
+import chat.giga.client.GigaChatClientAsync;
 import chat.giga.client.ResponseHandler;
 import chat.giga.client.auth.AuthClient;
 import chat.giga.client.auth.AuthClientBuilder.OAuthBuilder;
@@ -15,7 +15,7 @@ public class CompletionStreamingExample {
 
     public static void main(String[] args) {
 
-        GigaChatClient client = GigaChatClient.builder()
+        GigaChatClientAsync client = GigaChatClientAsync.builder()
                 .authClient(AuthClient.builder()
                         .withOAuth(OAuthBuilder.builder()
                                 .scope(Scope.GIGACHAT_API_PERS)
