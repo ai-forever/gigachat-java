@@ -1,3 +1,5 @@
+import groovy.util.Node
+
 plugins {
     java
     `maven-publish`
@@ -29,30 +31,14 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            groupId = project.group.toString()
-            artifactId = "gigachat-java"
-            version = project.version.toString()
 
-            pom {
-                name.set("GigaChat Java")
-                url.set("https://github.com/ai-forever/gigachat-java")
-                licenses {
-                    license {
-                        name.set("Apache License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+            pom.withXml {
+                asNode().apply {
+                    val dependenciesNode = get("dependencies") as groovy.util.Node
+                    val gigachatJavaExampleDependency = dependenciesNode.children().find {
+                        it.toString().contains("gigachat-java-example")
                     }
-                }
-                developers {
-                    developer {
-                        id.set("name")
-                        name.set("name")
-                        email.set("name")
-                    }
-                }
-                scm {
-                    connection.set("scm:https://github.com/ai-forever/gigachat-java.git")
-                    developerConnection.set("scm:git@github.com:ai-forever/gigachat-java.git")
-                    url.set("https://github.com/ai-forever/gigachat-java")
+                    dependenciesNode.remove(gigachatJavaExampleDependency as Node?)
                 }
             }
         }
@@ -68,11 +54,46 @@ publishing {
         }
     }
 }
-
-tasks.withType {
-    doFirst {
-        val modulePaths = project.sourceSets.flatMap { it.allSource.srcDirs }
-                .filterNot { it.name == "gigachat-java-example" }
-        project.setProperty("mavenPublishModulePaths", modulePaths.joinToString(","))
-    }
-}
+//publishing {
+//    publications {
+//        create<MavenPublication>("mavenJava") {
+//            from(components["java"])
+//            groupId = project.group.toString()
+//            artifactId = "gigachat-java"
+//            version = project.version.toString()
+//
+//            pom {
+//                name.set("GigaChat Java")
+//                url.set("https://github.com/ai-forever/gigachat-java")
+//                licenses {
+//                    license {
+//                        name.set("Apache License, Version 2.0")
+//                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+//                    }
+//                }
+//                developers {
+//                    developer {
+//                        id.set("name")
+//                        name.set("name")
+//                        email.set("name")
+//                    }
+//                }
+//                scm {
+//                    connection.set("scm:https://github.com/ai-forever/gigachat-java.git")
+//                    developerConnection.set("scm:git@github.com:ai-forever/gigachat-java.git")
+//                    url.set("https://github.com/ai-forever/gigachat-java")
+//                }
+//            }
+//        }
+//    }
+//    repositories {
+//        maven {
+//            name = "MavenCentral"
+//            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+//            credentials {
+//                username = project.findProperty("OSSRH_USERNAME") as String? ?: ""
+//                password = project.findProperty("OSSRH_PASSWORD") as String? ?: ""
+//            }
+//        }
+//    }
+//}
