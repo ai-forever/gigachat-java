@@ -1,4 +1,4 @@
-package chat.giga.client;
+package chat.giga.client.auth;
 
 import java.time.Instant;
 

@@ -8,6 +8,7 @@ import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 
 import java.util.List;
+import java.util.Map;
 
 @Value
 @Builder
@@ -32,7 +33,7 @@ public class ChatFunctionParametersProperty {
      */
     @JsonProperty
     @Singular
-    List<ChatFunctionParametersProperty> items;
+    Map<String, Object> items;
 
     /**
      * Возможные значения enum
@@ -40,4 +41,11 @@ public class ChatFunctionParametersProperty {
     @JsonProperty("enum")
     @Singular("addEnum")
     List<String> enums;
+
+    /**
+     * Описание параметров аргумента.
+     */
+    @JsonProperty
+    @Singular
+    Map<String, ChatFunctionParametersProperty> properties;
 }

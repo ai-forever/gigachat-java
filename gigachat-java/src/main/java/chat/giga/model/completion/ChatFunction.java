@@ -39,7 +39,7 @@ public class ChatFunction {
      */
     @JsonProperty("few_shot_examples")
     @Singular
-    List<ChatFunctionsFewShotExamples> fewShotExamples;
+    List<ChatFunctionFewShotExample> fewShotExamples;
 
     /**
      * Описание параметров, которые может вернуть ваша функция.
