@@ -1,6 +1,5 @@
 package chat.giga.client.auth;
 
-import chat.giga.client.AccessToken;
 import chat.giga.http.client.HttpClient;
 import chat.giga.http.client.HttpHeaders;
 import chat.giga.http.client.HttpRequest.HttpRequestBuilder;
