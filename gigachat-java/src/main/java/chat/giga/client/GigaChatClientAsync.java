@@ -37,12 +37,12 @@ public interface GigaChatClientAsync {
     CompletableFuture<CompletionResponse> completions(CompletionRequest request);
 
     /**
-     * Получить ответ модели на сообщения (stream = true)
+     * Получить ответ модели в виде потока сообщений
      *
      * @param request описание запроса на получение ответа от модели
      * @param handler обработчик сообщений, сгенерированный на основе переданных сообщений.
      */
-    CompletableFuture<Void> completions(CompletionRequest request, ResponseHandler<CompletionChunkResponse> handler);
+    void completions(CompletionRequest request, ResponseHandler<CompletionChunkResponse> handler);
 
     /**
      * Создать эмбендинг

@@ -2,6 +2,11 @@ package chat.giga.client;
 
 import chat.giga.client.auth.AuthClient;
 import chat.giga.http.client.HttpClient;
+import chat.giga.http.client.HttpHeaders;
+import chat.giga.http.client.HttpMethod;
+import chat.giga.http.client.HttpRequest;
+import chat.giga.http.client.MediaType;
+import chat.giga.http.client.sse.SseListener;
 import chat.giga.model.BalanceResponse;
 import chat.giga.model.ModelResponse;
 import chat.giga.model.TokenCount;
@@ -15,6 +20,7 @@ import chat.giga.model.file.AvailableFilesResponse;
 import chat.giga.model.file.FileDeletedResponse;
 import chat.giga.model.file.FileResponse;
 import chat.giga.model.file.UploadFileRequest;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Builder;
 
@@ -22,9 +28,10 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaChatClientAsync {
+public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaChatClientAsync {
 
     @Builder
     GigaChatClientAsyncImpl(HttpClient apiHttpClient,
@@ -66,9 +73,44 @@ class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaChatClie
     }
 
     @Override
-    public CompletableFuture<Void> completions(CompletionRequest request,
-            ResponseHandler<CompletionChunkResponse> handler) {
-        return CompletableFuture.runAsync(() -> executeCompletionStream(request, handler));
+    public void completions(CompletionRequest request, ResponseHandler<CompletionChunkResponse> handler) {
+        try {
+            var requestBuilder = HttpRequest.builder()
+                    .url(apiUrl + "/chat/completions")
+                    .method(HttpMethod.POST)
+                    .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.ACCEPT, MediaType.TEXT_EVENT_STREAM)
+                    .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
+                    .body(objectMapper.writeValueAsBytes(request.toBuilder()
+                            .stream(true)
+                            .build()));
+
+            var httpRequest = authClient.authenticateRequest(requestBuilder).build();
+
+            httpClient.executeAsync(httpRequest, new SseListener() {
+                @Override
+                public void onData(String data) {
+                    try {
+                        handler.onNext(objectMapper.readValue(data, CompletionChunkResponse.class));
+                    } catch (JsonProcessingException e) {
+                        handler.onError(e);
+                    }
+                }
+
+                @Override
+                public void onComplete() {
+                    handler.onComplete();
+                }
+
+                @Override
+                public void onError(Throwable th) {
+                    handler.onError(th);
+                }
+            });
+        } catch (JsonProcessingException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     @Override

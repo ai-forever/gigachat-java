@@ -8,9 +8,7 @@ import chat.giga.http.client.HttpRequest;
 import chat.giga.http.client.JdkHttpClientBuilder;
 import chat.giga.http.client.LoggingHttpClient;
 import chat.giga.http.client.MediaType;
-import chat.giga.http.client.sse.SseListener;
 import chat.giga.model.TokenCountRequest;
-import chat.giga.model.completion.CompletionChunkResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.file.UploadFileRequest;
@@ -19,7 +17,6 @@ import chat.giga.util.JsonUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.UUID;
@@ -27,7 +24,6 @@ import java.util.UUID;
 import static chat.giga.util.Utils.getOrDefault;
 
 import static java.time.Duration.ofSeconds;
-
 
 abstract class BaseGigaChatClient {
 
@@ -89,47 +85,6 @@ abstract class BaseGigaChatClient {
                         .stream(false)
                         .build()));
         return authClient.authenticateRequest(requestBuilder).build();
-    }
-
-    protected void executeCompletionStream(CompletionRequest request,
-                                           ResponseHandler<CompletionChunkResponse> handler) {
-        try {
-            var requestBuilder = HttpRequest.builder()
-                    .url(apiUrl + "/chat/completions")
-                    .method(HttpMethod.POST)
-                    .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                    .header(HttpHeaders.ACCEPT, MediaType.TEXT_EVENT_STREAM)
-                    .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
-                    .body(objectMapper.writeValueAsBytes(request.toBuilder()
-                            .stream(true)
-                            .build()));
-
-            var httpRequest = authClient.authenticateRequest(requestBuilder).build();
-
-            httpClient.execute(httpRequest, new SseListener() {
-                @Override
-                public void onData(String data) {
-                    try {
-                        handler.onNext(objectMapper.readValue(data, CompletionChunkResponse.class));
-                    } catch (JsonProcessingException e) {
-                        handler.onError(e);
-                    }
-                }
-
-                @Override
-                public void onComplete() {
-                    handler.onComplete();
-                }
-
-                @Override
-                public void onError(Throwable th) {
-                    handler.onError(th);
-                }
-            });
-        } catch (JsonProcessingException e) {
-            throw new UncheckedIOException(e);
-        }
     }
 
     protected HttpRequest createEmbendingHttpRequest(EmbeddingRequest request) throws JsonProcessingException {

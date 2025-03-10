@@ -181,10 +181,7 @@ class JdkHttpClientTest {
         when(jdkResponse.statusCode()).thenReturn(200);
         when(jdkResponse.body()).thenReturn(new ByteArrayInputStream("data: testData".getBytes()));
 
-        httpClient.execute(request, sseListener);
-
-        verify(sseListener).onData(any());
-        verify(sseListener).onComplete();
+        httpClient.executeAsync(request, sseListener);
 
         assertThat(captor.getValue()).satisfies(r -> {
             assertThat(r.uri()).asString().isEqualTo("http://test");
@@ -209,10 +206,9 @@ class JdkHttpClientTest {
         when(jdkResponse.body()).thenReturn(new ByteArrayInputStream("data: testData".getBytes()));
         when(jdkResponse.statusCode()).thenReturn(500);
 
-        httpClient.execute(request, sseListener);
+        httpClient.executeAsync(request, sseListener);
 
         verify(sseListener, times(1)).onError(any(HttpClientException.class));
-        verify(sseListener, never()).onComplete();
     }
 
     @Test
@@ -228,7 +224,7 @@ class JdkHttpClientTest {
         when(delegate.<InputStream>sendAsync(any(), any()))
                 .thenReturn(CompletableFuture.failedFuture(new HttpTimeoutException("timeout")));
 
-        httpClient.execute(request, sseListener);
+        httpClient.executeAsync(request, sseListener);
 
         verify(sseListener, times(1)).onError(any(HttpTimeoutException.class));
         verify(sseListener, never()).onComplete();

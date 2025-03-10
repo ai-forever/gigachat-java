@@ -8,9 +8,9 @@ import chat.giga.model.TokenCount;
 import chat.giga.model.TokenCountRequest;
 import chat.giga.model.completion.ChatFunction;
 import chat.giga.model.completion.ChatFunctionCall;
+import chat.giga.model.completion.ChatFunctionFewShotExample;
 import chat.giga.model.completion.ChatFunctionParameters;
 import chat.giga.model.completion.ChatFunctionParametersProperty;
-import chat.giga.model.completion.ChatFunctionsFewShotExamples;
 import chat.giga.model.completion.ChatMessage;
 import chat.giga.model.completion.ChatMessage.Role;
 import chat.giga.model.completion.Choice;
@@ -51,17 +51,16 @@ public class TestData {
     }
 
     public CompletionRequest completionRequest() {
-        return CompletionRequest.builder()
+        return CompletionRequest.builder(ChatFunctionCall.builder()
+                        .name("testFunc")
+                        .partialArguments(Map.of("testArg", "testVal"))
+                        .build())
                 .model("testModel")
                 .message(ChatMessage.builder()
                         .role(Role.SYSTEM)
                         .content("test")
                         .functionsStateId("testState")
                         .attachment("testAttachment")
-                        .build())
-                .functionCall(ChatFunctionCall.builder()
-                        .name("testFunc")
-                        .partialArguments(Map.of("testArg", "testVal"))
                         .build())
                 .function(ChatFunction.builder()
                         .name("testFunc")
@@ -74,7 +73,7 @@ public class TestData {
                                         .addEnum("testEnum")
                                         .build())
                                 .build())
-                        .fewShotExample(ChatFunctionsFewShotExamples.builder()
+                        .fewShotExample(ChatFunctionFewShotExample.builder()
                                 .request("test")
                                 .param("testParam", "testVal")
                                 .build())
@@ -83,9 +82,7 @@ public class TestData {
                                 .property("testProp", ChatFunctionParametersProperty.builder()
                                         .type("array")
                                         .description("testDescription")
-                                        .item(ChatFunctionParametersProperty.builder()
-                                                .type("string")
-                                                .build())
+                                        .item("type", "string")
                                         .build())
                                 .build())
                         .build())

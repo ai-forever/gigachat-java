@@ -6,7 +6,6 @@ import chat.giga.model.BalanceResponse;
 import chat.giga.model.ModelResponse;
 import chat.giga.model.TokenCount;
 import chat.giga.model.TokenCountRequest;
-import chat.giga.model.completion.CompletionChunkResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
 import chat.giga.model.embedding.EmbeddingRequest;
@@ -22,7 +21,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
 
-class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatClient {
+public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatClient {
 
     @Builder
     GigaChatClientImpl(HttpClient apiHttpClient,
@@ -55,11 +54,6 @@ class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatClient {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    @Override
-    public void completions(CompletionRequest request, ResponseHandler<CompletionChunkResponse> handler) {
-        executeCompletionStream(request, handler);
     }
 
     @Override

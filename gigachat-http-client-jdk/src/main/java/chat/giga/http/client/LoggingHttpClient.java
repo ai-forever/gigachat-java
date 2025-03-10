@@ -99,12 +99,12 @@ public class LoggingHttpClient implements HttpClient {
     }
 
     @Override
-    public void execute(HttpRequest request, SseListener listener) {
+    public void executeAsync(HttpRequest request, SseListener listener) {
         if (logRequests) {
             logRequest(request);
         }
 
-        client.execute(request, new SseListener() {
+        client.executeAsync(request, new SseListener() {
             @Override
             public void onData(String data) {
                 if (logResponses) {

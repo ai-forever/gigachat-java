@@ -38,10 +38,13 @@ class SseParserTest {
                 data: testData2
                 
                 data: [DONE]
+                
+                data: testData3
                 """.getBytes()));
 
         var captor = ArgumentCaptor.forClass(String.class);
         verify(sseListener, times(2)).onData(captor.capture());
+        verify(sseListener).onComplete();
 
         assertThat(captor.getAllValues()).contains("testData1", "testData2");
     }
@@ -54,6 +57,6 @@ class SseParserTest {
         sseParser.parse(is);
 
         verify(sseListener).onError(any(UncheckedIOException.class));
-        verify(sseListener, never()).onData(any());
+        verify(sseListener, never()).onComplete();
     }
 }

@@ -7,9 +7,7 @@ import chat.giga.http.client.HttpMethod;
 import chat.giga.http.client.HttpRequest;
 import chat.giga.http.client.HttpResponse;
 import chat.giga.http.client.MediaType;
-import chat.giga.http.client.sse.SseListener;
 import chat.giga.model.TokenCountRequest;
-import chat.giga.model.completion.CompletionChunkResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.util.JsonUtils;
@@ -30,7 +28,6 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,8 +36,6 @@ class GigaChatClientImplTest {
 
     @Mock
     HttpClient httpClient;
-    @Mock
-    ResponseHandler<CompletionChunkResponse> completionChunkResponseHandler;
 
     GigaChatClient gigaChatClient;
 
@@ -77,60 +72,9 @@ class GigaChatClientImplTest {
             assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
             assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
             assertThat(r.headers()).containsKey(GigaChatClientImpl.REQUEST_ID_HEADER);
+            System.out.println(new String(r.body()));
             assertThat(objectMapper.readValue(r.body(), CompletionRequest.class)).isEqualTo(request);
         });
-    }
-
-    @Test
-    void completionStream() {
-        var body = TestData.completionChunkResponse();
-        doAnswer(i -> {
-            var listener = i.getArgument(1, SseListener.class);
-            listener.onData(objectMapper.writeValueAsString(body));
-            listener.onComplete();
-            listener.onError(new Exception());
-
-            return null;
-        }).when(httpClient).execute(any(), any());
-
-        var request = TestData.completionRequest();
-        gigaChatClient.completions(request, completionChunkResponseHandler);
-
-        var requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
-        verify(httpClient).execute(requestCaptor.capture(), any());
-
-        assertThat(requestCaptor.getValue()).satisfies(r -> {
-            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/chat/completions");
-            assertThat(r.method()).isEqualTo(HttpMethod.POST);
-            assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
-            assertThat(r.headers()).containsEntry(HttpHeaders.CONTENT_TYPE, List.of(MediaType.APPLICATION_JSON));
-            assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.TEXT_EVENT_STREAM));
-            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
-            assertThat(r.headers()).containsKey(GigaChatClientImpl.REQUEST_ID_HEADER);
-            assertThat(objectMapper.readValue(r.body(), CompletionRequest.class)).isEqualTo(request.toBuilder()
-                    .stream(true)
-                    .build());
-        });
-
-        var responseCaptor = ArgumentCaptor.forClass(CompletionChunkResponse.class);
-        verify(completionChunkResponseHandler).onNext(responseCaptor.capture());
-        verify(completionChunkResponseHandler).onComplete();
-
-        assertThat(responseCaptor.getValue()).isEqualTo(body);
-    }
-
-    @Test
-    void completionStreamFailed() {
-        doAnswer(i -> {
-            var listener = i.getArgument(1, SseListener.class);
-            listener.onError(new Exception());
-
-            return null;
-        }).when(httpClient).execute(any(), any());
-
-        gigaChatClient.completions(CompletionRequest.builder().build(), completionChunkResponseHandler);
-
-        verify(completionChunkResponseHandler).onError(any(Exception.class));
     }
 
     @Test

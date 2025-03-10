@@ -10,7 +10,6 @@ import chat.giga.model.completion.ChatMessage;
 import chat.giga.model.completion.ChatMessage.Role;
 import chat.giga.model.completion.CompletionRequest;
 
-
 public class UseUserPasswordAuthExample {
 
     public static void main(String[] args) {

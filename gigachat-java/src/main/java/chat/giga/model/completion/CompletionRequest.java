@@ -1,6 +1,8 @@
 package chat.giga.model.completion;
 
+import chat.giga.util.FunctionCallJsonDeserializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Singular;
@@ -48,7 +50,9 @@ public class CompletionRequest {
      * случае вернется ошибка.
      */
     @JsonProperty("function_call")
-    Object functionCall;
+    @JsonDeserialize(using = FunctionCallJsonDeserializer.class)
+    @Default
+    Object functionCall = ChatFunctionCallEnum.AUTO;
 
     /**
      * Список с описанием пользовательских функций.
@@ -106,22 +110,15 @@ public class CompletionRequest {
     @Default
     Integer updateInterval = 0;
 
-    public static class CompletionRequestBuilder {
+    public static CompletionRequestBuilder builder() {
+        return new CompletionRequestBuilder();
+    }
 
-        public CompletionRequestBuilder functionCall(ChatFunctionCallEnum functionCall) {
-            this.functionCall = functionCall;
-            return this;
-        }
+    public static CompletionRequestBuilder builder(ChatFunctionCall functionCall) {
+        return new CompletionRequestBuilder().functionCall(functionCall);
+    }
 
-        public CompletionRequestBuilder functionCall(ChatFunctionCall functionCall) {
-            this.functionCall = functionCall;
-            return this;
-        }
-
-        //need for lombok toBuilder method
-        public CompletionRequestBuilder functionCall(Object functionCall) {
-            this.functionCall = functionCall;
-            return this;
-        }
+    public static CompletionRequestBuilder builder(ChatFunctionCallEnum functionCall) {
+        return new CompletionRequestBuilder().functionCall(functionCall);
     }
 }
