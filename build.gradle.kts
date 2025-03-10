@@ -31,7 +31,31 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-
+            groupId = project.group.toString()
+            artifactId = "gigachat-java"
+            version = project.version.toString()
+            pom {
+                name.set("GigaChat Java")
+                url.set("https://github.com/ai-forever/gigachat-java")
+                licenses {
+                    license {
+                        name.set("The MIT License (MIT)")
+                        url.set("http://opensource.org/licenses/MIT")
+                    }
+                }
+                developers {
+                    developer {
+                        id.set("isergeymd, hellnn, dmbocharova")
+                        name.set("Sergey Safonov, Igor Obrucnev, Darya Bocharova")
+                        email.set("SSafonov@sberbank.ru, IYObruchnev@sberbank.ru, dmbocharova@sberbank.ru")
+                    }
+                }
+                scm {
+                    connection.set("scm:https://github.com/ai-forever/gigachat-java.git")
+                    developerConnection.set("scm:git@github.com:ai-forever/gigachat-java.git")
+                    url.set("https://github.com/ai-forever/gigachat-java")
+                }
+            }
             pom.withXml {
                 asNode().apply {
                     val dependenciesNode = get("dependencies") as groovy.util.Node
@@ -54,46 +78,3 @@ publishing {
         }
     }
 }
-//publishing {
-//    publications {
-//        create<MavenPublication>("mavenJava") {
-//            from(components["java"])
-//            groupId = project.group.toString()
-//            artifactId = "gigachat-java"
-//            version = project.version.toString()
-//
-//            pom {
-//                name.set("GigaChat Java")
-//                url.set("https://github.com/ai-forever/gigachat-java")
-//                licenses {
-//                    license {
-//                        name.set("Apache License, Version 2.0")
-//                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-//                    }
-//                }
-//                developers {
-//                    developer {
-//                        id.set("name")
-//                        name.set("name")
-//                        email.set("name")
-//                    }
-//                }
-//                scm {
-//                    connection.set("scm:https://github.com/ai-forever/gigachat-java.git")
-//                    developerConnection.set("scm:git@github.com:ai-forever/gigachat-java.git")
-//                    url.set("https://github.com/ai-forever/gigachat-java")
-//                }
-//            }
-//        }
-//    }
-//    repositories {
-//        maven {
-//            name = "MavenCentral"
-//            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-//            credentials {
-//                username = project.findProperty("OSSRH_USERNAME") as String? ?: ""
-//                password = project.findProperty("OSSRH_PASSWORD") as String? ?: ""
-//            }
-//        }
-//    }
-//}
