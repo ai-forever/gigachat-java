@@ -1,3 +1,5 @@
+import groovy.util.Node
+
 plugins {
     java
     `maven-publish`
@@ -32,27 +34,35 @@ publishing {
             groupId = project.group.toString()
             artifactId = "gigachat-java"
             version = project.version.toString()
-
             pom {
                 name.set("GigaChat Java")
                 url.set("https://github.com/ai-forever/gigachat-java")
                 licenses {
                     license {
-                        name.set("Apache License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        name.set("The MIT License (MIT)")
+                        url.set("http://opensource.org/licenses/MIT")
                     }
                 }
                 developers {
                     developer {
-                        id.set("name")
-                        name.set("name")
-                        email.set("name")
+                        id.set("isergeymd, hellnn, dmbocharova")
+                        name.set("Sergey Safonov, Igor Obrucnev, Darya Bocharova")
+                        email.set("SSafonov@sberbank.ru, IYObruchnev@sberbank.ru, dmbocharova@sberbank.ru")
                     }
                 }
                 scm {
                     connection.set("scm:https://github.com/ai-forever/gigachat-java.git")
                     developerConnection.set("scm:git@github.com:ai-forever/gigachat-java.git")
                     url.set("https://github.com/ai-forever/gigachat-java")
+                }
+            }
+            pom.withXml {
+                asNode().apply {
+                    val dependenciesNode = get("dependencies") as groovy.util.Node
+                    val gigachatJavaExampleDependency = dependenciesNode.children().find {
+                        it.toString().contains("gigachat-java-example")
+                    }
+                    dependenciesNode.remove(gigachatJavaExampleDependency as Node?)
                 }
             }
         }
@@ -66,13 +76,5 @@ publishing {
                 password = project.findProperty("OSSRH_PASSWORD") as String? ?: ""
             }
         }
-    }
-}
-
-tasks.withType {
-    doFirst {
-        val modulePaths = project.sourceSets.flatMap { it.allSource.srcDirs }
-                .filterNot { it.name == "gigachat-java-example" }
-        project.setProperty("mavenPublishModulePaths", modulePaths.joinToString(","))
     }
 }
