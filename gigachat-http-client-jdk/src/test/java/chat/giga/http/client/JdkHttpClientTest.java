@@ -9,10 +9,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.http.HttpHeaders;
 import java.net.http.HttpResponse;
-import java.net.http.HttpTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +51,6 @@ class JdkHttpClientTest {
                 .build();
     }
 
-
     @Test
     void execute() throws Exception {
         var headers = Map.of("testHeader", List.of("testValue"));
@@ -86,7 +85,7 @@ class JdkHttpClientTest {
     }
 
     @Test
-    void executeFailedWhenInvalidHttpStatus() throws Exception {
+    void executeFailedWhenClientError() throws Exception {
         var headers = Map.of("testHeader", List.of("testValue"));
         var request = HttpRequest.builder()
                 .url("http://test")
@@ -95,18 +94,12 @@ class JdkHttpClientTest {
                 .body("test".getBytes())
                 .build();
 
-        when(delegate.<InputStream>send(any(), any())).thenReturn(jdkResponse);
-        when(jdkResponse.statusCode()).thenReturn(400);
-        when(jdkResponse.body()).thenReturn(new ByteArrayInputStream("error".getBytes()));
+        when(delegate.<InputStream>send(any(), any())).thenThrow(new IOException());
 
-        assertThatExceptionOfType(HttpClientException.class)
+        assertThatExceptionOfType(RuntimeException.class)
                 .isThrownBy(() -> httpClient.execute(request))
-                .satisfies(e -> {
-                    assertThat(e.statusCode()).isEqualTo(400);
-                    assertThat(new String(e.body(), StandardCharsets.UTF_8)).isEqualTo("error");
-                });
+                .withCauseInstanceOf(IOException.class);
     }
-
 
     @Test
     void executeAsync() throws Exception {
@@ -166,7 +159,7 @@ class JdkHttpClientTest {
     }
 
     @Test
-    void executeWithSse() {
+    void executeWithSse() throws Exception {
         var headers = Map.of("testHeader", List.of("testValue"));
         var request = HttpRequest.builder()
                 .url("http://test")
@@ -176,12 +169,11 @@ class JdkHttpClientTest {
                 .build();
 
         var captor = ArgumentCaptor.forClass(java.net.http.HttpRequest.class);
-        when(delegate.<InputStream>sendAsync(captor.capture(), any()))
-                .thenReturn(CompletableFuture.completedFuture(jdkResponse));
+        when(delegate.<InputStream>send(captor.capture(), any())).thenReturn(jdkResponse);
         when(jdkResponse.statusCode()).thenReturn(200);
         when(jdkResponse.body()).thenReturn(new ByteArrayInputStream("data: testData".getBytes()));
 
-        httpClient.executeAsync(request, sseListener);
+        httpClient.execute(request, sseListener);
 
         assertThat(captor.getValue()).satisfies(r -> {
             assertThat(r.uri()).asString().isEqualTo("http://test");
@@ -193,7 +185,7 @@ class JdkHttpClientTest {
     }
 
     @Test
-    void executeWithSseFailedWhenInvalidStatusCode() {
+    void executeWithSseFailedWhenInvalidStatusCode() throws Exception {
         var headers = Map.of("testHeader", List.of("testValue"));
         var request = HttpRequest.builder()
                 .url("http://test")
@@ -202,17 +194,17 @@ class JdkHttpClientTest {
                 .body("sse".getBytes())
                 .build();
 
-        when(delegate.<InputStream>sendAsync(any(), any())).thenReturn(CompletableFuture.completedFuture(jdkResponse));
+        when(delegate.<InputStream>send(any(), any())).thenReturn(jdkResponse);
         when(jdkResponse.body()).thenReturn(new ByteArrayInputStream("data: testData".getBytes()));
         when(jdkResponse.statusCode()).thenReturn(500);
 
-        httpClient.executeAsync(request, sseListener);
+        httpClient.execute(request, sseListener);
 
         verify(sseListener, times(1)).onError(any(HttpClientException.class));
     }
 
     @Test
-    void executeWithSseFailedWhenResponseTimeout() {
+    void executeWithSseFailedWhenClientError() throws Exception {
         var headers = Map.of("testHeader", List.of("testValue"));
         var request = HttpRequest.builder()
                 .url("http://test")
@@ -221,12 +213,11 @@ class JdkHttpClientTest {
                 .body("sse".getBytes())
                 .build();
 
-        when(delegate.<InputStream>sendAsync(any(), any()))
-                .thenReturn(CompletableFuture.failedFuture(new HttpTimeoutException("timeout")));
+        when(delegate.<InputStream>send(any(), any())).thenThrow(new RuntimeException());
 
-        httpClient.executeAsync(request, sseListener);
+        httpClient.execute(request, sseListener);
 
-        verify(sseListener, times(1)).onError(any(HttpTimeoutException.class));
+        verify(sseListener, times(1)).onError(any(RuntimeException.class));
         verify(sseListener, never()).onComplete();
     }
 }

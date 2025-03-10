@@ -6,11 +6,11 @@ import chat.giga.http.client.sse.SseParser;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse.BodyHandlers;
-import java.net.http.HttpTimeoutException;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
@@ -50,14 +50,14 @@ public class JdkHttpClient implements HttpClient {
     }
 
     private static HttpResponse mapResponse(java.net.http.HttpResponse<InputStream> jdkResponse) {
-        try (InputStream bodyStream = jdkResponse.body()) {
+        try (var body = jdkResponse.body()) {
             return HttpResponse.builder()
                     .statusCode(jdkResponse.statusCode())
                     .headers(jdkResponse.headers().map())
-                    .body(bodyStream.readAllBytes())
+                    .body(body.readAllBytes())
                     .build();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -67,7 +67,7 @@ public class JdkHttpClient implements HttpClient {
             var jdkResponse = delegate.send(mapJdkRequest(request), BodyHandlers.ofInputStream());
 
             if (!isSuccessful(jdkResponse)) {
-                throw getClientException(jdkResponse.statusCode(), jdkResponse.body());
+                throw getClientException(jdkResponse);
             }
 
             return mapResponse(jdkResponse);
@@ -76,35 +76,31 @@ public class JdkHttpClient implements HttpClient {
         }
     }
 
-    private HttpClientException getClientException(int statusCode, InputStream stream) {
-        try (InputStream bodyStream = stream) {
-            return new HttpClientException(statusCode, bodyStream.readAllBytes());
+    private HttpClientException getClientException(java.net.http.HttpResponse<InputStream> jdkResponse) {
+        try (var body = jdkResponse.body()) {
+            return new HttpClientException(jdkResponse.statusCode(), body.readAllBytes());
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
-
     }
 
     @Override
-    public void executeAsync(HttpRequest request, SseListener listener) {
+    public void execute(HttpRequest request, SseListener listener) {
         var jdkRequest = mapJdkRequest(request);
 
         var parser = new SseParser(listener);
-        delegate.sendAsync(jdkRequest, BodyHandlers.ofInputStream())
-                .thenAccept(r -> {
-                    if (!isSuccessful(r)) {
-                        listener.onError(getClientException(r.statusCode(), r.body()));
-                        return;
-                    }
+        try {
+            var jdkResponse = delegate.send(jdkRequest, BodyHandlers.ofInputStream());
 
-                    parser.parse(r.body());
-                }).exceptionally(th -> {
-                    if (th.getCause() instanceof HttpTimeoutException) {
-                        listener.onError(th.getCause());
-                    }
+            if (!isSuccessful(jdkResponse)) {
+                listener.onError(getClientException(jdkResponse));
+                return;
+            }
 
-                    return null;
-                });
+            parser.parse(jdkResponse.body());
+        } catch (Exception e) {
+            listener.onError(e);
+        }
     }
 
     @Override
@@ -114,7 +110,7 @@ public class JdkHttpClient implements HttpClient {
         return delegate.sendAsync(jdkRequest, BodyHandlers.ofInputStream())
                 .thenApply(r -> {
                     if (!isSuccessful(r)) {
-                        throw getClientException(r.statusCode(), r.body());
+                        throw getClientException(r);
                     }
                     return mapResponse(r);
                 });

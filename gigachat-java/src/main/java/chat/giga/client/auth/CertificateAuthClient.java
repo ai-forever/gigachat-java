@@ -5,11 +5,11 @@ import chat.giga.http.client.HttpRequest.HttpRequestBuilder;
 
 import java.util.Objects;
 
-class CertificatesAuthClientImpl implements AuthClient {
+class CertificateAuthClient implements AuthClient {
 
     private final HttpClient httpClient;
 
-    public CertificatesAuthClientImpl(HttpClient httpClient) {
+    public CertificateAuthClient(HttpClient httpClient) {
         this.httpClient = httpClient;
         Objects.requireNonNull(httpClient, "httpClient must not be null");
     }
@@ -20,15 +20,14 @@ class CertificatesAuthClientImpl implements AuthClient {
     }
 
     @Override
-    public HttpRequestBuilder authenticateRequest(HttpRequestBuilder request) {
-        return request;
+    public void authenticate(HttpRequestBuilder requestBuilder) {
+        //no op
     }
 
     @Override
     public HttpClient getHttpClient() {
         return httpClient;
     }
-
 }
 
 

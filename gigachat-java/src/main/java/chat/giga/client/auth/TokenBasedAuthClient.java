@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static chat.giga.http.client.HttpHeaders.USER_AGENT;
 import static chat.giga.http.client.MediaType.APPLICATION_JSON;
 
-abstract class TokenBasedAuth {
+abstract class TokenBasedAuthClient {
 
     public static final String USER_AGENT_NAME = "GigaChat-java-lib";
 

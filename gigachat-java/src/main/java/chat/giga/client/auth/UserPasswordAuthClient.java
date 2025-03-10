@@ -14,7 +14,8 @@ import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.util.Objects;
 
-class UserPasswordAuthClientImpl extends TokenBasedAuth implements AuthClient {
+class UserPasswordAuthClient extends TokenBasedAuthClient implements AuthClient {
+
     private final String user;
     private final String password;
 
@@ -24,7 +25,7 @@ class UserPasswordAuthClientImpl extends TokenBasedAuth implements AuthClient {
 
     private final ObjectMapper objectMapper = JsonUtils.objectMapper();
 
-    public UserPasswordAuthClientImpl(HttpClient httpClient, String user, String password,
+    public UserPasswordAuthClient(HttpClient httpClient, String user, String password,
             Scope scope, String authApiUrl) {
         this.httpClient = httpClient;
         this.user = user;
@@ -47,8 +48,8 @@ class UserPasswordAuthClientImpl extends TokenBasedAuth implements AuthClient {
     }
 
     @Override
-    public HttpRequestBuilder authenticateRequest(HttpRequestBuilder request) {
-        return request.header(HttpHeaders.AUTHORIZATION, getBearerAuth());
+    public void authenticate(HttpRequestBuilder requestBuilder) {
+        requestBuilder.header(HttpHeaders.AUTHORIZATION, getBearerAuth());
     }
 
     @Override
@@ -78,5 +79,4 @@ class UserPasswordAuthClientImpl extends TokenBasedAuth implements AuthClient {
             throw new UncheckedIOException(e);
         }
     }
-
 }

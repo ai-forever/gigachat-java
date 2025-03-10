@@ -43,7 +43,7 @@ public class CompletionConversationExample {
                 CompletionResponse response = client.completions(request);
                 System.out.println(response);
 
-                response.choices().forEach(e -> builder.message(e.message().toAssistantMessage()));
+                response.choices().forEach(e -> builder.message(e.message().ofAssistantMessage()));
 
                 builder.message(ChatMessage.builder()
                         .content("А почему так? Будь еще более точным в формулировках")

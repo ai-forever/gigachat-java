@@ -5,6 +5,7 @@ import chat.giga.http.client.HttpClient;
 import chat.giga.http.client.HttpHeaders;
 import chat.giga.http.client.HttpMethod;
 import chat.giga.http.client.HttpRequest;
+import chat.giga.http.client.HttpRequest.HttpRequestBuilder;
 import chat.giga.http.client.JdkHttpClientBuilder;
 import chat.giga.http.client.LoggingHttpClient;
 import chat.giga.http.client.MediaType;
@@ -21,7 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.UUID;
 
-import static chat.giga.util.Utils.getOrDefault;
+import static chat.giga.util.Utils.*;
 
 import static java.time.Duration.ofSeconds;
 
@@ -32,6 +33,8 @@ abstract class BaseGigaChatClient {
     public static final String CLIENT_ID_HEADER = "X-Client-ID";
     public static final String USER_AGENT_NAME = "GigaChat-java-lib";
 
+    protected static final int MAX_RETRIES = 1;
+
     protected final AuthClient authClient;
     protected final HttpClient httpClient;
     protected final String apiUrl;
@@ -39,15 +42,14 @@ abstract class BaseGigaChatClient {
 
     protected BaseGigaChatClient(HttpClient apiHttpClient,
             AuthClient authClient,
-                                 Integer readTimeout,
-                                 Integer connectTimeout,
-                                 String apiUrl,
-                                 boolean logRequests,
-                                 boolean logResponses) {
-
+            Integer readTimeout,
+            Integer connectTimeout,
+            String apiUrl,
+            boolean logRequests,
+            boolean logResponses) {
+        Objects.requireNonNull(authClient, "authClient must not be null");
         this.apiUrl = getOrDefault(apiUrl, DEFAULT_API_URL);
         this.authClient = authClient;
-        Objects.requireNonNull(authClient, "authClient must not be null");
 
         var client = authClient.supportsHttpClient() ? authClient.getHttpClient()
                 : (apiHttpClient == null ? new JdkHttpClientBuilder()
@@ -63,41 +65,58 @@ abstract class BaseGigaChatClient {
     }
 
     protected HttpRequest createModelHttpRequest() {
-        var requestBuilder = HttpRequest.builder()
+        var builder = HttpRequest.builder()
                 .url(apiUrl + "/models")
                 .method(HttpMethod.GET)
                 .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                 .header(REQUEST_ID_HEADER, UUID.randomUUID().toString());
 
-        return authClient.authenticateRequest(requestBuilder).build();
+        authClient.authenticate(builder);
+
+        return builder.build();
     }
 
-    protected HttpRequest createCompletionHttpRequest(CompletionRequest request) throws JsonProcessingException {
-        var requestBuilder = HttpRequest.builder()
-                .url(apiUrl + "/chat/completions")
-                .method(HttpMethod.POST)
-                .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
-                .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
-                .body(objectMapper.writeValueAsBytes(request.toBuilder()
-                        .stream(false)
-                        .build()));
-        return authClient.authenticateRequest(requestBuilder).build();
+    protected HttpRequest createCompletionHttpRequest(CompletionRequest request) {
+        HttpRequestBuilder builder;
+        try {
+            builder = HttpRequest.builder()
+                    .url(apiUrl + "/chat/completions")
+                    .method(HttpMethod.POST)
+                    .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                    .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
+                    .body(objectMapper.writeValueAsBytes(request.toBuilder()
+                            .stream(false)
+                            .build()));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+        authClient.authenticate(builder);
+
+        return builder.build();
     }
 
-    protected HttpRequest createEmbendingHttpRequest(EmbeddingRequest request) throws JsonProcessingException {
-        var requestBuilder = HttpRequest.builder()
-                .url(apiUrl + "/embeddings")
-                .method(HttpMethod.POST)
-                .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
-                .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
-                .body(objectMapper.writeValueAsBytes(request));
+    protected HttpRequest createEmbendingHttpRequest(EmbeddingRequest request) {
+        HttpRequestBuilder builder;
+        try {
+            builder = HttpRequest.builder()
+                    .url(apiUrl + "/embeddings")
+                    .method(HttpMethod.POST)
+                    .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                    .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
+                    .body(objectMapper.writeValueAsBytes(request));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
 
-        return authClient.authenticateRequest(requestBuilder).build();
+        authClient.authenticate(builder);
+
+        return builder.build();
     }
 
     protected HttpRequest createUploadFileHttpRequest(UploadFileRequest request) {
@@ -105,7 +124,7 @@ abstract class BaseGigaChatClient {
         var requestBody = FileUtils.createMultiPartBody(request.file(), boundary, request.purpose(),
                 request.mimeType(), request.fileName());
 
-        var requestBuilder = HttpRequest.builder()
+        var builder = HttpRequest.builder()
                 .url(apiUrl + "/files")
                 .method(HttpMethod.POST)
                 .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
@@ -113,70 +132,90 @@ abstract class BaseGigaChatClient {
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                 .body(requestBody.toString().getBytes(StandardCharsets.UTF_8));
 
-        return authClient.authenticateRequest(requestBuilder).build();
+        authClient.authenticate(builder);
+
+        return builder.build();
     }
 
     protected HttpRequest createDownloadFileHttpRequest(String fileId, String clientId) {
-        var requestBuilder = HttpRequest.builder()
+        var builder = HttpRequest.builder()
                 .url(apiUrl + "/files/" + fileId + "/content")
                 .method(HttpMethod.GET)
                 .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_OCTET_STREAM)
                 .headerIf(clientId != null, CLIENT_ID_HEADER, clientId);
 
-        return authClient.authenticateRequest(requestBuilder).build();
+        authClient.authenticate(builder);
+
+        return builder.build();
     }
 
     protected HttpRequest createListAvailableFileHttpRequest() {
-        var requestBuilder = HttpRequest.builder()
+        var builder = HttpRequest.builder()
                 .url(apiUrl + "/files")
                 .method(HttpMethod.GET)
                 .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON);
-        return authClient.authenticateRequest(requestBuilder).build();
+
+        authClient.authenticate(builder);
+
+        return builder.build();
     }
 
     protected HttpRequest createFileInfoHttpRequest(String fileId) {
-        var requestBuilder = HttpRequest.builder()
+        var builder = HttpRequest.builder()
                 .url(apiUrl + "/files/" + fileId)
                 .method(HttpMethod.GET)
                 .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON);
 
-        return authClient.authenticateRequest(requestBuilder).build();
+        authClient.authenticate(builder);
+
+        return builder.build();
     }
 
     protected HttpRequest createDeleteFileHttpRequest(String fileId) {
-        var requestBuilder = HttpRequest.builder()
+        var builder = HttpRequest.builder()
                 .url(apiUrl + "/files/" + fileId + "/delete")
                 .method(HttpMethod.POST)
                 .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON);
 
-        return authClient.authenticateRequest(requestBuilder).build();
+        authClient.authenticate(builder);
+
+        return builder.build();
     }
 
-    protected HttpRequest createTokenCountHttpRequest(TokenCountRequest request) throws JsonProcessingException {
-        var requestBuilder = HttpRequest.builder()
-                .url(apiUrl + "/tokens/count")
-                .method(HttpMethod.POST)
-                .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
-                .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
-                .body(objectMapper.writeValueAsBytes(request));
+    protected HttpRequest createTokenCountHttpRequest(TokenCountRequest request) {
+        HttpRequestBuilder builder;
+        try {
+            builder = HttpRequest.builder()
+                    .url(apiUrl + "/tokens/count")
+                    .method(HttpMethod.POST)
+                    .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                    .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
+                    .body(objectMapper.writeValueAsBytes(request));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
 
-        return authClient.authenticateRequest(requestBuilder).build();
+        authClient.authenticate(builder);
+
+        return builder.build();
     }
 
     protected HttpRequest createBalanceHttpRequest() {
-        var requestBuilder = HttpRequest.builder()
+        var builder = HttpRequest.builder()
                 .url(apiUrl + "/balance")
                 .method(HttpMethod.GET)
                 .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                 .header(REQUEST_ID_HEADER, UUID.randomUUID().toString());
 
-        return authClient.authenticateRequest(requestBuilder).build();
+        authClient.authenticate(builder);
+
+        return builder.build();
     }
 }

@@ -2,6 +2,7 @@ package chat.giga.client;
 
 import chat.giga.client.auth.AuthClient;
 import chat.giga.http.client.HttpClient;
+import chat.giga.http.client.HttpClientException;
 import chat.giga.http.client.HttpHeaders;
 import chat.giga.http.client.HttpMethod;
 import chat.giga.http.client.HttpRequest;
@@ -20,7 +21,7 @@ import chat.giga.model.file.AvailableFilesResponse;
 import chat.giga.model.file.FileDeletedResponse;
 import chat.giga.model.file.FileResponse;
 import chat.giga.model.file.UploadFileRequest;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import chat.giga.util.RetryUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Builder;
 
@@ -46,36 +47,32 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
 
     @Override
     public CompletableFuture<ModelResponse> models() {
-        return httpClient.executeAsync(createModelHttpRequest())
+        return RetryUtils.retry401Async(() -> httpClient.executeAsync(createModelHttpRequest())
                 .thenApply(r -> {
                     try {
                         return objectMapper.readValue(r.body(), ModelResponse.class);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
-                });
+                }), MAX_RETRIES);
     }
 
     @Override
     public CompletableFuture<CompletionResponse> completions(CompletionRequest request) {
-        try {
-            return httpClient.executeAsync(createCompletionHttpRequest(request))
-                    .thenApply(r -> {
-                        try {
-                            return objectMapper.readValue(r.body(), CompletionResponse.class);
-                        } catch (IOException e) {
-                            throw new UncheckedIOException(e);
-                        }
-                    });
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        return RetryUtils.retry401Async(() -> httpClient.executeAsync(createCompletionHttpRequest(request))
+                .thenApply(r -> {
+                    try {
+                        return objectMapper.readValue(r.body(), CompletionResponse.class);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                }), MAX_RETRIES);
     }
 
     @Override
     public void completions(CompletionRequest request, ResponseHandler<CompletionChunkResponse> handler) {
         try {
-            var requestBuilder = HttpRequest.builder()
+            var builder = HttpRequest.builder()
                     .url(apiUrl + "/chat/completions")
                     .method(HttpMethod.POST)
                     .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
@@ -86,129 +83,134 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
                             .stream(true)
                             .build()));
 
-            var httpRequest = authClient.authenticateRequest(requestBuilder).build();
+            CompletableFuture.runAsync(() -> {
+                try {
+                    RetryUtils.retry401(() -> {
+                        authClient.authenticate(builder);
 
-            httpClient.executeAsync(httpRequest, new SseListener() {
-                @Override
-                public void onData(String data) {
-                    try {
-                        handler.onNext(objectMapper.readValue(data, CompletionChunkResponse.class));
-                    } catch (JsonProcessingException e) {
-                        handler.onError(e);
-                    }
-                }
+                        httpClient.execute(builder.build(), new SseListener() {
+                            @Override
+                            public void onData(String data) {
+                                try {
+                                    handler.onNext(objectMapper.readValue(data, CompletionChunkResponse.class));
+                                } catch (IOException e) {
+                                    handler.onError(e);
+                                }
+                            }
 
-                @Override
-                public void onComplete() {
-                    handler.onComplete();
-                }
+                            @Override
+                            public void onComplete() {
+                                handler.onComplete();
+                            }
 
-                @Override
-                public void onError(Throwable th) {
-                    handler.onError(th);
+                            @Override
+                            public void onError(Exception ex) {
+                                if (ex instanceof HttpClientException e && e.statusCode() == 401) {
+                                    throw e;
+                                }
+                                handler.onError(ex);
+                            }
+                        });
+
+                        return null;
+                    }, MAX_RETRIES);
+                } catch (IllegalStateException e) {
+                    handler.onError(e);
                 }
             });
-        } catch (JsonProcessingException e) {
+        } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
     @Override
     public CompletableFuture<EmbeddingResponse> embeddings(EmbeddingRequest request) {
-        try {
-            return httpClient.executeAsync(createEmbendingHttpRequest(request))
-                    .thenApply(r -> {
-                        try {
-                            return objectMapper.readValue(r.body(), EmbeddingResponse.class);
-                        } catch (IOException e) {
-                            throw new UncheckedIOException(e);
-                        }
-                    });
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        return RetryUtils.retry401Async(() -> httpClient.executeAsync(createEmbendingHttpRequest(request))
+                .thenApply(r -> {
+                    try {
+                        return objectMapper.readValue(r.body(), EmbeddingResponse.class);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                }), MAX_RETRIES);
     }
 
     @Override
     public CompletableFuture<FileResponse> uploadFile(UploadFileRequest request) {
-        return httpClient.executeAsync(createUploadFileHttpRequest(request))
+        return RetryUtils.retry401Async(() -> httpClient.executeAsync(createUploadFileHttpRequest(request))
                 .thenApply(r -> {
                     try {
                         return objectMapper.readValue(r.body(), FileResponse.class);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
-                });
+                }), MAX_RETRIES);
     }
 
     @Override
     public CompletableFuture<ByteArrayInputStream> downloadFile(String fileId, String clientId) {
-        return httpClient.executeAsync(createDownloadFileHttpRequest(fileId, clientId))
-                .thenApply(r -> new ByteArrayInputStream(r.body()));
+        return RetryUtils.retry401Async(() -> httpClient.executeAsync(createDownloadFileHttpRequest(fileId, clientId))
+                .thenApply(r -> new ByteArrayInputStream(r.body())), 1);
     }
 
     @Override
     public CompletableFuture<AvailableFilesResponse> getListAvailableFile() {
-        return httpClient.executeAsync(createListAvailableFileHttpRequest())
+        return RetryUtils.retry401Async(() -> httpClient.executeAsync(createListAvailableFileHttpRequest())
                 .thenApply(r -> {
                     try {
                         return objectMapper.readValue(r.body(), AvailableFilesResponse.class);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
-                });
+                }), MAX_RETRIES);
     }
 
     @Override
     public CompletableFuture<FileResponse> getFileInfo(String fileId) {
-        return httpClient.executeAsync(createFileInfoHttpRequest(fileId))
+        return RetryUtils.retry401Async(() -> httpClient.executeAsync(createFileInfoHttpRequest(fileId))
                 .thenApply(r -> {
                     try {
                         return objectMapper.readValue(r.body(), FileResponse.class);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
-                });
+                }), MAX_RETRIES);
     }
 
     @Override
     public CompletableFuture<FileDeletedResponse> deleteFile(String fileId) {
-        return httpClient.executeAsync(createDeleteFileHttpRequest(fileId))
+        return RetryUtils.retry401Async(() -> httpClient.executeAsync(createDeleteFileHttpRequest(fileId))
                 .thenApply(r -> {
                     try {
                         return objectMapper.readValue(r.body(), FileDeletedResponse.class);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
-                });
+                }), MAX_RETRIES);
     }
 
     @Override
     public CompletableFuture<List<TokenCount>> tokensCount(TokenCountRequest request) {
-        try {
-            return httpClient.executeAsync(createTokenCountHttpRequest(request))
-                    .thenApply(r -> {
-                        try {
-                            return objectMapper.readValue(r.body(), new TypeReference<>() {
-                            });
-                        } catch (IOException e) {
-                            throw new UncheckedIOException(e);
-                        }
-                    });
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        return RetryUtils.retry401Async(() -> httpClient.executeAsync(createTokenCountHttpRequest(request))
+                .thenApply(r -> {
+                    try {
+                        return objectMapper.readValue(r.body(), new TypeReference<>() {
+                        });
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                }), MAX_RETRIES);
     }
 
     @Override
     public CompletableFuture<BalanceResponse> balance() {
-        return httpClient.executeAsync(createBalanceHttpRequest())
+        return RetryUtils.retry401Async(() -> httpClient.executeAsync(createBalanceHttpRequest())
                 .thenApply(r -> {
                     try {
                         return objectMapper.readValue(r.body(), BalanceResponse.class);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
-                });
+                }), MAX_RETRIES);
     }
 }

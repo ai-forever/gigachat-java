@@ -6,13 +6,13 @@ import chat.giga.http.client.HttpRequest.HttpRequestBuilder;
 
 import java.util.Objects;
 
-class ProvidedTokenAuthClientImpl implements AuthClient {
+class ProvidedTokenAuthClient implements AuthClient {
 
-    String accessToken;
+    private final String accessToken;
 
-    public ProvidedTokenAuthClientImpl(String accessToken) {
-        this.accessToken = accessToken;
+    public ProvidedTokenAuthClient(String accessToken) {
         Objects.requireNonNull(accessToken, "accessToken must not be null");
+        this.accessToken = accessToken;
     }
 
     @Override
@@ -21,13 +21,12 @@ class ProvidedTokenAuthClientImpl implements AuthClient {
     }
 
     @Override
-    public HttpRequestBuilder authenticateRequest(HttpRequestBuilder request) {
-        return request.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
+    public void authenticate(HttpRequestBuilder requestBuilder) {
+        requestBuilder.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken);
     }
 
     @Override
     public HttpClient getHttpClient() {
         return null;
     }
-
 }
