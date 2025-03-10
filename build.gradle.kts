@@ -56,15 +56,6 @@ publishing {
                     url.set("https://github.com/ai-forever/gigachat-java")
                 }
             }
-            pom.withXml {
-                asNode().apply {
-                    val dependenciesNode = get("dependencies") as groovy.util.Node
-                    val gigachatJavaExampleDependency = dependenciesNode.children().find {
-                        it.toString().contains("gigachat-java-example")
-                    }
-                    dependenciesNode.remove(gigachatJavaExampleDependency as Node?)
-                }
-            }
         }
     }
     repositories {
@@ -79,4 +70,8 @@ publishing {
             }
         }
     }
+}
+
+tasks.withType<Jar> {
+    exclude("**/gigachat-java-example/**")
 }
