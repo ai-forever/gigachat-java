@@ -16,7 +16,7 @@ java {
 
 allprojects {
     group = "chat.giga"
-    version = "0.1.0"
+    version = "0.1.0-SNAPSHOT"
 
     repositories {
         mavenCentral()
@@ -70,7 +70,9 @@ publishing {
     repositories {
         maven {
             name = "MavenCentral"
-            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            val releasesUrl = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            val snapshotsUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsUrl else releasesUrl
             credentials {
                 username = project.findProperty("OSSRH_USERNAME") as String? ?: ""
                 password = project.findProperty("OSSRH_PASSWORD") as String? ?: ""
