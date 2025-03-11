@@ -1,5 +1,3 @@
-import groovy.util.Node
-
 plugins {
     java
     `maven-publish`
@@ -61,8 +59,8 @@ publishing {
             val snapshotsUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
             url = if (version.toString().endsWith("SNAPSHOT")) snapshotsUrl else releasesUrl
             credentials {
-                username = project.findProperty("ossrhUsername") as String? ?: ""
-                password = project.findProperty("ossrhPassword") as String? ?: ""
+                username = System.getenv("MAVEN_USERNAME")
+                password = System.getenv("MAVEN_PASSWORD")
             }
         }
     }
@@ -73,8 +71,8 @@ tasks.withType<Jar> {
 }
 
 signing {
-    val singingPassword = project.findProperty("singingPassword") as String
-    val signingSecretKey = project.findProperty("signingSecretKey") as String
+    val singingPassword = System.getenv("GPG_PASSWORD")
+    val signingSecretKey = System.getenv("GPG_SECRETKEY")
     useInMemoryPgpKeys(signingSecretKey, singingPassword)
-    sign(publishing.publications["mavenJava"])
+    sign(publishing.publications.getByName("mavenJava"))
 }

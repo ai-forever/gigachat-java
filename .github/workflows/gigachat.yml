@@ -23,3 +23,8 @@ jobs:
         run: ./gradlew build
       - name: Publish package
         run: ./gradlew publish
+        env:
+          MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
+          GPG_PASSWORD: ${{ secrets.GPG_PASSWORD }}
+          GPG_SECRETKEY: ${{ secrets.GPG_SECRET_KEY }}
