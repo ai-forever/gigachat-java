@@ -38,6 +38,7 @@ abstract class BaseGigaChatClient {
     protected final AuthClient authClient;
     protected final HttpClient httpClient;
     protected final String apiUrl;
+
     protected final ObjectMapper objectMapper = JsonUtils.objectMapper();
 
     protected BaseGigaChatClient(HttpClient apiHttpClient,

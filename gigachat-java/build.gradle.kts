@@ -22,6 +22,7 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.27.3")
     testImplementation("org.mockito:mockito-junit-jupiter:5.15.2")
     testImplementation("commons-io:commons-io:2.18.0")
+    testImplementation("org.mock-server:mockserver-junit-jupiter-no-dependencies:5.15.0")
 }
 
 tasks.test {

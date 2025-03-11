@@ -6,8 +6,6 @@ import chat.giga.http.client.HttpRequest.HttpRequestBuilder;
 import chat.giga.model.AccessTokenByUserPasswordResponse;
 import chat.giga.model.AccessTokenResponse;
 import chat.giga.model.Scope;
-import chat.giga.util.JsonUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -22,8 +20,6 @@ class UserPasswordAuthClient extends TokenBasedAuthClient implements AuthClient 
     private final Scope scope;
     private final HttpClient httpClient;
     private final String authApiUrl;
-
-    private final ObjectMapper objectMapper = JsonUtils.objectMapper();
 
     public UserPasswordAuthClient(HttpClient httpClient, String user, String password,
             Scope scope, String authApiUrl) {
