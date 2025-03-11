@@ -55,6 +55,13 @@ public class CompletionRequest {
     Object functionCall = ChatFunctionCallEnum.AUTO;
 
     /**
+     * Выключает цензор для аккаунтов, у которых установлен фичафлаг
+     */
+    @JsonProperty("profanity_check")
+    @Default
+    Boolean profanityCheck = false;
+
+    /**
      * Список с описанием пользовательских функций.
      */
     @JsonProperty

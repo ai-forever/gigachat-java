@@ -78,6 +78,36 @@ class GigaChatClientImplTest {
     }
 
     @Test
+    void completionsProfanityCheck() throws JsonProcessingException {
+        var body = TestData.completionResponse();
+        when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
+                .body(objectMapper.writeValueAsBytes(body))
+                .build());
+
+        var request = TestData.completionRequest()
+                .toBuilder()
+                .profanityCheck(true)
+                .build();
+        var response = gigaChatClient.completions(request);
+
+        assertThat(response).isEqualTo(body);
+
+        var captor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient).execute(captor.capture());
+
+        assertThat(captor.getValue()).satisfies(r -> {
+            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/chat/completions");
+            assertThat(r.method()).isEqualTo(HttpMethod.POST);
+            assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
+            assertThat(r.headers()).containsEntry(HttpHeaders.CONTENT_TYPE, List.of(MediaType.APPLICATION_JSON));
+            assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
+            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
+            assertThat(r.headers()).containsKey(GigaChatClientImpl.REQUEST_ID_HEADER);
+            assertThat(objectMapper.readValue(r.body(), CompletionRequest.class)).isEqualTo(request);
+        });
+    }
+
+    @Test
     void tokensCount() throws JsonProcessingException {
         var body = TestData.tokenCounts();
         when(httpClient.execute(any())).thenReturn(HttpResponse.builder()
