@@ -1,4 +1,4 @@
-package chat.giga.util;
+package chat.giga.jackson;
 
 import chat.giga.model.completion.ChatFunctionCall;
 import chat.giga.model.completion.ChatFunctionCallEnum;

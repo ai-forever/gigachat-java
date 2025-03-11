@@ -5,7 +5,7 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class FileUtils {
 
-    public static StringBuilder createMultiPartBody(byte[] file, String boundary, String purpose, String contentType,
+    public StringBuilder createMultiPartBody(byte[] file, String boundary, String purpose, String contentType,
             String fileName) {
         var requestBody = new StringBuilder();
         requestBody.append("--").append(boundary).append("\r\n");

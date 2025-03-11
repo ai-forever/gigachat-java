@@ -50,7 +50,7 @@ public class ChoiceMessage {
     @JsonProperty("function_call")
     ChoiceMessageFunctionCall functionCall;
 
-    public ChatMessage toAssistantMessage() {
+    public ChatMessage ofAssistantMessage() {
         return ChatMessage.builder()
                 .content(content)
                 .role(ChatMessage.Role.ASSISTANT).build();

@@ -99,12 +99,12 @@ public class LoggingHttpClient implements HttpClient {
     }
 
     @Override
-    public void executeAsync(HttpRequest request, SseListener listener) {
+    public void execute(HttpRequest request, SseListener listener) {
         if (logRequests) {
             logRequest(request);
         }
 
-        client.executeAsync(request, new SseListener() {
+        client.execute(request, new SseListener() {
             @Override
             public void onData(String data) {
                 if (logResponses) {
@@ -120,8 +120,8 @@ public class LoggingHttpClient implements HttpClient {
             }
 
             @Override
-            public void onError(Throwable th) {
-                listener.onError(th);
+            public void onError(Exception ex) {
+                listener.onError(ex);
             }
         });
     }

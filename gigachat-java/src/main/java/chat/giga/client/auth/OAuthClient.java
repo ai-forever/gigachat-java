@@ -14,9 +14,9 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-import static chat.giga.util.Utils.getOrDefault;
+import static chat.giga.util.Utils.*;
 
-class OAuthClientImpl extends TokenBasedAuth implements AuthClient {
+class OAuthClient extends TokenBasedAuthClient implements AuthClient {
 
     public static final String RQ_UID_HEADER = "RqUID";
     private static final String DEFAULT_AUTH_URL = "https://ngw.devices.sberbank.ru:9443/api/v2";
@@ -29,7 +29,7 @@ class OAuthClientImpl extends TokenBasedAuth implements AuthClient {
 
     private final ObjectMapper objectMapper = JsonUtils.objectMapper();
 
-    public OAuthClientImpl(chat.giga.http.client.HttpClient httpClient, String clientId, String secret,
+    public OAuthClient(chat.giga.http.client.HttpClient httpClient, String clientId, String secret,
             Scope scope, String authApiUrl) {
         this.httpClient = httpClient;
         this.clientId = clientId;
@@ -51,8 +51,8 @@ class OAuthClientImpl extends TokenBasedAuth implements AuthClient {
     }
 
     @Override
-    public HttpRequestBuilder authenticateRequest(HttpRequestBuilder request) {
-        return request.header(HttpHeaders.AUTHORIZATION, getBearerAuth());
+    public void authenticate(HttpRequestBuilder requestBuilder) {
+        requestBuilder.header(HttpHeaders.AUTHORIZATION, getBearerAuth());
     }
 
     @Override

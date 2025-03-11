@@ -1,6 +1,6 @@
 package chat.giga.model.completion;
 
-import chat.giga.util.FunctionCallJsonDeserializer;
+import chat.giga.jackson.FunctionCallJsonDeserializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Builder;

@@ -5,7 +5,7 @@ import chat.giga.http.client.JdkHttpClientBuilder;
 import chat.giga.model.Scope;
 import lombok.Builder;
 
-import static chat.giga.util.Utils.getOrDefault;
+import static chat.giga.util.Utils.*;
 
 import static java.time.Duration.ofSeconds;
 
@@ -18,7 +18,7 @@ public class AuthClientBuilder {
     }
 
     public AuthClientBuilder withOAuth(OAuthBuilder builder) {
-        this.method = new OAuthClientImpl(builder.httpClient == null ? new JdkHttpClientBuilder()
+        this.method = new OAuthClient(builder.httpClient == null ? new JdkHttpClientBuilder()
                 .readTimeout(ofSeconds(getOrDefault(builder.readTimeout, 15)))
                 .connectTimeout(ofSeconds(getOrDefault(builder.connectTimeout, 15)))
                 .build() : builder.httpClient, builder.clientId, builder.clientSecret, builder.scope,
@@ -27,7 +27,7 @@ public class AuthClientBuilder {
     }
 
     public AuthClientBuilder withUserPassword(UserPasswordAuthBuilder builder) {
-        this.method = new UserPasswordAuthClientImpl(builder.httpClient == null ? new JdkHttpClientBuilder()
+        this.method = new UserPasswordAuthClient(builder.httpClient == null ? new JdkHttpClientBuilder()
                 .readTimeout(ofSeconds(getOrDefault(builder.readTimeout, 15)))
                 .connectTimeout(ofSeconds(getOrDefault(builder.connectTimeout, 15)))
                 .build() : builder.httpClient, builder.user, builder.password, builder.scope,
@@ -36,12 +36,12 @@ public class AuthClientBuilder {
     }
 
     public AuthClientBuilder withProvidedTokenAuth(String accessToken) {
-        this.method = new ProvidedTokenAuthClientImpl(accessToken);
+        this.method = new ProvidedTokenAuthClient(accessToken);
         return this;
     }
 
     public AuthClientBuilder withCertificatesAuth(HttpClient httpClient) {
-        this.method = new CertificatesAuthClientImpl(httpClient);
+        this.method = new CertificateAuthClient(httpClient);
         return this;
     }
 
@@ -54,6 +54,7 @@ public class AuthClientBuilder {
 
     @Builder
     public static class OAuthBuilder {
+
         private String clientId;
         private String clientSecret;
         private HttpClient httpClient;
@@ -65,6 +66,7 @@ public class AuthClientBuilder {
 
     @Builder
     public static class UserPasswordAuthBuilder {
+
         private String user;
         private String password;
         private HttpClient httpClient;

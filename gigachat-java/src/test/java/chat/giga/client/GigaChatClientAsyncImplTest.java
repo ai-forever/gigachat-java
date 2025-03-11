@@ -2,6 +2,7 @@ package chat.giga.client;
 
 import chat.giga.client.auth.AuthClient;
 import chat.giga.http.client.HttpClient;
+import chat.giga.http.client.HttpClientException;
 import chat.giga.http.client.HttpHeaders;
 import chat.giga.http.client.HttpMethod;
 import chat.giga.http.client.HttpRequest;
@@ -30,7 +31,10 @@ import java.util.concurrent.CompletableFuture;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -39,6 +43,8 @@ class GigaChatClientAsyncImplTest {
 
     @Mock
     HttpClient httpClient;
+    @Mock
+    AuthClient authClient;
     @Mock
     ResponseHandler<CompletionChunkResponse> completionChunkResponseHandler;
 
@@ -50,39 +56,44 @@ class GigaChatClientAsyncImplTest {
     void setUp() {
         gigaChatClientAsync = GigaChatClientAsync.builder()
                 .apiHttpClient(httpClient)
-                .authClient(AuthClient.builder().withProvidedTokenAuth("testToken").build())
+                .authClient(authClient)
                 .build();
     }
 
     @Test
     void models() throws Exception {
         var body = TestData.modelResponse();
-        when(httpClient.executeAsync(any())).thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
-                .body(objectMapper.writeValueAsBytes(body))
-                .build()));
+        when(httpClient.executeAsync(any()))
+                .thenReturn(CompletableFuture.failedFuture(new HttpClientException(401, null)))
+                .thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
+                        .body(objectMapper.writeValueAsBytes(body))
+                        .build()));
 
         var response = gigaChatClientAsync.models().get();
 
         assertThat(response).isEqualTo(body);
 
+        verify(authClient, times(2)).authenticate(any());
+
         var captor = ArgumentCaptor.forClass(HttpRequest.class);
-        verify(httpClient).executeAsync(captor.capture());
+        verify(httpClient, times(2)).executeAsync(captor.capture());
 
         assertThat(captor.getValue()).satisfies(r -> {
             assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/models");
             assertThat(r.method()).isEqualTo(HttpMethod.GET);
             assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
             assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
-            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
         });
     }
 
     @Test
     void completions() throws Exception {
         var body = TestData.completionResponse();
-        when(httpClient.executeAsync(any())).thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
-                .body(objectMapper.writeValueAsBytes(body))
-                .build()));
+        when(httpClient.executeAsync(any()))
+                .thenReturn(CompletableFuture.failedFuture(new HttpClientException(401, null)))
+                .thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
+                        .body(objectMapper.writeValueAsBytes(body))
+                        .build()));
 
         var request = TestData.completionRequest()
                 .toBuilder()
@@ -92,8 +103,10 @@ class GigaChatClientAsyncImplTest {
 
         assertThat(response).isEqualTo(body);
 
+        verify(authClient, times(2)).authenticate(any());
+
         var captor = ArgumentCaptor.forClass(HttpRequest.class);
-        verify(httpClient).executeAsync(captor.capture());
+        verify(httpClient, times(2)).executeAsync(captor.capture());
 
         assertThat(captor.getValue()).satisfies(r -> {
             assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/chat/completions");
@@ -101,7 +114,6 @@ class GigaChatClientAsyncImplTest {
             assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
             assertThat(r.headers()).containsEntry(HttpHeaders.CONTENT_TYPE, List.of(MediaType.APPLICATION_JSON));
             assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
-            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
             assertThat(r.headers()).containsKey(GigaChatClientImpl.REQUEST_ID_HEADER);
             assertThat(objectMapper.readValue(r.body(), CompletionRequest.class)).isEqualTo(request);
         });
@@ -142,18 +154,24 @@ class GigaChatClientAsyncImplTest {
         var body = TestData.completionChunkResponse();
         doAnswer(i -> {
             var listener = i.getArgument(1, SseListener.class);
-            listener.onData(objectMapper.writeValueAsString(body));
-            listener.onComplete();
-            listener.onError(new Exception());
+            listener.onError(new HttpClientException(401, null));
 
             return null;
-        }).when(httpClient).executeAsync(any(), any());
+        }).doAnswer(i -> {
+            var listener = i.getArgument(1, SseListener.class);
+            listener.onData(objectMapper.writeValueAsString(body));
+            listener.onComplete();
+
+            return null;
+        }).when(httpClient).execute(any(), any());
 
         var request = TestData.completionRequest();
         gigaChatClientAsync.completions(request, completionChunkResponseHandler);
 
+        verify(authClient, timeout(100).times(2)).authenticate(any());
+
         var requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
-        verify(httpClient).executeAsync(requestCaptor.capture(), any());
+        verify(httpClient, timeout(100).times(2)).execute(requestCaptor.capture(), any());
 
         assertThat(requestCaptor.getValue()).satisfies(r -> {
             assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/chat/completions");
@@ -161,7 +179,6 @@ class GigaChatClientAsyncImplTest {
             assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
             assertThat(r.headers()).containsEntry(HttpHeaders.CONTENT_TYPE, List.of(MediaType.APPLICATION_JSON));
             assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.TEXT_EVENT_STREAM));
-            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
             assertThat(r.headers()).containsKey(GigaChatClientImpl.REQUEST_ID_HEADER);
             assertThat(objectMapper.readValue(r.body(), CompletionRequest.class)).isEqualTo(request.toBuilder()
                     .stream(true)
@@ -169,41 +186,69 @@ class GigaChatClientAsyncImplTest {
         });
 
         var responseCaptor = ArgumentCaptor.forClass(CompletionChunkResponse.class);
-        verify(completionChunkResponseHandler).onNext(responseCaptor.capture());
-        verify(completionChunkResponseHandler).onComplete();
+        verify(completionChunkResponseHandler, timeout(100)).onNext(responseCaptor.capture());
+        verify(completionChunkResponseHandler, timeout(100)).onComplete();
+        verify(completionChunkResponseHandler, after(100).never()).onError(any());
 
         assertThat(responseCaptor.getValue()).isEqualTo(body);
+    }
+
+    @Test
+    void completionStreamFailedWhenRetryExhausted() {
+        doAnswer(i -> {
+            var listener = i.getArgument(1, SseListener.class);
+            listener.onError(new HttpClientException(401, null));
+
+            return null;
+        }).doAnswer(i -> {
+            var listener = i.getArgument(1, SseListener.class);
+            listener.onError(new HttpClientException(401, null));
+
+            return null;
+        }).when(httpClient).execute(any(), any());
+
+        var request = TestData.completionRequest();
+        gigaChatClientAsync.completions(request, completionChunkResponseHandler);
+
+        verify(authClient, timeout(100).times(2)).authenticate(any());
+        verify(httpClient, timeout(100).times(2)).execute(any(), any());
+
+        verify(completionChunkResponseHandler, timeout(100)).onError(any(IllegalStateException.class));
     }
 
     @Test
     void completionStreamFailed() {
         doAnswer(i -> {
             var listener = i.getArgument(1, SseListener.class);
-            listener.onError(new Exception());
+            listener.onError(new RuntimeException());
 
             return null;
-        }).when(httpClient).executeAsync(any(), any());
+        }).when(httpClient).execute(any(), any());
 
-        gigaChatClientAsync.completions(CompletionRequest.builder(ChatFunctionCallEnum.AUTO).build(),
+        gigaChatClientAsync.completions(CompletionRequest.builder().build(),
                 completionChunkResponseHandler);
 
-        verify(completionChunkResponseHandler).onError(any(Exception.class));
+        verify(completionChunkResponseHandler, timeout(100)).onError(any(RuntimeException.class));
     }
 
     @Test
     void embeddings() throws Exception {
         var body = TestData.embeddingResponse();
-        when(httpClient.executeAsync(any())).thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
-                .body(objectMapper.writeValueAsBytes(body))
-                .build()));
+        when(httpClient.executeAsync(any()))
+                .thenReturn(CompletableFuture.failedFuture(new HttpClientException(401, null)))
+                .thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
+                        .body(objectMapper.writeValueAsBytes(body))
+                        .build()));
 
         var request = TestData.embeddingRequest();
         var response = gigaChatClientAsync.embeddings(request).get();
 
+        verify(authClient, times(2)).authenticate(any());
+
         assertThat(response).isEqualTo(body);
 
         var captor = ArgumentCaptor.forClass(HttpRequest.class);
-        verify(httpClient).executeAsync(captor.capture());
+        verify(httpClient, times(2)).executeAsync(captor.capture());
 
         assertThat(captor.getValue()).satisfies(r -> {
             assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/embeddings");
@@ -211,7 +256,6 @@ class GigaChatClientAsyncImplTest {
             assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
             assertThat(r.headers()).containsEntry(HttpHeaders.CONTENT_TYPE, List.of(MediaType.APPLICATION_JSON));
             assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
-            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
             assertThat(r.headers()).containsKey(GigaChatClientImpl.REQUEST_ID_HEADER);
             assertThat(objectMapper.readValue(r.body(), EmbeddingRequest.class)).isEqualTo(request);
         });
@@ -220,17 +264,21 @@ class GigaChatClientAsyncImplTest {
     @Test
     void uploadFile() throws Exception {
         var body = TestData.fileResponse();
-        when(httpClient.executeAsync(any())).thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
-                .body(objectMapper.writeValueAsBytes(body))
-                .build()));
+        when(httpClient.executeAsync(any()))
+                .thenReturn(CompletableFuture.failedFuture(new HttpClientException(401, null)))
+                .thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
+                        .body(objectMapper.writeValueAsBytes(body))
+                        .build()));
 
         var request = TestData.uploadFileRequest();
         var response = gigaChatClientAsync.uploadFile(request).get();
 
         assertThat(response).isEqualTo(body);
 
+        verify(authClient, times(2)).authenticate(any());
+
         var captor = ArgumentCaptor.forClass(HttpRequest.class);
-        verify(httpClient).executeAsync(captor.capture());
+        verify(httpClient, times(2)).executeAsync(captor.capture());
 
         assertThat(captor.getValue()).satisfies(r -> {
             assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/files");
@@ -239,7 +287,6 @@ class GigaChatClientAsyncImplTest {
             assertThat(r.headers().get(HttpHeaders.CONTENT_TYPE)).isNotEmpty();
             assertThat(r.headers().get(HttpHeaders.CONTENT_TYPE).get(0)).contains(
                     MediaType.MULTIPART_FORM_DATA + "; boundary");
-            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
             assertThat(r.body()).isNotEmpty();
         });
     }
@@ -247,24 +294,27 @@ class GigaChatClientAsyncImplTest {
     @Test
     void downloadFileWithXClientIdNull() throws Exception {
         var body = new byte[100];
-        when(httpClient.executeAsync(any())).thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
-                .body(body)
-                .build()));
+        when(httpClient.executeAsync(any()))
+                .thenReturn(CompletableFuture.failedFuture(new HttpClientException(401, null)))
+                .thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
+                        .body(body)
+                        .build()));
 
         var fileId = UUID.randomUUID().toString();
         var response = gigaChatClientAsync.downloadFile(fileId, null).get().readAllBytes();
 
         assertThat(response).isEqualTo(body);
 
+        verify(authClient, times(2)).authenticate(any());
+
         var captor = ArgumentCaptor.forClass(HttpRequest.class);
-        verify(httpClient).executeAsync(captor.capture());
+        verify(httpClient, times(2)).executeAsync(captor.capture());
 
         assertThat(captor.getValue()).satisfies(r -> {
             assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/files/" + fileId + "/content");
             assertThat(r.method()).isEqualTo(HttpMethod.GET);
             assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
             assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_OCTET_STREAM));
-            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
         });
     }
 
@@ -281,6 +331,8 @@ class GigaChatClientAsyncImplTest {
 
         assertThat(response).isEqualTo(body);
 
+        verify(authClient).authenticate(any());
+
         var captor = ArgumentCaptor.forClass(HttpRequest.class);
         verify(httpClient).executeAsync(captor.capture());
 
@@ -289,7 +341,6 @@ class GigaChatClientAsyncImplTest {
             assertThat(r.method()).isEqualTo(HttpMethod.GET);
             assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
             assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_OCTET_STREAM));
-            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
             assertThat(r.headers()).containsEntry(GigaChatClientImpl.CLIENT_ID_HEADER, List.of(clientId));
         });
     }
@@ -297,87 +348,100 @@ class GigaChatClientAsyncImplTest {
     @Test
     void getListAvailableFile() throws Exception {
         var body = TestData.availableFilesResponse();
-        when(httpClient.executeAsync(any())).thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
-                .body(objectMapper.writeValueAsBytes(body))
-                .build()));
+        when(httpClient.executeAsync(any()))
+                .thenReturn(CompletableFuture.failedFuture(new HttpClientException(401, null)))
+                .thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
+                        .body(objectMapper.writeValueAsBytes(body))
+                        .build()));
 
         var response = gigaChatClientAsync.getListAvailableFile().get();
         assertThat(response).isEqualTo(body);
 
+        verify(authClient, times(2)).authenticate(any());
+
         var captor = ArgumentCaptor.forClass(HttpRequest.class);
-        verify(httpClient).executeAsync(captor.capture());
+        verify(httpClient, times(2)).executeAsync(captor.capture());
 
         assertThat(captor.getValue()).satisfies(r -> {
             assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/files");
             assertThat(r.method()).isEqualTo(HttpMethod.GET);
             assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
             assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
-            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
         });
     }
 
     @Test
     void getFileInfo() throws Exception {
         var body = TestData.fileResponse();
-        when(httpClient.executeAsync(any())).thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
-                .body(objectMapper.writeValueAsBytes(body))
-                .build()));
+        when(httpClient.executeAsync(any()))
+                .thenReturn(CompletableFuture.failedFuture(new HttpClientException(401, null)))
+                .thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
+                        .body(objectMapper.writeValueAsBytes(body))
+                        .build()));
 
         var fileId = UUID.randomUUID().toString();
         var response = gigaChatClientAsync.getFileInfo(fileId).get();
 
         assertThat(response).isEqualTo(body);
 
+        verify(authClient, times(2)).authenticate(any());
+
         var captor = ArgumentCaptor.forClass(HttpRequest.class);
-        verify(httpClient).executeAsync(captor.capture());
+        verify(httpClient, times(2)).executeAsync(captor.capture());
 
         assertThat(captor.getValue()).satisfies(r -> {
             assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/files/" + fileId);
             assertThat(r.method()).isEqualTo(HttpMethod.GET);
             assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
             assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
-            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
         });
     }
 
     @Test
     void deleteFile() throws Exception {
         var body = TestData.fileDeletedResponse();
-        when(httpClient.executeAsync(any())).thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
-                .body(objectMapper.writeValueAsBytes(body))
-                .build()));
+        when(httpClient.executeAsync(any()))
+                .thenReturn(CompletableFuture.failedFuture(new HttpClientException(401, null)))
+                .thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
+                        .body(objectMapper.writeValueAsBytes(body))
+                        .build()));
 
         var fileId = UUID.randomUUID().toString();
         var response = gigaChatClientAsync.deleteFile(fileId).get();
 
         assertThat(response).isEqualTo(body);
 
+        verify(authClient, times(2)).authenticate(any());
+
         var captor = ArgumentCaptor.forClass(HttpRequest.class);
-        verify(httpClient).executeAsync(captor.capture());
+        verify(httpClient, times(2)).executeAsync(captor.capture());
 
         assertThat(captor.getValue()).satisfies(r -> {
             assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/files/" + fileId + "/delete");
             assertThat(r.method()).isEqualTo(HttpMethod.POST);
             assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
             assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
-            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
         });
     }
 
     @Test
     void tokensCount() throws Exception {
         var body = TestData.tokenCounts();
-        when(httpClient.executeAsync(any())).thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
-                .body(objectMapper.writeValueAsBytes(body))
-                .build()));
+        when(httpClient.executeAsync(any()))
+                .thenReturn(CompletableFuture.failedFuture(new HttpClientException(401, null)))
+                .thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
+                        .body(objectMapper.writeValueAsBytes(body))
+                        .build()));
 
         var request = TestData.tokenCountRequest();
         var tokenCounts = gigaChatClientAsync.tokensCount(request).get();
 
         assertThat(tokenCounts).isEqualTo(body);
 
+        verify(authClient, times(2)).authenticate(any());
+
         var captor = ArgumentCaptor.forClass(HttpRequest.class);
-        verify(httpClient).executeAsync(captor.capture());
+        verify(httpClient, times(2)).executeAsync(captor.capture());
 
         assertThat(captor.getValue()).satisfies(r -> {
             assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/tokens/count");
@@ -385,7 +449,6 @@ class GigaChatClientAsyncImplTest {
             assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
             assertThat(r.headers()).containsEntry(HttpHeaders.CONTENT_TYPE, List.of(MediaType.APPLICATION_JSON));
             assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
-            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
             assertThat(r.headers()).containsKey(GigaChatClientImpl.REQUEST_ID_HEADER);
             assertThat(objectMapper.readValue(r.body(), TokenCountRequest.class)).isEqualTo(request);
         });
@@ -394,23 +457,26 @@ class GigaChatClientAsyncImplTest {
     @Test
     void balance() throws Exception {
         var body = TestData.balanceResponse();
-        when(httpClient.executeAsync(any())).thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
-                .body(objectMapper.writeValueAsBytes(body))
-                .build()));
+        when(httpClient.executeAsync(any()))
+                .thenReturn(CompletableFuture.failedFuture(new HttpClientException(401, null)))
+                .thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
+                        .body(objectMapper.writeValueAsBytes(body))
+                        .build()));
 
         var response = gigaChatClientAsync.balance().get();
 
         assertThat(response).isEqualTo(body);
 
+        verify(authClient, times(2)).authenticate(any());
+
         var captor = ArgumentCaptor.forClass(HttpRequest.class);
-        verify(httpClient).executeAsync(captor.capture());
+        verify(httpClient, times(2)).executeAsync(captor.capture());
 
         assertThat(captor.getValue()).satisfies(r -> {
             assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/balance");
             assertThat(r.method()).isEqualTo(HttpMethod.GET);
             assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
             assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
-            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
             assertThat(r.headers()).containsKey(GigaChatClientImpl.REQUEST_ID_HEADER);
         });
     }
