@@ -73,6 +73,8 @@ tasks.withType<Jar> {
 }
 
 signing {
-    useGpgCmd()
-    sign(publishing.publications.getByName("mavenJava"))
+    val singingPassword = project.findProperty("singingPassword") as String
+    val signingSecretKey = project.findProperty("signingSecretKey") as String
+    useInMemoryPgpKeys(signingSecretKey, singingPassword)
+    sign(publishing.publications["mavenJava"])
 }
