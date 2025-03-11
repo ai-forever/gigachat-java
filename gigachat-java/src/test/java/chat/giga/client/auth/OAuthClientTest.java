@@ -1,9 +1,11 @@
 package chat.giga.client.auth;
 
+import chat.giga.client.auth.AuthClientBuilder.OAuthBuilder;
 import chat.giga.http.client.HttpClient;
 import chat.giga.http.client.HttpHeaders;
 import chat.giga.http.client.HttpMethod;
 import chat.giga.http.client.HttpRequest;
+import chat.giga.http.client.HttpRequest.HttpRequestBuilder;
 import chat.giga.http.client.HttpResponse;
 import chat.giga.http.client.MediaType;
 import chat.giga.model.AccessTokenResponse;
@@ -22,6 +24,10 @@ import java.time.Instant;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -41,18 +47,59 @@ class OAuthClientTest {
     ObjectMapper objectMapper = JsonUtils.objectMapper();
 
     @Test
-    public void oauth() throws Exception {
+    public void assertMethods() {
         OAuthClient authClient = new OAuthClient(httpClient, clientId, secret, scope, null);
+        assertNull(authClient.getHttpClient());
+        assertFalse(authClient.supportsHttpClient());
+    }
+
+    @Test
+    public void assertErrorClientIdNull() {
+        NullPointerException exception = assertThrows(NullPointerException.class, () ->
+                new OAuthClient(httpClient, null, secret, scope, null));
+
+        assertEquals("clientId must not be null", exception.getMessage());
+    }
+
+    @Test
+    public void assertErrorClientSecretNull() {
+        NullPointerException exception = assertThrows(NullPointerException.class, () ->
+                new OAuthClient(httpClient, clientId, null, scope, null));
+
+        assertEquals("clientSecret must not be null", exception.getMessage());
+    }
+
+    @Test
+    public void assertErrorScopeNull() {
+        NullPointerException exception = assertThrows(NullPointerException.class, () ->
+                new OAuthClient(httpClient, clientId, secret, null, null));
+
+        assertEquals("scope must not be null", exception.getMessage());
+    }
+
+    @Test
+    public void authenticate() throws Exception {
+        AuthClient authClient = AuthClientBuilder.builder()
+                .withOAuth(OAuthBuilder.builder()
+                        .clientId(clientId)
+                        .clientSecret(secret)
+                        .scope(scope)
+                        .httpClient(httpClient)
+                        .build())
+                .build();
+
         AccessTokenResponse mockResponse = AccessTokenResponse.builder()
                 .accessToken(token)
                 .expiresAt(Instant.now()
                         .plusSeconds(1000L).toEpochMilli())
                 .build();
         when(httpClient.execute(any())).thenReturn(getHttpResponse(mockResponse));
+        HttpRequestBuilder requestBuilder = HttpRequest.builder()
+                .url("test.ru/models");
 
-        AccessTokenResponse response = authClient.oauth();
-
-        assertThat(response).isEqualTo(mockResponse);
+        authClient.authenticate(requestBuilder);
+        assertThat(requestBuilder.build().headers()).containsEntry(HttpHeaders.AUTHORIZATION,
+                List.of("Bearer " + token));
 
         var captor = ArgumentCaptor.forClass(HttpRequest.class);
         verify(httpClient).execute(captor.capture());

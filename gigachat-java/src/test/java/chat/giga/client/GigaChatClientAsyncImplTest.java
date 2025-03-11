@@ -143,7 +143,6 @@ class GigaChatClientAsyncImplTest {
             assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
             assertThat(r.headers()).containsEntry(HttpHeaders.CONTENT_TYPE, List.of(MediaType.APPLICATION_JSON));
             assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
-            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Bearer testToken"));
             assertThat(r.headers()).containsKey(GigaChatClientImpl.REQUEST_ID_HEADER);
             assertThat(objectMapper.readValue(r.body(), CompletionRequest.class)).isEqualTo(request);
         });
