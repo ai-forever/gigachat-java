@@ -23,10 +23,6 @@ allprojects {
     }
 }
 
-signing {
-    sign(publishing.publications)
-}
-
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
@@ -56,15 +52,6 @@ publishing {
                     url.set("https://github.com/ai-forever/gigachat-java")
                 }
             }
-            pom.withXml {
-                asNode().apply {
-                    val dependenciesNode = get("dependencies") as groovy.util.Node
-                    val gigachatJavaExampleDependency = dependenciesNode.children().find {
-                        it.toString().contains("gigachat-java-example")
-                    }
-                    dependenciesNode.remove(gigachatJavaExampleDependency as Node?)
-                }
-            }
         }
     }
     repositories {
@@ -74,9 +61,18 @@ publishing {
             val snapshotsUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
             url = if (version.toString().endsWith("SNAPSHOT")) snapshotsUrl else releasesUrl
             credentials {
-                username = project.findProperty("OSSRH_USERNAME") as String? ?: ""
-                password = project.findProperty("OSSRH_PASSWORD") as String? ?: ""
+                username = project.findProperty("ossrhUsername") as String? ?: ""
+                password = project.findProperty("ossrhPassword") as String? ?: ""
             }
         }
     }
+}
+
+tasks.withType<Jar> {
+    exclude("**/gigachat-java-example/**")
+}
+
+signing {
+    useGpgCmd()
+    sign(publishing.publications.getByName("mavenJava"))
 }

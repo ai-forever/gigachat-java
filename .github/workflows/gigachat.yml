@@ -19,14 +19,7 @@ jobs:
           java-version: 17
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-
       - name: Build with Gradle
         run: ./gradlew build
       - name: Publish package
         run: ./gradlew publish
-        env:
-          OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-          OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
-          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
-          GPG_PASSWORD: ${{ secrets.GPG_PASSWORD }}
-          GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
