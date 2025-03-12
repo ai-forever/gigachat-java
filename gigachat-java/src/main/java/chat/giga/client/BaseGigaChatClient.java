@@ -9,6 +9,7 @@ import chat.giga.http.client.HttpRequest.HttpRequestBuilder;
 import chat.giga.http.client.JdkHttpClientBuilder;
 import chat.giga.http.client.LoggingHttpClient;
 import chat.giga.http.client.MediaType;
+import chat.giga.http.client.SSL;
 import chat.giga.model.TokenCountRequest;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.embedding.EmbeddingRequest;
@@ -22,7 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.UUID;
 
-import static chat.giga.util.Utils.*;
+import static chat.giga.util.Utils.getOrDefault;
 
 import static java.time.Duration.ofSeconds;
 
@@ -47,7 +48,8 @@ abstract class BaseGigaChatClient {
             Integer connectTimeout,
             String apiUrl,
             boolean logRequests,
-            boolean logResponses) {
+            boolean logResponses,
+            boolean verifySslCerts) {
         Objects.requireNonNull(authClient, "authClient must not be null");
         this.apiUrl = getOrDefault(apiUrl, DEFAULT_API_URL);
         this.authClient = authClient;
@@ -56,6 +58,7 @@ abstract class BaseGigaChatClient {
                 : (apiHttpClient == null ? new JdkHttpClientBuilder()
                         .readTimeout(ofSeconds(getOrDefault(readTimeout, 15)))
                         .connectTimeout(ofSeconds(getOrDefault(connectTimeout, 15)))
+                        .ssl(mapSslConfig(verifySslCerts))
                         .build() : apiHttpClient);
 
         if (logRequests || logResponses) {
@@ -218,5 +221,13 @@ abstract class BaseGigaChatClient {
         authClient.authenticate(builder);
 
         return builder.build();
+    }
+
+    private SSL mapSslConfig(boolean verifySslCerts) {
+        if (!verifySslCerts) {
+            return SSL.builder().verifySslCerts(false).build();
+        } else {
+            return null;
+        }
     }
 }

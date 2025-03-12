@@ -41,8 +41,10 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
             Integer connectTimeout,
             String apiUrl,
             boolean logRequests,
-            boolean logResponses) {
-        super(apiHttpClient, authClient, readTimeout, connectTimeout, apiUrl, logRequests, logResponses);
+            boolean logResponses,
+            boolean verifySslCerts) {
+        super(apiHttpClient, authClient, readTimeout, connectTimeout, apiUrl, logRequests, logResponses,
+                verifySslCerts);
     }
 
     @Override
