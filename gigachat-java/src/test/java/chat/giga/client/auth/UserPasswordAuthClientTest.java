@@ -121,7 +121,7 @@ public class UserPasswordAuthClientTest {
                     List.of(TokenBasedAuthClient.USER_AGENT_NAME));
             assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Basic Y2xpZW50SWQ6c2VjcmV0"));
             assertThat(r.headers()).containsEntry(HttpHeaders.CONTENT_TYPE,
-                    List.of(MediaType.APPLICATION_X_WWW_FORM_URLENCODED));
+                    List.of(MediaType.APPLICATION_FORM_URLENCODED));
             assertThat(new String(r.body(), StandardCharsets.UTF_8)).isEqualTo("scope=" + scope.name());
         });
     }
