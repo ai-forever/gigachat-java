@@ -40,7 +40,7 @@ publishing {
                 developers {
                     developer {
                         id.set("isergeymd, hellnn, dmbocharova")
-                        name.set("Sergey Safonov, Igor Obrucnev, Darya Bocharova")
+                        name.set("Sergey Safonov, Igor Obruchnev, Darya Bocharova")
                         email.set("SSafonov@sberbank.ru, IYObruchnev@sberbank.ru, dmbocharova@sberbank.ru")
                     }
                 }

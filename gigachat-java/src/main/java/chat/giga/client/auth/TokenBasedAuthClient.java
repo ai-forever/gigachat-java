@@ -6,6 +6,8 @@ import chat.giga.http.client.HttpRequest;
 import chat.giga.http.client.HttpRequest.HttpRequestBuilder;
 import chat.giga.http.client.MediaType;
 import chat.giga.model.Scope;
+import chat.giga.util.JsonUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -19,6 +21,8 @@ abstract class TokenBasedAuthClient {
 
     public static final String USER_AGENT_NAME = "GigaChat-java-lib";
 
+    protected final ObjectMapper objectMapper = JsonUtils.objectMapper();
+
     private final AtomicReference<AccessToken> accessToken = new AtomicReference<>();
 
     protected HttpRequestBuilder getTokenRequest(String url, Scope scope, String user, String password) {
@@ -28,10 +32,10 @@ abstract class TokenBasedAuthClient {
         return HttpRequest.builder()
                 .url(url)
                 .method(HttpMethod.POST)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_X_WWW_FORM_URLENCODED)
+                .header(USER_AGENT, USER_AGENT_NAME)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED)
                 .header(HttpHeaders.ACCEPT, APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Basic " + encodedCredentials)
-                .header(USER_AGENT, USER_AGENT_NAME)
                 .body(formData.getBytes(StandardCharsets.UTF_8));
     }
 

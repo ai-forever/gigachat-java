@@ -5,8 +5,6 @@ import chat.giga.http.client.HttpHeaders;
 import chat.giga.http.client.HttpRequest.HttpRequestBuilder;
 import chat.giga.model.AccessTokenResponse;
 import chat.giga.model.Scope;
-import chat.giga.util.JsonUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -19,6 +17,7 @@ import static chat.giga.util.Utils.*;
 class OAuthClient extends TokenBasedAuthClient implements AuthClient {
 
     public static final String RQ_UID_HEADER = "RqUID";
+
     private static final String DEFAULT_AUTH_URL = "https://ngw.devices.sberbank.ru:9443/api/v2";
 
     private final String clientId;
@@ -26,8 +25,6 @@ class OAuthClient extends TokenBasedAuthClient implements AuthClient {
     private final Scope scope;
     private final HttpClient httpClient;
     private final String authApiUrl;
-
-    private final ObjectMapper objectMapper = JsonUtils.objectMapper();
 
     public OAuthClient(chat.giga.http.client.HttpClient httpClient, String clientId, String secret,
             Scope scope, String authApiUrl) {
