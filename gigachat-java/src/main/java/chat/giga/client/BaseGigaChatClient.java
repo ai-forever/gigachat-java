@@ -16,14 +16,13 @@ import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.file.UploadFileRequest;
 import chat.giga.util.FileUtils;
 import chat.giga.util.JsonUtils;
+import chat.giga.util.Utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.UUID;
-
-import static chat.giga.util.Utils.getOrDefault;
 
 import static java.time.Duration.ofSeconds;
 
@@ -51,13 +50,13 @@ abstract class BaseGigaChatClient {
             boolean logResponses,
             boolean verifySslCerts) {
         Objects.requireNonNull(authClient, "authClient must not be null");
-        this.apiUrl = getOrDefault(apiUrl, DEFAULT_API_URL);
+        this.apiUrl = Utils.getOrDefault(apiUrl, DEFAULT_API_URL);
         this.authClient = authClient;
 
         var client = authClient.supportsHttpClient() ? authClient.getHttpClient()
                 : (apiHttpClient == null ? new JdkHttpClientBuilder()
-                        .readTimeout(ofSeconds(getOrDefault(readTimeout, 15)))
-                        .connectTimeout(ofSeconds(getOrDefault(connectTimeout, 15)))
+                        .readTimeout(ofSeconds(Utils.getOrDefault(readTimeout, 15)))
+                        .connectTimeout(ofSeconds(Utils.getOrDefault(connectTimeout, 15)))
                         .ssl(mapSslConfig(verifySslCerts))
                         .build() : apiHttpClient);
 

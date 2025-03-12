@@ -3,9 +3,9 @@ package chat.giga.client.auth;
 import chat.giga.http.client.HttpClient;
 import chat.giga.http.client.JdkHttpClientBuilder;
 import chat.giga.model.Scope;
+import chat.giga.util.Utils;
 import lombok.Builder;
 
-import static chat.giga.util.Utils.*;
 
 import static java.time.Duration.ofSeconds;
 
@@ -19,8 +19,8 @@ public class AuthClientBuilder {
 
     public AuthClientBuilder withOAuth(OAuthBuilder builder) {
         this.method = new OAuthClient(builder.httpClient == null ? new JdkHttpClientBuilder()
-                .readTimeout(ofSeconds(getOrDefault(builder.readTimeout, 15)))
-                .connectTimeout(ofSeconds(getOrDefault(builder.connectTimeout, 15)))
+                .readTimeout(ofSeconds(Utils.getOrDefault(builder.readTimeout, 15)))
+                .connectTimeout(ofSeconds(Utils.getOrDefault(builder.connectTimeout, 15)))
                 .build() : builder.httpClient, builder.clientId, builder.clientSecret, builder.scope,
                 builder.authApiUrl);
         return this;
@@ -28,8 +28,8 @@ public class AuthClientBuilder {
 
     public AuthClientBuilder withUserPassword(UserPasswordAuthBuilder builder) {
         this.method = new UserPasswordAuthClient(builder.httpClient == null ? new JdkHttpClientBuilder()
-                .readTimeout(ofSeconds(getOrDefault(builder.readTimeout, 15)))
-                .connectTimeout(ofSeconds(getOrDefault(builder.connectTimeout, 15)))
+                .readTimeout(ofSeconds(Utils.getOrDefault(builder.readTimeout, 15)))
+                .connectTimeout(ofSeconds(Utils.getOrDefault(builder.connectTimeout, 15)))
                 .build() : builder.httpClient, builder.user, builder.password, builder.scope,
                 builder.authApiUrl);
         return this;
