@@ -15,11 +15,11 @@ public class CompletionExample {
     public static void main(String[] args) {
 
         GigaChatClient client = GigaChatClient.builder()
+                .verifySslCerts(false)
                 .authClient(AuthClient.builder()
                         .withOAuth(OAuthBuilder.builder()
                                 .scope(Scope.GIGACHAT_API_PERS)
-                                .clientId("test-client-id")
-                                .clientSecret("test-scope")
+                                .authKey("key")
                                 .build())
                         .build())
                 .build();
@@ -27,7 +27,7 @@ public class CompletionExample {
             System.out.println(client.completions(CompletionRequest.builder()
                     .model(ModelName.GIGA_CHAT_MAX)
                     .message(ChatMessage.builder()
-                            .content("Как дела")
+                            .content("Какие факторы влияют на стоимость страховки на дом?")
                             .role(Role.USER)
                             .build())
                     .build()));

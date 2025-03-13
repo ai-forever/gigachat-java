@@ -48,7 +48,7 @@ class OAuthClientTest {
 
     @Test
     public void assertMethods() {
-        OAuthClient authClient = new OAuthClient(httpClient, clientId, secret, scope, null);
+        OAuthClient authClient = new OAuthClient(httpClient, clientId, secret, null, scope, null);
         assertNull(authClient.getHttpClient());
         assertFalse(authClient.supportsHttpClient());
     }
@@ -56,7 +56,7 @@ class OAuthClientTest {
     @Test
     public void assertErrorClientIdNull() {
         NullPointerException exception = assertThrows(NullPointerException.class, () ->
-                new OAuthClient(httpClient, null, secret, scope, null));
+                new OAuthClient(httpClient, null, secret, null, scope, null));
 
         assertEquals("clientId must not be null", exception.getMessage());
     }
@@ -64,7 +64,7 @@ class OAuthClientTest {
     @Test
     public void assertErrorClientSecretNull() {
         NullPointerException exception = assertThrows(NullPointerException.class, () ->
-                new OAuthClient(httpClient, clientId, null, scope, null));
+                new OAuthClient(httpClient, clientId, null, null, scope, null));
 
         assertEquals("clientSecret must not be null", exception.getMessage());
     }
@@ -72,7 +72,7 @@ class OAuthClientTest {
     @Test
     public void assertErrorScopeNull() {
         NullPointerException exception = assertThrows(NullPointerException.class, () ->
-                new OAuthClient(httpClient, clientId, secret, null, null));
+                new OAuthClient(httpClient, clientId, secret, null, null, null));
 
         assertEquals("scope must not be null", exception.getMessage());
     }
@@ -117,8 +117,47 @@ class OAuthClientTest {
     }
 
     @Test
+    public void authenticateByKey() throws Exception {
+        AuthClient authClient = AuthClientBuilder.builder()
+                .withOAuth(OAuthBuilder.builder()
+                        .authKey("testKey")
+                        .scope(scope)
+                        .httpClient(httpClient)
+                        .build())
+                .build();
+
+        AccessTokenResponse mockResponse = AccessTokenResponse.builder()
+                .accessToken(token)
+                .expiresAt(Instant.now()
+                        .plusSeconds(1000L).toEpochMilli())
+                .build();
+        when(httpClient.execute(any())).thenReturn(getHttpResponse(mockResponse));
+        HttpRequestBuilder requestBuilder = HttpRequest.builder()
+                .url("test.ru/models");
+
+        authClient.authenticate(requestBuilder);
+
+        assertThat(requestBuilder.build().headers()).containsEntry(HttpHeaders.AUTHORIZATION,
+                List.of("Bearer " + token));
+
+        var captor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient).execute(captor.capture());
+        assertThat(captor.getValue()).satisfies(r -> {
+            assertThat(r.method()).isEqualTo(HttpMethod.POST);
+            assertThat(r.url()).asString().isEqualTo("https://ngw.devices.sberbank.ru:9443/api/v2/oauth");
+            assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT,
+                    List.of(TokenBasedAuthClient.USER_AGENT_NAME));
+            assertThat(r.headers()).containsEntry(HttpHeaders.AUTHORIZATION, List.of("Basic testKey"));
+            assertThat(r.headers()).containsEntry(HttpHeaders.CONTENT_TYPE,
+                    List.of(MediaType.APPLICATION_FORM_URLENCODED));
+            assertThat(r.headers()).containsKey(OAuthClient.RQ_UID_HEADER);
+            assertThat(new String(r.body(), StandardCharsets.UTF_8)).isEqualTo("scope=" + scope.name());
+        });
+    }
+
+    @Test
     public void retrieveTokenWhenTokenIsNew() throws Exception {
-        OAuthClient authClient = new OAuthClient(httpClient, clientId, secret, scope, null);
+        OAuthClient authClient = new OAuthClient(httpClient, clientId, secret, null, scope, null);
         AccessTokenResponse mockResponse = AccessTokenResponse.builder()
                 .accessToken(token)
                 .expiresAt(Instant.now()
@@ -134,7 +173,7 @@ class OAuthClientTest {
 
     @Test
     public void retrieveTokenWhenTokenExistsAndIsOk() throws Exception {
-        OAuthClient authClient = new OAuthClient(httpClient, clientId, secret, scope, null);
+        OAuthClient authClient = new OAuthClient(httpClient, clientId, secret, null, scope, null);
         AccessTokenResponse mockResponse = AccessTokenResponse.builder()
                 .accessToken(token)
                 .expiresAt(Instant.now()
@@ -153,7 +192,7 @@ class OAuthClientTest {
 
     @Test
     public void retrieveTokenTokenWhenTokenExistsAndIsExpired() throws Exception {
-        OAuthClient authClient = new OAuthClient(httpClient, clientId, secret, scope, null);
+        OAuthClient authClient = new OAuthClient(httpClient, clientId, secret, null, scope, null);
         AccessTokenResponse mockResponse = AccessTokenResponse.builder()
                 .accessToken(token)
                 .expiresAt(Instant.now()
@@ -172,7 +211,7 @@ class OAuthClientTest {
 
     @Test
     public void checkCustomUrl() throws Exception {
-        OAuthClient authClient = new OAuthClient(httpClient, clientId, secret, scope,
+        OAuthClient authClient = new OAuthClient(httpClient, clientId, secret, null, scope,
                 "https://test.com");
         AccessTokenResponse mockResponse = AccessTokenResponse.builder()
                 .accessToken("test")

@@ -21,7 +21,7 @@ public class AuthClientBuilder {
         this.method = new OAuthClient(builder.httpClient == null ? new JdkHttpClientBuilder()
                 .readTimeout(ofSeconds(Utils.getOrDefault(builder.readTimeout, 15)))
                 .connectTimeout(ofSeconds(Utils.getOrDefault(builder.connectTimeout, 15)))
-                .build() : builder.httpClient, builder.clientId, builder.clientSecret, builder.scope,
+                .build() : builder.httpClient, builder.clientId, builder.clientSecret, builder.authKey, builder.scope,
                 builder.authApiUrl);
         return this;
     }
@@ -57,6 +57,7 @@ public class AuthClientBuilder {
 
         private String clientId;
         private String clientSecret;
+        private String authKey;
         private HttpClient httpClient;
         private Integer readTimeout;
         private Integer connectTimeout;

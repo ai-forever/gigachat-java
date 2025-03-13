@@ -26,16 +26,20 @@ abstract class TokenBasedAuthClient {
     private final AtomicReference<AccessToken> accessToken = new AtomicReference<>();
 
     protected HttpRequestBuilder getTokenRequest(String url, Scope scope, String user, String password) {
-        var formData = "scope=" + scope.name();
         var credentials = user + ":" + password;
         var encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes());
+        return getTokenRequest(url, scope, encodedCredentials);
+    }
+
+    protected HttpRequestBuilder getTokenRequest(String url, Scope scope, String key) {
+        var formData = "scope=" + scope.name();
         return HttpRequest.builder()
                 .url(url)
                 .method(HttpMethod.POST)
                 .header(USER_AGENT, USER_AGENT_NAME)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED)
                 .header(HttpHeaders.ACCEPT, APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, "Basic " + encodedCredentials)
+                .header(HttpHeaders.AUTHORIZATION, "Basic " + key)
                 .body(formData.getBytes(StandardCharsets.UTF_8));
     }
 

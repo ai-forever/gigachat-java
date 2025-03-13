@@ -22,23 +22,27 @@ class OAuthClient extends TokenBasedAuthClient implements AuthClient {
 
     private final String clientId;
     private final String secret;
+    private final String authKey;
     private final Scope scope;
     private final HttpClient httpClient;
     private final String authApiUrl;
 
-    public OAuthClient(chat.giga.http.client.HttpClient httpClient, String clientId, String secret,
+    public OAuthClient(chat.giga.http.client.HttpClient httpClient, String clientId,  String secret, String authKey,
             Scope scope, String authApiUrl) {
         this.httpClient = httpClient;
         this.clientId = clientId;
         this.secret = secret;
+        this.authKey  = authKey;
         this.scope = scope;
         this.authApiUrl = getOrDefault(authApiUrl, DEFAULT_AUTH_URL);
         validateParams();
     }
 
     private void validateParams() {
-        Objects.requireNonNull(clientId, "clientId must not be null");
-        Objects.requireNonNull(secret, "clientSecret must not be null");
+        if (authKey == null) {
+            Objects.requireNonNull(clientId, "clientId must not be null");
+            Objects.requireNonNull(secret, "clientSecret must not be null");
+        }
         Objects.requireNonNull(scope, "scope must not be null");
     }
 
@@ -58,7 +62,8 @@ class OAuthClient extends TokenBasedAuthClient implements AuthClient {
     }
 
     public AccessTokenResponse oauth() {
-        var httpRequest = getTokenRequest(authApiUrl + "/oauth", scope, clientId, secret)
+        var httpRequest = (authKey == null ? getTokenRequest(authApiUrl + "/oauth", scope, clientId, secret)
+                : getTokenRequest(authApiUrl + "/oauth", scope, authKey))
                 .header(RQ_UID_HEADER, UUID.randomUUID().toString())
                 .build();
         try {
