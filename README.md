@@ -18,6 +18,8 @@ implementation("chat.giga:gigachat-java:0.1.0")
 </dependency>
 ```
 
+## Требования
+Библиотека требует Java 17 или более позднюю версию.
 
 ## Быстрый старт
 
@@ -64,10 +66,20 @@ public class CompletionExample {
 ```
 
 > [!NOTE]
-> Этот и другие примеры работы с библиотекой gigachat — в папке [examples](gigachat-java-example/README.md).
+> Этот и другие примеры работы с библиотекой GigaChat — в папке [examples](gigachat-java-example/README.md).
 
 ## Параметры объекта GigaChatClient
 
 ## Способы авторизации
 
+## Установка корневого сертификата НУЦ Минцифры
+
+Чтобы библиотека GigaChat могла передавать запросы в GigaChat API, вам нужно установить корневой сертификат [НУЦ Минцифры](https://developers.sber.ru/docs/ru/gigachat/certificates).
+
+Для этого выполните команду:
+
+Запустить из `JAVA_HOME/bin`
+```
+keytool -importcert -storepass changeit -noprompt -alias rus_root_ca -cacerts -trustcacerts -file /Users/certs/russiantrustedca/russian_trusted_root_ca_pem.crt
+```
 
