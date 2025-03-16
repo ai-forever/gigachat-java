@@ -1,7 +1,8 @@
 plugins {
     `java-library`
     id("io.freefair.lombok") version "8.12.2"
-    id("com.diffplug.spotless") version "7.0.2"
+    id("com.diffplug.spotless")
+    id("gigachat.publish")
 }
 
 dependencies {

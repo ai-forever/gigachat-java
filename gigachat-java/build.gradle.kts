@@ -2,6 +2,7 @@ plugins {
     `java-library`
     `maven-publish`
     id("io.freefair.lombok") version "8.12.2"
+    id("gigachat.publish")
 }
 
 publishing {
@@ -32,4 +33,3 @@ tasks.test {
 tasks.compileJava {
     options.encoding = "UTF-8"
 }
-
