@@ -10,7 +10,7 @@ repositories {
     mavenCentral()
 }
 
-extra["signingInMemoryKey"] = readFileAsString(System.getenv("GPG_SIGNING_KEY"))
+extra["signingInMemoryKey"] = System.getenv("GPG_SIGNING_KEY")
 extra["signingInMemoryKeyId"] = System.getenv("GPG_SIGNING_KEY_ID")
 extra["signingInMemoryKeyPassword"] = System.getenv("GPG_SIGNING_PASSWORD")
 
@@ -40,15 +40,6 @@ configure<MavenPublishBaseExtension> {
             connection.set("scm:https://github.com/ai-forever/gigachat-java.git")
             developerConnection.set("scm:git@github.com:ai-forever/gigachat-java.git")
             url.set("https://github.com/ai-forever/gigachat-java")
-        }
-    }
-}
-
-fun readFileAsString(filePath: String): String {
-    val file = File(filePath)
-    return file.inputStream().use { inputStream: java.io.InputStream ->
-        inputStream.reader(Charsets.UTF_8).use { reader ->
-            reader.readText()
         }
     }
 }
