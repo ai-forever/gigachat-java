@@ -43,12 +43,3 @@ configure<MavenPublishBaseExtension> {
         }
     }
 }
-
-fun readFileAsString(filePath: String): String {
-    val file = File(filePath)
-    return file.inputStream().use { inputStream: java.io.InputStream ->
-        inputStream.reader(Charsets.UTF_8).use { reader ->
-            reader.readText()
-        }
-    }
-}

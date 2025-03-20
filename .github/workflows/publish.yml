@@ -18,11 +18,11 @@ jobs:
           java-version: 17
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
-      - name: Build project
+      - name: Build with Gradle
         run: ./gradlew build
       - name: Publish package
         if: startsWith(github.ref, 'refs/tags/')
-        run: ./gradlew publish --stacktrace -PmavenCentralUsername="$SONATYPE_USERNAME" -PmavenCentralPassword="$SONATYPE_PASSWORD"
+        run: ./gradlew publishAndReleaseToMavenCentral --stacktrace -PmavenCentralUsername="$SONATYPE_USERNAME" -PmavenCentralPassword="$SONATYPE_PASSWORD"
         env:
           SONATYPE_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
