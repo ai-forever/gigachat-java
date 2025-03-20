@@ -2,6 +2,7 @@ package chat.giga.client.auth;
 
 import chat.giga.http.client.HttpClient;
 import chat.giga.http.client.JdkHttpClientBuilder;
+import chat.giga.http.client.SSL;
 import chat.giga.model.Scope;
 import chat.giga.util.Utils;
 import lombok.Builder;
@@ -21,6 +22,7 @@ public class AuthClientBuilder {
         this.method = new OAuthClient(builder.httpClient == null ? new JdkHttpClientBuilder()
                 .readTimeout(ofSeconds(Utils.getOrDefault(builder.readTimeout, 15)))
                 .connectTimeout(ofSeconds(Utils.getOrDefault(builder.connectTimeout, 15)))
+                .ssl(mapSslConfig(builder.verifySslCerts))
                 .build() : builder.httpClient, builder.clientId, builder.clientSecret, builder.authKey, builder.scope,
                 builder.authApiUrl);
         return this;
@@ -30,6 +32,7 @@ public class AuthClientBuilder {
         this.method = new UserPasswordAuthClient(builder.httpClient == null ? new JdkHttpClientBuilder()
                 .readTimeout(ofSeconds(Utils.getOrDefault(builder.readTimeout, 15)))
                 .connectTimeout(ofSeconds(Utils.getOrDefault(builder.connectTimeout, 15)))
+                .ssl(mapSslConfig(builder.verifySslCerts))
                 .build() : builder.httpClient, builder.user, builder.password, builder.scope,
                 builder.authApiUrl);
         return this;
@@ -52,6 +55,14 @@ public class AuthClientBuilder {
         return method;
     }
 
+    private SSL mapSslConfig(boolean verifySslCerts) {
+        if (!verifySslCerts) {
+            return SSL.builder().verifySslCerts(false).build();
+        } else {
+            return null;
+        }
+    }
+
     @Builder
     public static class OAuthBuilder {
 
@@ -63,6 +74,7 @@ public class AuthClientBuilder {
         private Integer connectTimeout;
         private Scope scope;
         private String authApiUrl;
+        private boolean verifySslCerts;
     }
 
     @Builder
@@ -75,6 +87,7 @@ public class AuthClientBuilder {
         private Integer connectTimeout;
         private Scope scope;
         private String authApiUrl;
+        private boolean verifySslCerts;
     }
 
 }
