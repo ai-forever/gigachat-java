@@ -1,17 +1,20 @@
-# Примеры работы с GigaChat
+# Примеры работы с библиотекой GigaChat
 
-В этом разделе вы найдете примеры работы с библиотекой GigaChat:
+В этом разделе вы найдете примеры работы с библиотекой GigaChat.
 
-* Простой запрос на генерацию:
-    * [версия](./src/main/java/chat/giga/CompletionExample.java) с отключенной проверкой сертификатов;
-
-
-* [Работа с чатом](./src/main/java/chat/giga/CompletionExample.java)
-* [Асинхронная работа с потоковой обработкой токенов](./src/main/java/chat/giga/CompletionStreamingExample.java)
-* [Взаимная аутентификация по протоколу TLS (mTLS)](./src/main/java/chat/giga/UseCertificateAuthExample.java)
-
-
-* [Пример получения изображения](./src/main/java/chat/giga/ImageDownloadFromCompletionsExample.java)
-
-  Комплексный пример, который демонстрирует работу с чатом и изображениями.
-
+| Пример                                                                                                  | Описание                                                                                                                                                                       |
+| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [ModelListExample](src/main/java/chat/giga/ModelListExample.java)                                       | Получение списка доступных [моделей](https://developers.sber.ru/docs/ru/gigachat/models)                                                                                       |
+| [CompletionExample](src/main/java/chat/giga/CompletionExample.java)                                     | Простой запрос на генерацию                                                                                                                                                    |
+| [CompletionStreamingExample](src/main/java/chat/giga/CompletionStreamingExample.java)                   | Пример обработки [потоковой генерации токенов](https://developers.sber.ru/docs/ru/gigachat/api/response-token-streaming)                                                       |
+| [CompletionConversationExample](src/main/java/chat/giga/CompletionConversationExample.java)             | Примеры работы с [историей сообщений](https://developers.sber.ru/docs/ru/gigachat/api/keeping-context)                                                                         |
+| [UploadFileExample](src/main/java/chat/giga/UploadFileExample.java)                                     | Загрузка файла в хранилище. О поддерживаемых типах файлов и возможных ограничениях — в [справке API](https://developers.sber.ru/docs/ru/gigachat/api/reference/rest/post-file) |
+| [AvailableFilesExample](src/main/java/chat/giga/AvailableFilesExample.java)                             | Получение списка доступных в хранилище файлов                                                                                                                                  |
+| [FileInfoExample](src/main/java/chat/giga/FileInfoExample.java)                                         | Получение информации о сохраненном в хранилище файле                                                                                                                           |
+| [DownloadExample](src/main/java/chat/giga/DownloadExample.java)                                         | Скачивание файла из хранилища                                                                                                                                                  |
+| [ImageDownloadFromCompletionsExample](src/main/java/chat/giga/ImageDownloadFromCompletionsExample.java) | Скачивание файла, созданного в результате запроса на генерацию                                                                                                                 |
+| [FileDeletedExample](src/main/java/chat/giga/FileDeletedExample.java)                                   | Удаление файла из хранилища                                                                                                                                                    |
+| [FunctionExample](src/main/java/chat/giga/FunctionExample.java)                                         | Пример [работы с функциями](https://developers.sber.ru/docs/ru/gigachat/api/function-calling)                                                                                  |
+| [EmbeddingExample](src/main/java/chat/giga/EmbeddingExample.java)                                       | Создание [векторного представления текста](https://developers.sber.ru/docs/ru/gigachat/api/embeddings)                                                                         |
+| [UseCertificateAuthExample](src/main/java/chat/giga/UseCertificateAuthExample.java)                     | Пример аутентификации с помощью TLS-сертификатов                                                                                                                               |
+| [UseUserPasswordAuthExample](src/main/java/chat/giga/UseUserPasswordAuthExample.java)                   | Пример аутентификации с помощью имени пользователя и пароля                                                                                                                    |
