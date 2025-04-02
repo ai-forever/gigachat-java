@@ -14,4 +14,6 @@ public interface AuthClient {
     static AuthClientBuilder builder() {
         return new AuthClientBuilder();
     }
+
+    AccessToken getToken();
 }

@@ -33,8 +33,7 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
             boolean logRequests,
             boolean logResponses,
             boolean verifySslCerts) {
-        super(apiHttpClient, authClient, readTimeout, connectTimeout, apiUrl, logRequests, logResponses,
-                verifySslCerts);
+        super(apiHttpClient, authClient, readTimeout, connectTimeout, apiUrl, logRequests, logResponses, verifySslCerts);
     }
 
     @Override
@@ -49,9 +48,9 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
     }
 
     @Override
-    public CompletionResponse completions(CompletionRequest request) {
+    public CompletionResponse completions(CompletionRequest request, String sessionId) {
         try {
-            var httpResponse = RetryUtils.retry401(() -> httpClient.execute(createCompletionHttpRequest(request)),
+            var httpResponse = RetryUtils.retry401(() -> httpClient.execute(createCompletionHttpRequest(request, sessionId)),
                     MAX_RETRIES);
 
             return objectMapper.readValue(httpResponse.body(), CompletionResponse.class);

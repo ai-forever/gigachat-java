@@ -29,4 +29,11 @@ public class Usage {
      */
     @JsonProperty("total_tokens")
     Integer totalTokens;
+
+    /**
+     * Количество кэшированных токенов, которые не учитываются в расчете стоимости
+     */
+    @JsonProperty("precached_prompt_tokens")
+    Integer precachedPromptTokens;
+
 }

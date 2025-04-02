@@ -31,6 +31,7 @@ abstract class BaseGigaChatClient {
     public static final String DEFAULT_API_URL = "https://gigachat.devices.sberbank.ru/api/v1";
     public static final String REQUEST_ID_HEADER = "X-Request-ID";
     public static final String CLIENT_ID_HEADER = "X-Client-ID";
+    public static final String SESSION_ID_HEADER = "X-Session-ID";
     public static final String USER_AGENT_NAME = "GigaChat-java-lib";
 
     protected static final int MAX_RETRIES = 1;
@@ -38,7 +39,6 @@ abstract class BaseGigaChatClient {
     protected final AuthClient authClient;
     protected final HttpClient httpClient;
     protected final String apiUrl;
-
     protected final ObjectMapper objectMapper = JsonUtils.objectMapper();
 
     protected BaseGigaChatClient(HttpClient apiHttpClient,
@@ -80,7 +80,7 @@ abstract class BaseGigaChatClient {
         return builder.build();
     }
 
-    protected HttpRequest createCompletionHttpRequest(CompletionRequest request) {
+    protected HttpRequest createCompletionHttpRequest(CompletionRequest request, String sessionId) {
         HttpRequestBuilder builder;
         try {
             builder = HttpRequest.builder()
@@ -90,6 +90,7 @@ abstract class BaseGigaChatClient {
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
                     .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                     .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
+                    .headerIf(sessionId != null, SESSION_ID_HEADER, sessionId)
                     .body(objectMapper.writeValueAsBytes(request.toBuilder()
                             .stream(false)
                             .build()));

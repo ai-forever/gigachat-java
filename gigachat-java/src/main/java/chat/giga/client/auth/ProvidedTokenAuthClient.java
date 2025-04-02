@@ -29,4 +29,9 @@ class ProvidedTokenAuthClient implements AuthClient {
     public HttpClient getHttpClient() {
         return null;
     }
+
+    @Override
+    public AccessToken getToken() {
+        return new AccessToken(accessToken, null);
+    }
 }

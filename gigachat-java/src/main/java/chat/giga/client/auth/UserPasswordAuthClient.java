@@ -53,7 +53,8 @@ class UserPasswordAuthClient extends TokenBasedAuthClient implements AuthClient 
         return null;
     }
 
-    protected AccessToken refreshToken() {
+    @Override
+    public AccessToken getToken() {
         var token = oauth();
         return new AccessToken(token.accessToken(), Instant.ofEpochMilli(token.expiresAt()));
     }

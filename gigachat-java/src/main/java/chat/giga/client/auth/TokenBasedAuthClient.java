@@ -50,9 +50,9 @@ abstract class TokenBasedAuthClient {
     protected String retrieveTokenIfExpired() {
         return accessToken.updateAndGet(t -> {
             var expiresAt = t == null ? null : t.expiresAt();
-            return expiresAt != null && Instant.now().isBefore(expiresAt) ? t : refreshToken();
+            return expiresAt != null && Instant.now().isBefore(expiresAt) ? t : getToken();
         }).token();
     }
 
-    protected abstract AccessToken refreshToken();
+    protected abstract AccessToken getToken();
 }

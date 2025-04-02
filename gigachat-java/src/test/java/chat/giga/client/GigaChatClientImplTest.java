@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+import static chat.giga.client.BaseGigaChatClient.SESSION_ID_HEADER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,6 +52,32 @@ class GigaChatClientImplTest {
                 .apiHttpClient(httpClient)
                 .authClient(authClient)
                 .build();
+    }
+
+    @Test
+    void completionsSessionId() throws JsonProcessingException {
+        var body = TestData.completionResponse();
+
+        when(httpClient.execute(any()))
+                .thenThrow(new HttpClientException(401, null))
+                .thenReturn(HttpResponse.builder()
+                        .body(objectMapper.writeValueAsBytes(body))
+                        .build());
+
+        var request = TestData.completionRequest();
+        var sessionId = "test-id";
+        var response = gigaChatClient.completions(request, sessionId);
+
+        assertThat(response).isEqualTo(body);
+
+        var captor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient, times(2)).execute(captor.capture());
+
+        assertThat(captor.getValue()).satisfies(r -> {
+            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/chat/completions");
+            assertThat(r.method()).isEqualTo(HttpMethod.POST);
+            assertThat(r.headers()).containsEntry(SESSION_ID_HEADER, List.of(sessionId));
+        });
     }
 
     @Test

@@ -28,6 +28,11 @@ class CertificateAuthClient implements AuthClient {
     public HttpClient getHttpClient() {
         return httpClient;
     }
+
+    @Override
+    public AccessToken getToken() {
+        return null;
+    }
 }
 
 

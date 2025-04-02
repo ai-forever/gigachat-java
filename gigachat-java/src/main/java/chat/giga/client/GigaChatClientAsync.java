@@ -34,7 +34,20 @@ public interface GigaChatClientAsync {
      * @param request описание запроса на получение ответа от модели
      * @return ответ модели, сгенерированный на основе переданных сообщений.
      */
-    CompletableFuture<CompletionResponse> completions(CompletionRequest request);
+    default CompletableFuture<CompletionResponse> completions(CompletionRequest request) {
+        return completions(request, (String) null);
+    }
+
+    /**
+     * Получить ответ модели на сообщения
+     *
+     * @param request описание запроса на получение ответа от модели
+     * @param sessionId для кэширования контекста разговора с GigaChat. Идентификатор передается в заголовке запроса и может содержать произвольную строку.
+     *                  Если при получении запроса, модель находит в кэше данные о запросе с таким же идентификатором и частично совпадающим контекстом, то она не
+     *                  пересчитывает этот контекст
+     * @return ответ модели, сгенерированный на основе переданных сообщений.
+     */
+    CompletableFuture<CompletionResponse> completions(CompletionRequest request, String sessionId);
 
     /**
      * Получить ответ модели в виде потока сообщений

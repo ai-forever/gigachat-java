@@ -43,8 +43,7 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
             boolean logRequests,
             boolean logResponses,
             boolean verifySslCerts) {
-        super(apiHttpClient, authClient, readTimeout, connectTimeout, apiUrl, logRequests, logResponses,
-                verifySslCerts);
+        super(apiHttpClient, authClient, readTimeout, connectTimeout, apiUrl, logRequests, logResponses, verifySslCerts);
     }
 
     @Override
@@ -60,8 +59,8 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
     }
 
     @Override
-    public CompletableFuture<CompletionResponse> completions(CompletionRequest request) {
-        return RetryUtils.retry401Async(() -> httpClient.executeAsync(createCompletionHttpRequest(request))
+    public CompletableFuture<CompletionResponse> completions(CompletionRequest request, String sessionId) {
+        return RetryUtils.retry401Async(() -> httpClient.executeAsync(createCompletionHttpRequest(request, sessionId))
                 .thenApply(r -> {
                     try {
                         return objectMapper.readValue(r.body(), CompletionResponse.class);
