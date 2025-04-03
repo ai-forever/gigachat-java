@@ -33,9 +33,9 @@ abstract class BaseGigaChatClient {
     public static final String CLIENT_ID_HEADER = "X-Client-ID";
     public static final String SESSION_ID_HEADER = "X-Session-ID";
     public static final String USER_AGENT_NAME = "GigaChat-java-lib";
+    public static final int MAX_RETRIES = 1;
 
-    protected static final int MAX_RETRIES = 1;
-
+    protected final int maxRetriesOnAuthError;
     protected final AuthClient authClient;
     protected final HttpClient httpClient;
     protected final String apiUrl;
@@ -48,10 +48,12 @@ abstract class BaseGigaChatClient {
             String apiUrl,
             boolean logRequests,
             boolean logResponses,
-            boolean verifySslCerts) {
+            boolean verifySslCerts,
+            Integer maxRetriesOnAuthError) {
         Objects.requireNonNull(authClient, "authClient must not be null");
         this.apiUrl = Utils.getOrDefault(apiUrl, DEFAULT_API_URL);
         this.authClient = authClient;
+        this.maxRetriesOnAuthError = Utils.getOrDefault(maxRetriesOnAuthError, MAX_RETRIES);
 
         var client = authClient.supportsHttpClient() ? authClient.getHttpClient()
                 : (apiHttpClient == null ? new JdkHttpClientBuilder()

@@ -42,8 +42,9 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
             String apiUrl,
             boolean logRequests,
             boolean logResponses,
-            boolean verifySslCerts) {
-        super(apiHttpClient, authClient, readTimeout, connectTimeout, apiUrl, logRequests, logResponses, verifySslCerts);
+            boolean verifySslCerts,
+            Integer maxRetriesOnAuthError) {
+        super(apiHttpClient, authClient, readTimeout, connectTimeout, apiUrl, logRequests, logResponses, verifySslCerts, maxRetriesOnAuthError);
     }
 
     @Override
@@ -55,7 +56,7 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
-                }), MAX_RETRIES);
+                }), maxRetriesOnAuthError);
     }
 
     @Override
@@ -67,7 +68,7 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
-                }), MAX_RETRIES);
+                }), maxRetriesOnAuthError);
     }
 
     @Override
@@ -114,7 +115,7 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
                         });
 
                         return null;
-                    }, MAX_RETRIES);
+                    }, maxRetriesOnAuthError);
                 } catch (IllegalStateException e) {
                     handler.onError(e);
                 }
@@ -133,7 +134,7 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
-                }), MAX_RETRIES);
+                }), maxRetriesOnAuthError);
     }
 
     @Override
@@ -145,7 +146,7 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
-                }), MAX_RETRIES);
+                }), maxRetriesOnAuthError);
     }
 
     @Override
@@ -163,7 +164,7 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
-                }), MAX_RETRIES);
+                }), maxRetriesOnAuthError);
     }
 
     @Override
@@ -175,7 +176,7 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
-                }), MAX_RETRIES);
+                }), maxRetriesOnAuthError);
     }
 
     @Override
@@ -187,7 +188,7 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
-                }), MAX_RETRIES);
+                }), maxRetriesOnAuthError);
     }
 
     @Override
@@ -200,7 +201,7 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
-                }), MAX_RETRIES);
+                }), maxRetriesOnAuthError);
     }
 
     @Override
@@ -212,6 +213,6 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
-                }), MAX_RETRIES);
+                }), maxRetriesOnAuthError);
     }
 }

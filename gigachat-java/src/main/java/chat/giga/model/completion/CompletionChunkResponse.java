@@ -39,4 +39,7 @@ public class CompletionChunkResponse {
      */
     @JsonProperty
     String object;
+
+    @JsonProperty
+    Usage usage;
 }

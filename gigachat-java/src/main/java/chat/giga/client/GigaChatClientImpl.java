@@ -32,13 +32,15 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
             String apiUrl,
             boolean logRequests,
             boolean logResponses,
-            boolean verifySslCerts) {
-        super(apiHttpClient, authClient, readTimeout, connectTimeout, apiUrl, logRequests, logResponses, verifySslCerts);
+            boolean verifySslCerts,
+            Integer maxRetriesOnAuthError) {
+        super(apiHttpClient, authClient, readTimeout, connectTimeout, apiUrl, logRequests, logResponses, verifySslCerts, maxRetriesOnAuthError);
     }
 
     @Override
     public ModelResponse models() {
-        var httpResponse = RetryUtils.retry401(() -> httpClient.execute(createModelHttpRequest()), MAX_RETRIES);
+        var httpResponse = RetryUtils.retry401(() -> httpClient.execute(createModelHttpRequest()),
+                maxRetriesOnAuthError);
 
         try {
             return objectMapper.readValue(httpResponse.body(), ModelResponse.class);
@@ -51,7 +53,7 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
     public CompletionResponse completions(CompletionRequest request, String sessionId) {
         try {
             var httpResponse = RetryUtils.retry401(() -> httpClient.execute(createCompletionHttpRequest(request, sessionId)),
-                    MAX_RETRIES);
+                    maxRetriesOnAuthError);
 
             return objectMapper.readValue(httpResponse.body(), CompletionResponse.class);
         } catch (IOException e) {
@@ -63,7 +65,7 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
     public EmbeddingResponse embeddings(EmbeddingRequest request) {
         try {
             var httpResponse = RetryUtils.retry401(() -> httpClient.execute(createEmbendingHttpRequest(request)),
-                    MAX_RETRIES);
+                    maxRetriesOnAuthError);
 
             return objectMapper.readValue(httpResponse.body(), EmbeddingResponse.class);
         } catch (IOException e) {
@@ -73,7 +75,8 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
 
     @Override
     public FileResponse uploadFile(UploadFileRequest request) {
-        var response = RetryUtils.retry401(() -> httpClient.execute(createUploadFileHttpRequest(request)), MAX_RETRIES);
+        var response = RetryUtils.retry401(() -> httpClient.execute(createUploadFileHttpRequest(request)),
+                maxRetriesOnAuthError);
 
         try {
             return objectMapper.readValue(response.body(), FileResponse.class);
@@ -85,14 +88,14 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
     @Override
     public byte[] downloadFile(String fileId, String clientId) {
         return RetryUtils.retry401(() -> httpClient.execute(createDownloadFileHttpRequest(fileId, clientId)),
-                        MAX_RETRIES)
+                        maxRetriesOnAuthError)
                 .body();
     }
 
     @Override
     public AvailableFilesResponse getListAvailableFile() {
         var httpResponse = RetryUtils.retry401(() -> httpClient.execute(createListAvailableFileHttpRequest()),
-                MAX_RETRIES);
+                maxRetriesOnAuthError);
 
         try {
             return objectMapper.readValue(httpResponse.body(), AvailableFilesResponse.class);
@@ -103,7 +106,8 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
 
     @Override
     public FileResponse getFileInfo(String fileId) {
-        var response = RetryUtils.retry401(() -> httpClient.execute(createFileInfoHttpRequest(fileId)), MAX_RETRIES);
+        var response = RetryUtils.retry401(() -> httpClient.execute(createFileInfoHttpRequest(fileId)),
+                maxRetriesOnAuthError);
 
         try {
             return objectMapper.readValue(response.body(), FileResponse.class);
@@ -114,7 +118,8 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
 
     @Override
     public FileDeletedResponse deleteFile(String fileId) {
-        var response = RetryUtils.retry401(() -> httpClient.execute(createDeleteFileHttpRequest(fileId)), MAX_RETRIES);
+        var response = RetryUtils.retry401(() -> httpClient.execute(createDeleteFileHttpRequest(fileId)),
+                maxRetriesOnAuthError);
 
         try {
             return objectMapper.readValue(response.body(), FileDeletedResponse.class);
@@ -126,7 +131,7 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
     @Override
     public List<TokenCount> tokensCount(TokenCountRequest request) {
         var httpResponse = RetryUtils.retry401(() -> httpClient.execute(createTokenCountHttpRequest(request)),
-                MAX_RETRIES);
+                maxRetriesOnAuthError);
 
         try {
             return objectMapper.readValue(httpResponse.body(), new TypeReference<>() {
@@ -138,7 +143,8 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
 
     @Override
     public BalanceResponse balance() {
-        var httpResponse = RetryUtils.retry401(() -> httpClient.execute(createBalanceHttpRequest()), MAX_RETRIES);
+        var httpResponse = RetryUtils.retry401(() -> httpClient.execute(createBalanceHttpRequest()),
+                maxRetriesOnAuthError);
 
         try {
             return objectMapper.readValue(httpResponse.body(), BalanceResponse.class);
