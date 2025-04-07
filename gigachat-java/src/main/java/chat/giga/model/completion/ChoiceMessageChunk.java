@@ -26,6 +26,13 @@ public class ChoiceMessageChunk {
     @JsonProperty
     String content;
 
+    /**
+     * Идентификатор, который объединяет массив функций, переданных в запросе. Возвращается в ответе модели (сообщение с
+     * `\"role\": \"assistant\"`) при вызове встроенных или собственных функций.
+     */
+    @JsonProperty("functions_state_id")
+    String functionsStateId;
+
 
     @JsonProperty("function_call")
     ChoiceMessageFunctionCall functionCall;
