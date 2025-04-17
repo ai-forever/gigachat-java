@@ -14,6 +14,7 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import javax.net.ssl.HttpsURLConnection;
@@ -27,6 +28,7 @@ public class JdkHttpClient implements HttpClient {
 
     private final java.net.http.HttpClient delegate;
     private final Duration readTimeout;
+    private final Map<String, String> customHeaders;
 
     public JdkHttpClient(JdkHttpClientBuilder builder) {
         var httpClientBuilder = builder.httpClientBuilder();
@@ -39,6 +41,11 @@ public class JdkHttpClient implements HttpClient {
         }
         if (builder.ssl() != null && (builder.ssl().keystorePath() != null || builder.ssl().truststorePath() != null)) {
             httpClientBuilder.sslContext(createSSLContext(builder.ssl()));
+        }
+        if(builder.customHeaders() != null && !builder.customHeaders().isEmpty()){
+            this.customHeaders = builder.customHeaders();
+        } else {
+            this.customHeaders = Map.of();
         }
 
         this.delegate = httpClientBuilder.build();
@@ -128,6 +135,11 @@ public class JdkHttpClient implements HttpClient {
         request.headers().forEach((name, values) -> {
             if (values != null) {
                 values.forEach(value -> builder.header(name, value));
+            }
+        });
+        customHeaders.forEach((name, value) -> {
+            if (value != null) {
+                builder.header(name, value);
             }
         });
 

@@ -220,4 +220,37 @@ class JdkHttpClientTest {
         verify(sseListener, times(1)).onError(any(RuntimeException.class));
         verify(sseListener, never()).onComplete();
     }
+
+    @Test
+    void customHeaders() throws IOException, InterruptedException {
+        var builder = mock(java.net.http.HttpClient.Builder.class);
+        when(builder.build()).thenReturn(delegate);
+
+        httpClient = JdkHttpClient.builder()
+                .httpClientBuilder(builder)
+                .customHeaders(Map.of("customHeaderKey","customHeaderKey"))
+                .build();
+
+
+        var headers = Map.of("testHeader", List.of("testValue"));
+        var request = HttpRequest.builder()
+                .url("http://test")
+                .method(HttpMethod.POST)
+                .headers(headers)
+                .body("test".getBytes())
+                .build();
+
+        var captor = ArgumentCaptor.forClass(java.net.http.HttpRequest.class);
+        when(delegate.<InputStream>send(captor.capture(), any())).thenReturn(jdkResponse);
+        when(jdkResponse.statusCode()).thenReturn(200);
+        when(jdkResponse.headers()).thenReturn(HttpHeaders.of(headers, (hn, hv) -> true));
+        when(jdkResponse.body()).thenReturn(new ByteArrayInputStream("ok".getBytes()));
+
+        httpClient.execute(request);
+
+        assertThat(captor.getValue()).satisfies(r -> {
+            assertThat(r.headers().map()).containsEntry("customHeaderKey", List.of("customHeaderKey"));
+        });
+
+    }
 }
