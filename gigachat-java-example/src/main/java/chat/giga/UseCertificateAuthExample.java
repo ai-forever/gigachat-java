@@ -7,7 +7,7 @@ import chat.giga.http.client.JdkHttpClientBuilder;
 import chat.giga.http.client.SSL;
 import chat.giga.model.ModelName;
 import chat.giga.model.completion.ChatMessage;
-import chat.giga.model.completion.ChatMessage.Role;
+import chat.giga.model.completion.ChatMessageRole;
 import chat.giga.model.completion.CompletionRequest;
 
 import java.net.http.HttpClient;
@@ -39,7 +39,7 @@ public class UseCertificateAuthExample {
                     .model(ModelName.GIGA_CHAT_PRO)
                     .message(ChatMessage.builder()
                             .content("Как дела")
-                            .role(Role.USER)
+                            .role(ChatMessageRole.USER)
                             .build())
                     .build()));
         } catch (HttpClientException ex) {
