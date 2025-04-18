@@ -11,7 +11,7 @@ import chat.giga.model.completion.ChatFunctionFewShotExample;
 import chat.giga.model.completion.ChatFunctionParameters;
 import chat.giga.model.completion.ChatFunctionParametersProperty;
 import chat.giga.model.completion.ChatMessage;
-import chat.giga.model.completion.ChatMessage.Role;
+import chat.giga.model.completion.ChatMessageRole;
 import chat.giga.model.completion.CompletionRequest;
 
 import java.util.ArrayList;
@@ -34,7 +34,7 @@ public class FunctionExample {
             var messages = new ArrayList<ChatMessage>();
             messages.add(ChatMessage.builder()
                     .content("Погода в Москве на три дня")
-                    .role(Role.USER)
+                    .role(ChatMessageRole.USER)
                     .build());
 
             var function = ChatFunction.builder()
@@ -96,7 +96,7 @@ public class FunctionExample {
             var message = response.choices().get(0).message();
             messages.add(ChatMessage.of(message));
             messages.add(ChatMessage.builder()
-                    .role(Role.FUNCTION)
+                    .role(ChatMessageRole.FUNCTION)
                     .content("{\"temperature\": \"27\"}")
                     .name("weather_forecast")
                     .build());

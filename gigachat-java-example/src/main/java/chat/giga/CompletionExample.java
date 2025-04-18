@@ -7,7 +7,7 @@ import chat.giga.http.client.HttpClientException;
 import chat.giga.model.ModelName;
 import chat.giga.model.Scope;
 import chat.giga.model.completion.ChatMessage;
-import chat.giga.model.completion.ChatMessage.Role;
+import chat.giga.model.completion.ChatMessageRole;
 import chat.giga.model.completion.CompletionRequest;
 
 public class CompletionExample {
@@ -28,7 +28,7 @@ public class CompletionExample {
                     .model(ModelName.GIGA_CHAT_MAX)
                     .message(ChatMessage.builder()
                             .content("Какие факторы влияют на стоимость страховки на дом?")
-                            .role(Role.USER)
+                            .role(ChatMessageRole.USER)
                             .build())
                     .build()));
         } catch (HttpClientException ex) {

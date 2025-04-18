@@ -7,7 +7,7 @@ import chat.giga.client.auth.AuthClientBuilder.OAuthBuilder;
 import chat.giga.model.ModelName;
 import chat.giga.model.Scope;
 import chat.giga.model.completion.ChatMessage;
-import chat.giga.model.completion.ChatMessage.Role;
+import chat.giga.model.completion.ChatMessageRole;
 import chat.giga.model.completion.CompletionChunkResponse;
 import chat.giga.model.completion.CompletionRequest;
 
@@ -29,7 +29,7 @@ public class CompletionStreamingExample {
                         .model(ModelName.GIGA_CHAT_MAX)
                         .message(ChatMessage.builder()
                                 .content("Как дела")
-                                .role(Role.USER)
+                                .role(ChatMessageRole.USER)
                                 .build())
                         .build(),
                 new ResponseHandler<>() {
