@@ -17,7 +17,7 @@ public class ChoiceMessage {
      * передачи токенов.
      */
     @JsonProperty
-    MessageRole role;
+    ChatMessageRole role;
 
     /**
      * Содержимое сообщения, например, результат генерации.  В сообщениях с ролью `function_in_progress` содержит
@@ -53,6 +53,6 @@ public class ChoiceMessage {
     public ChatMessage ofAssistantMessage() {
         return ChatMessage.builder()
                 .content(content)
-                .role(ChatMessage.Role.ASSISTANT).build();
+                .role(ChatMessageRole.ASSISTANT).build();
     }
 }

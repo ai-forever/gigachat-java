@@ -80,7 +80,7 @@ public interface GigaChatClient {
      *
      * @return список с данными доступных файлов.
      */
-    AvailableFilesResponse getListAvailableFile();
+    AvailableFilesResponse availableFileList();
 
     /**
      * Получить информацию о файле
@@ -88,7 +88,7 @@ public interface GigaChatClient {
      * @param fileId идентификатор файла.
      * @return описание указанного файла.
      */
-    FileResponse getFileInfo(String fileId);
+    FileResponse fileInfo(String fileId);
 
     /**
      * Удалить файл

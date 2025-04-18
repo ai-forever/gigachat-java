@@ -6,8 +6,8 @@ import chat.giga.client.auth.AuthClientBuilder.OAuthBuilder;
 import chat.giga.http.client.HttpClientException;
 import chat.giga.model.Scope;
 import chat.giga.model.completion.ChatMessage;
-import chat.giga.model.completion.ChatMessage.Role;
 import chat.giga.model.completion.CompletionRequest;
+import chat.giga.model.completion.ChatMessageRole;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,11 +32,11 @@ public class ImageDownloadFromCompletionsExample {
                         .model(modelResponse.data().get(0).id())
                         .messages(List.of(
                                 ChatMessage.builder()
-                                        .role(Role.SYSTEM)
+                                        .role(ChatMessageRole.SYSTEM)
                                         .content("Ты — художник Густав Климт")
                                         .build(),
                                 ChatMessage.builder()
-                                        .role(Role.USER)
+                                        .role(ChatMessageRole.USER)
                                         .content("Нарисуй розового кота")
                                         .build()))
                         .build());
@@ -46,7 +46,7 @@ public class ImageDownloadFromCompletionsExample {
                     if (content != null && content.contains("img src=")) {
                         var fileId = content.split("\"")[1];
                         // получаем информацию по сгенерированному файлу
-                        System.out.println(client.getFileInfo(fileId));
+                        System.out.println(client.fileInfo(fileId));
                         // скачиваем сгенерированный файл
                         System.out.println(Arrays.toString(client.downloadFile(fileId, null)));
                         // удаляем сгенерированный файл

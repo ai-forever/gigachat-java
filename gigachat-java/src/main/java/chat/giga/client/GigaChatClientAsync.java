@@ -90,7 +90,7 @@ public interface GigaChatClientAsync {
      *
      * @return список с данными доступных файлов.
      */
-    CompletableFuture<AvailableFilesResponse> getListAvailableFile();
+    CompletableFuture<AvailableFilesResponse> availableFileList();
 
     /**
      * Получить информацию о файле
@@ -98,7 +98,7 @@ public interface GigaChatClientAsync {
      * @param fileId идентификатор файла.
      * @return описание указанного файла.
      */
-    CompletableFuture<FileResponse> getFileInfo(String fileId);
+    CompletableFuture<FileResponse> fileInfo(String fileId);
 
     /**
      * Удалить файл

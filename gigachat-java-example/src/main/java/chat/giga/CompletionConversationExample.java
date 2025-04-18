@@ -7,9 +7,9 @@ import chat.giga.http.client.HttpClientException;
 import chat.giga.model.ModelName;
 import chat.giga.model.Scope;
 import chat.giga.model.completion.ChatMessage;
-import chat.giga.model.completion.ChatMessage.Role;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
+import chat.giga.model.completion.ChatMessageRole;
 
 public class CompletionConversationExample {
 
@@ -31,11 +31,11 @@ public class CompletionConversationExample {
                 .model(ModelName.GIGA_CHAT_PRO)
                 .message(ChatMessage.builder()
                         .content("Отвечай как программист")
-                        .role(Role.SYSTEM)
+                        .role(ChatMessageRole.SYSTEM)
                         .build())
                 .message(ChatMessage.builder()
                         .content("Как спроектировать идеальный SDK?")
-                        .role(Role.USER).build());
+                        .role(ChatMessageRole.USER).build());
 
         try {
             for (int i = 0; i < 4; i++) {
@@ -47,7 +47,7 @@ public class CompletionConversationExample {
 
                 builder.message(ChatMessage.builder()
                         .content("А почему так? Будь еще более точным в формулировках")
-                        .role(Role.USER).build());
+                        .role(ChatMessageRole.USER).build());
             }
         } catch (HttpClientException ex) {
             System.out.println(ex.statusCode() + " " + ex.bodyAsString());

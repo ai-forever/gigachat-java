@@ -345,7 +345,7 @@ class GigaChatClientAsyncImplTest {
     }
 
     @Test
-    void getListAvailableFile() throws Exception {
+    void availableFileList() throws Exception {
         var body = TestData.availableFilesResponse();
         when(httpClient.executeAsync(any()))
                 .thenReturn(CompletableFuture.failedFuture(new HttpClientException(401, null)))
@@ -353,7 +353,7 @@ class GigaChatClientAsyncImplTest {
                         .body(objectMapper.writeValueAsBytes(body))
                         .build()));
 
-        var response = gigaChatClientAsync.getListAvailableFile().get();
+        var response = gigaChatClientAsync.availableFileList().get();
         assertThat(response).isEqualTo(body);
 
         verify(authClient, times(2)).authenticate(any());
@@ -370,7 +370,7 @@ class GigaChatClientAsyncImplTest {
     }
 
     @Test
-    void getFileInfo() throws Exception {
+    void fileInfo() throws Exception {
         var body = TestData.fileResponse();
         when(httpClient.executeAsync(any()))
                 .thenReturn(CompletableFuture.failedFuture(new HttpClientException(401, null)))
@@ -379,7 +379,7 @@ class GigaChatClientAsyncImplTest {
                         .build()));
 
         var fileId = UUID.randomUUID().toString();
-        var response = gigaChatClientAsync.getFileInfo(fileId).get();
+        var response = gigaChatClientAsync.fileInfo(fileId).get();
 
         assertThat(response).isEqualTo(body);
 

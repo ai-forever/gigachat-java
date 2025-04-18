@@ -12,7 +12,6 @@ import chat.giga.model.completion.ChatFunctionFewShotExample;
 import chat.giga.model.completion.ChatFunctionParameters;
 import chat.giga.model.completion.ChatFunctionParametersProperty;
 import chat.giga.model.completion.ChatMessage;
-import chat.giga.model.completion.ChatMessage.Role;
 import chat.giga.model.completion.Choice;
 import chat.giga.model.completion.ChoiceChunk;
 import chat.giga.model.completion.ChoiceFinishReason;
@@ -22,7 +21,7 @@ import chat.giga.model.completion.ChoiceMessageFunctionCall;
 import chat.giga.model.completion.CompletionChunkResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
-import chat.giga.model.completion.MessageRole;
+import chat.giga.model.completion.ChatMessageRole;
 import chat.giga.model.completion.Usage;
 import chat.giga.model.embedding.Embedding;
 import chat.giga.model.embedding.EmbeddingRequest;
@@ -57,7 +56,7 @@ public class TestData {
                         .build())
                 .model("testModel")
                 .message(ChatMessage.builder()
-                        .role(Role.SYSTEM)
+                        .role(ChatMessageRole.SYSTEM)
                         .content("test")
                         .functionsStateId("testState")
                         .attachment("testAttachment")
@@ -98,7 +97,7 @@ public class TestData {
         return CompletionResponse.builder()
                 .choice(Choice.builder()
                         .message(ChoiceMessage.builder()
-                                .role(MessageRole.ASSISTANT)
+                                .role(ChatMessageRole.ASSISTANT)
                                 .content("test")
                                 .created(1234)
                                 .name("testFunc")
@@ -126,7 +125,7 @@ public class TestData {
         return CompletionChunkResponse.builder()
                 .choice(ChoiceChunk.builder()
                         .delta(ChoiceMessageChunk.builder()
-                                .role(MessageRole.ASSISTANT)
+                                .role(ChatMessageRole.ASSISTANT)
                                 .content("test")
                                 .functionCall(ChoiceMessageFunctionCall.builder()
                                         .name("testFunc")

@@ -156,8 +156,8 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
     }
 
     @Override
-    public CompletableFuture<AvailableFilesResponse> getListAvailableFile() {
-        return RetryUtils.retry401Async(() -> httpClient.executeAsync(createListAvailableFileHttpRequest())
+    public CompletableFuture<AvailableFilesResponse> availableFileList() {
+        return RetryUtils.retry401Async(() -> httpClient.executeAsync(createAvailableFileListHttpRequest())
                 .thenApply(r -> {
                     try {
                         return objectMapper.readValue(r.body(), AvailableFilesResponse.class);
@@ -168,7 +168,7 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
     }
 
     @Override
-    public CompletableFuture<FileResponse> getFileInfo(String fileId) {
+    public CompletableFuture<FileResponse> fileInfo(String fileId) {
         return RetryUtils.retry401Async(() -> httpClient.executeAsync(createFileInfoHttpRequest(fileId))
                 .thenApply(r -> {
                     try {

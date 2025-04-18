@@ -17,7 +17,7 @@ public class ChoiceMessageChunk {
      * передачи токенов.
      */
     @JsonProperty
-    MessageRole role;
+    ChatMessageRole role;
 
     /**
      * Содержимое сообщения, например, результат генерации.  В сообщениях с ролью `function_in_progress` содержит

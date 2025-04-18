@@ -156,7 +156,7 @@ abstract class BaseGigaChatClient {
         return builder.build();
     }
 
-    protected HttpRequest createListAvailableFileHttpRequest() {
+    protected HttpRequest createAvailableFileListHttpRequest() {
         var builder = HttpRequest.builder()
                 .url(apiUrl + "/files")
                 .method(HttpMethod.GET)

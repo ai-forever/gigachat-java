@@ -22,7 +22,7 @@ public class FileInfoExample {
                         .build())
                 .build();
         try {
-            System.out.println(client.getFileInfo(UUID.randomUUID().toString()));
+            System.out.println(client.fileInfo(UUID.randomUUID().toString()));
         } catch (HttpClientException ex) {
             System.out.println(ex.statusCode() + " " + ex.bodyAsString());
         }

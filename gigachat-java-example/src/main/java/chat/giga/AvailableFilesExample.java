@@ -20,7 +20,7 @@ public class AvailableFilesExample {
                         .build())
                 .build();
         try {
-            System.out.println(client.getListAvailableFile());
+            System.out.println(client.availableFileList());
         } catch (HttpClientException ex) {
             System.out.println(ex.statusCode() + " " + ex.bodyAsString());
         }

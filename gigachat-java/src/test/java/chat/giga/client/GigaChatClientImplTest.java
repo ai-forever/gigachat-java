@@ -283,7 +283,7 @@ class GigaChatClientImplTest {
     }
 
     @Test
-    void getListAvailableFile() throws JsonProcessingException {
+    void availableFileList() throws JsonProcessingException {
         var body = TestData.availableFilesResponse();
         when(httpClient.execute(any()))
                 .thenThrow(new HttpClientException(401, null))
@@ -291,7 +291,7 @@ class GigaChatClientImplTest {
                         .body(objectMapper.writeValueAsBytes(body))
                         .build());
 
-        var response = gigaChatClient.getListAvailableFile();
+        var response = gigaChatClient.availableFileList();
         assertThat(response).isEqualTo(body);
 
         verify(authClient, times(2)).authenticate(any());
@@ -338,7 +338,7 @@ class GigaChatClientImplTest {
     }
 
     @Test
-    void getFileInfo() throws JsonProcessingException {
+    void fileInfo() throws JsonProcessingException {
         var body = TestData.fileResponse();
         when(httpClient.execute(any()))
                 .thenThrow(new HttpClientException(401, null))
@@ -347,7 +347,7 @@ class GigaChatClientImplTest {
                         .build());
 
         var fileId = UUID.randomUUID().toString();
-        var response = gigaChatClient.getFileInfo(fileId);
+        var response = gigaChatClient.fileInfo(fileId);
 
         assertThat(response).isEqualTo(body);
 

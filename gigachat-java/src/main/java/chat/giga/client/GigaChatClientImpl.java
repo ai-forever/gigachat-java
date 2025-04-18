@@ -93,8 +93,8 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
     }
 
     @Override
-    public AvailableFilesResponse getListAvailableFile() {
-        var httpResponse = RetryUtils.retry401(() -> httpClient.execute(createListAvailableFileHttpRequest()),
+    public AvailableFilesResponse availableFileList() {
+        var httpResponse = RetryUtils.retry401(() -> httpClient.execute(createAvailableFileListHttpRequest()),
                 maxRetriesOnAuthError);
 
         try {
@@ -105,7 +105,7 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
     }
 
     @Override
-    public FileResponse getFileInfo(String fileId) {
+    public FileResponse fileInfo(String fileId) {
         var response = RetryUtils.retry401(() -> httpClient.execute(createFileInfoHttpRequest(fileId)),
                 maxRetriesOnAuthError);
 

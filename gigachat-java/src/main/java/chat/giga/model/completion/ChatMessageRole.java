@@ -3,13 +3,13 @@ package chat.giga.model.completion;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum MessageRole {
+public enum ChatMessageRole {
 
-    ASSISTANT("assistant"), FUNCTION_IN_PROGRESS("function_in_progress");
+    SYSTEM("system"), USER("user"), ASSISTANT("assistant"), FUNCTION("function"), FUNCTION_IN_PROGRESS("function_in_progress");
 
     final String value;
 
-    MessageRole(String v) {
+    ChatMessageRole(String v) {
         value = v;
     }
 
@@ -24,8 +24,8 @@ public enum MessageRole {
     }
 
     @JsonCreator
-    public static MessageRole fromValue(String value) {
-        for (MessageRole b : MessageRole.values()) {
+    public static ChatMessageRole fromValue(String value) {
+        for (ChatMessageRole b : ChatMessageRole.values()) {
             if (b.value.equals(value)) {
                 return b;
             }
