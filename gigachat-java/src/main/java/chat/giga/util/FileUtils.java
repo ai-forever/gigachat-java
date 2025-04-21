@@ -5,19 +5,27 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class FileUtils {
 
-    public StringBuilder createMultiPartBody(byte[] file, String boundary, String purpose, String contentType,
-            String fileName) {
-        var requestBody = new StringBuilder();
-        requestBody.append("--").append(boundary).append("\r\n");
-        requestBody.append("Content-Disposition: form-data; name=\"purpose\"\r\n\r\n");
-        requestBody.append(purpose).append("\r\n");
-        requestBody.append("--").append(boundary).append("\r\n");
-        requestBody.append("Content-Disposition: form-data; name=\"file\"; filename=\"").append(fileName)
-                .append("\"\r\n");
-        requestBody.append("Content-Type: ").append(contentType).append("\r\n\r\n");
-        requestBody.append(new String(file)).append("\r\n");
-        requestBody.append("--").append(boundary).append("--").append("\r\n");
+    public byte[] createMultiPartBody(byte[] fileBytes, String boundary, String purpose, String mimeType,
+                                      String fileName) {
 
-        return requestBody;
+        StringBuilder bodyBuilder = new StringBuilder();
+        bodyBuilder.append("--").append(boundary).append("\r\n")
+                .append("Content-Disposition: form-data; name=\"file\"; filename=\"").append(fileName).append("\"\r\n")
+                .append("Content-Type: ").append(mimeType).append("\r\n\r\n");
+
+        byte[] bodyStart = bodyBuilder.toString().getBytes();
+        bodyBuilder = new StringBuilder();
+        bodyBuilder.append("\r\n--").append(boundary).append("\r\n")
+                .append("Content-Disposition: form-data; name=\"purpose\"\r\n\r\n")
+                .append(purpose).append("\r\n")
+                .append("--").append(boundary).append("--\r\n");
+        byte[] bodyEnd = bodyBuilder.toString().getBytes();
+
+        byte[] multipartBody = new byte[bodyStart.length + fileBytes.length + bodyEnd.length];
+        System.arraycopy(bodyStart, 0, multipartBody, 0, bodyStart.length);
+        System.arraycopy(fileBytes, 0, multipartBody, bodyStart.length, fileBytes.length);
+        System.arraycopy(bodyEnd, 0, multipartBody, bodyStart.length + fileBytes.length, bodyEnd.length);
+
+        return multipartBody;
     }
 }
