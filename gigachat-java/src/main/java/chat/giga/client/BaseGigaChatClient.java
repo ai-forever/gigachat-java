@@ -136,7 +136,7 @@ abstract class BaseGigaChatClient {
                 .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.MULTIPART_FORM_DATA + "; boundary=" + boundary)
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
-                .body(requestBody.toString().getBytes(StandardCharsets.UTF_8));
+                .body(requestBody);
 
         authClient.authenticate(builder);
 
