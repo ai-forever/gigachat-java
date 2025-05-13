@@ -51,8 +51,7 @@ public class CompletionRequest {
      */
     @JsonProperty("function_call")
     @JsonDeserialize(using = FunctionCallJsonDeserializer.class)
-    @Default
-    Object functionCall = ChatFunctionCallEnum.AUTO;
+    Object functionCall;
 
     /**
      * Выключает цензор для аккаунтов, у которых установлен фичафлаг

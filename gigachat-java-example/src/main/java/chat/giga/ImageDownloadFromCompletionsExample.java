@@ -5,6 +5,7 @@ import chat.giga.client.auth.AuthClient;
 import chat.giga.client.auth.AuthClientBuilder.OAuthBuilder;
 import chat.giga.http.client.HttpClientException;
 import chat.giga.model.Scope;
+import chat.giga.model.completion.ChatFunctionCallEnum;
 import chat.giga.model.completion.ChatMessage;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.ChatMessageRole;
@@ -39,6 +40,7 @@ public class ImageDownloadFromCompletionsExample {
                                         .role(ChatMessageRole.USER)
                                         .content("Нарисуй розового кота")
                                         .build()))
+                                .functionCall(ChatFunctionCallEnum.AUTO)
                         .build());
                 if (completionsResponse != null) {
                     // получаем ответ модели на сообщения
