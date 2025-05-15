@@ -12,6 +12,7 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.27.3")
     testImplementation("org.mockito:mockito-junit-jupiter:5.15.2")
     testImplementation("commons-io:commons-io:2.18.0")
+    testImplementation("org.bouncycastle:bcpkix-jdk18on:1.80")
 }
 
 tasks.test {
