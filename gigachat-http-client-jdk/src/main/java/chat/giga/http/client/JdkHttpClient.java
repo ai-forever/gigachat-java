@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -36,10 +37,7 @@ public class JdkHttpClient implements HttpClient {
         if (builder.connectTimeout() != null) {
             httpClientBuilder.connectTimeout(builder.connectTimeout());
         }
-        if (builder.ssl() != null && !builder.ssl().verifySslCerts()) {
-            httpClientBuilder.sslContext(disableSSLVerification(builder.ssl()));
-        }
-        if (builder.ssl() != null && (builder.ssl().keystorePath() != null || builder.ssl().truststorePath() != null)) {
+        if (builder.ssl() != null && (!builder.ssl().verifySslCerts() || builder.ssl().keystorePath() != null || builder.ssl().truststorePath() != null)) {
             httpClientBuilder.sslContext(createSSLContext(builder.ssl()));
         }
         if(builder.customHeaders() != null && !builder.customHeaders().isEmpty()){
@@ -158,7 +156,7 @@ public class JdkHttpClient implements HttpClient {
         return builder.build();
     }
 
-    public static SSLContext disableSSLVerification(SSL ssl) {
+    public static TrustManager[] disableSSLVerification() {
         try {
             var trustAllCerts = new TrustManager[]{
                     new X509TrustManager() {
@@ -173,10 +171,8 @@ public class JdkHttpClient implements HttpClient {
                         }
                     }
             };
-            var sslContext = SSLContext.getInstance(ssl.protocol());
-            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
             HttpsURLConnection.setDefaultHostnameVerifier((hostname, session) -> true);
-            return sslContext;
+            return trustAllCerts;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -184,35 +180,40 @@ public class JdkHttpClient implements HttpClient {
 
     public static SSLContext createSSLContext(SSL ssl) {
         try {
-            KeyManagerFactory keyManagerFactory = null;
+            KeyManager[] keyManagers = null;
 
             if (ssl.keystorePath() != null) {
                 Objects.requireNonNull(ssl.keystorePassword(), "keystorePassword must not be null");
 
-                keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+                KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 
                 var keyStore = KeyStore.getInstance(ssl.keystoreType());
                 try (var keyStoreStream = new FileInputStream(ssl.keystorePath())) {
                     keyStore.load(keyStoreStream, ssl.keystorePassword().toCharArray());
                 }
                 keyManagerFactory.init(keyStore, ssl.keystorePassword().toCharArray());
+                keyManagers = keyManagerFactory.getKeyManagers();
             }
-            TrustManagerFactory trustManagerFactory = null;
-            if (ssl.truststorePath() != null) {
+
+            TrustManager[] trustManagers = null;
+            if (ssl.verifySslCerts() == false) {
+                trustManagers = disableSSLVerification();
+            }
+            else if (ssl.truststorePath() != null) {
                 Objects.requireNonNull(ssl.truststorePassword(), "truststorePassword must not be null");
 
-                trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 
                 var trustStore = KeyStore.getInstance(ssl.trustStoreType());
                 try (var trustStoreStream = new FileInputStream(ssl.truststorePath())) {
                     trustStore.load(trustStoreStream, ssl.truststorePassword().toCharArray());
                 }
                 trustManagerFactory.init(trustStore);
+                trustManagers = trustManagerFactory.getTrustManagers();
             }
 
             var sslContext = SSLContext.getInstance(ssl.protocol());
-            sslContext.init(keyManagerFactory != null ? keyManagerFactory.getKeyManagers() : null,
-                    trustManagerFactory != null ? trustManagerFactory.getTrustManagers() : null, null);
+            sslContext.init(keyManagers, trustManagers, null);
             return sslContext;
 
         } catch (Exception e) {

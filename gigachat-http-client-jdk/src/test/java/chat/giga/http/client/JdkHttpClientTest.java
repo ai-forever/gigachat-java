@@ -4,11 +4,13 @@ import chat.giga.http.client.sse.SseListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.http.HttpHeaders;
@@ -40,6 +42,9 @@ class JdkHttpClientTest {
     SseListener sseListener;
 
     HttpClient httpClient;
+
+    @TempDir
+    File tempDir;
 
     @BeforeEach
     void setUp() {
@@ -252,5 +257,38 @@ class JdkHttpClientTest {
             assertThat(r.headers().map()).containsEntry("customHeaderKey", List.of("customHeaderKey"));
         });
 
+    }
+
+    @Test
+    void sslContextShouldBeBuildOnce() {
+        var keyStore = new File(tempDir, "keystore.p12");
+        var keyStoreType = "PKCS12";
+        var keyStorePassword = "123456";
+
+        SSLTestUtils.createKeyStore(
+                keyStore,
+                keyStoreType,
+                "CN=Test, OU=Test, O=Test, C=Test",
+                "test",
+                keyStorePassword,
+                "123456"
+        );
+
+        var builder = mock(java.net.http.HttpClient.Builder.class);
+        when(builder.build()).thenReturn(delegate);
+
+        var ssl = SSL.builder()
+                .verifySslCerts(false)
+                .keystorePath(keyStore.getPath())
+                .keystoreType(keyStoreType)
+                .keystorePassword(keyStorePassword)
+                .build();
+
+        httpClient = JdkHttpClient.builder()
+                .httpClientBuilder(builder)
+                .ssl(ssl)
+                .build();
+
+        verify(builder, times(1)).sslContext(any());
     }
 }
