@@ -156,7 +156,7 @@ public class JdkHttpClient implements HttpClient {
         return builder.build();
     }
 
-    public static TrustManager[] disableSSLVerification() {
+    private static TrustManager[] disableSSLVerification() {
         try {
             var trustAllCerts = new TrustManager[]{
                     new X509TrustManager() {
@@ -178,14 +178,14 @@ public class JdkHttpClient implements HttpClient {
         }
     }
 
-    public static SSLContext createSSLContext(SSL ssl) {
+    private static SSLContext createSSLContext(SSL ssl) {
         try {
             KeyManager[] keyManagers = null;
 
             if (ssl.keystorePath() != null) {
                 Objects.requireNonNull(ssl.keystorePassword(), "keystorePassword must not be null");
 
-                KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+                var keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
 
                 var keyStore = KeyStore.getInstance(ssl.keystoreType());
                 try (var keyStoreStream = new FileInputStream(ssl.keystorePath())) {
@@ -196,13 +196,13 @@ public class JdkHttpClient implements HttpClient {
             }
 
             TrustManager[] trustManagers = null;
-            if (ssl.verifySslCerts() == false) {
+            if (!ssl.verifySslCerts()) {
                 trustManagers = disableSSLVerification();
             }
             else if (ssl.truststorePath() != null) {
                 Objects.requireNonNull(ssl.truststorePassword(), "truststorePassword must not be null");
 
-                TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                var trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
 
                 var trustStore = KeyStore.getInstance(ssl.trustStoreType());
                 try (var trustStoreStream = new FileInputStream(ssl.truststorePath())) {

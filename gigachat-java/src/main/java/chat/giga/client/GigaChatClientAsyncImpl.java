@@ -42,7 +42,7 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
             String apiUrl,
             boolean logRequests,
             boolean logResponses,
-            boolean verifySslCerts,
+            Boolean verifySslCerts,
             Integer maxRetriesOnAuthError) {
         super(apiHttpClient, authClient, readTimeout, connectTimeout, apiUrl, logRequests, logResponses, verifySslCerts, maxRetriesOnAuthError);
     }

@@ -20,7 +20,6 @@ import chat.giga.util.Utils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -48,7 +47,7 @@ abstract class BaseGigaChatClient {
             String apiUrl,
             boolean logRequests,
             boolean logResponses,
-            boolean verifySslCerts,
+            Boolean verifySslCerts,
             Integer maxRetriesOnAuthError) {
         Objects.requireNonNull(authClient, "authClient must not be null");
         this.apiUrl = Utils.getOrDefault(apiUrl, DEFAULT_API_URL);
@@ -59,7 +58,7 @@ abstract class BaseGigaChatClient {
                 : (apiHttpClient == null ? new JdkHttpClientBuilder()
                         .readTimeout(ofSeconds(Utils.getOrDefault(readTimeout, 15)))
                         .connectTimeout(ofSeconds(Utils.getOrDefault(connectTimeout, 15)))
-                        .ssl(mapSslConfig(verifySslCerts))
+                        .ssl(mapSslConfig(Utils.getOrDefault(verifySslCerts, true)))
                         .build() : apiHttpClient);
 
         if (logRequests || logResponses) {
