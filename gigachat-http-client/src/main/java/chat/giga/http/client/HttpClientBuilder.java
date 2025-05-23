@@ -2,24 +2,29 @@ package chat.giga.http.client;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.function.Function;
 
-public interface HttpClientBuilder {
+public interface HttpClientBuilder<T> {
 
     Duration connectTimeout();
 
-    HttpClientBuilder connectTimeout(Duration timeout);
+    HttpClientBuilder<T> connectTimeout(Duration timeout);
 
     Duration readTimeout();
 
-    HttpClientBuilder readTimeout(Duration timeout);
+    HttpClientBuilder<T> readTimeout(Duration timeout);
 
     HttpClient build();
 
     SSL ssl();
 
-    HttpClientBuilder ssl(SSL ssl);
+    HttpClientBuilder<T> ssl(SSL ssl);
 
     Map<String, String> customHeaders();
 
-    HttpClientBuilder customHeaders(Map<String, String> customHeaders);
+    HttpClientBuilder<T> customHeaders(Map<String, String> customHeaders);
+
+    Function<T, T> decorator();
+
+    HttpClientBuilder<T> decorator(Function<T, T> decorator);
 }

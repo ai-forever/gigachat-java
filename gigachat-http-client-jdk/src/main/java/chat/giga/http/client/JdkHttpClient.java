@@ -46,7 +46,14 @@ public class JdkHttpClient implements HttpClient {
             this.customHeaders = Map.of();
         }
 
-        this.delegate = httpClientBuilder.build();
+        java.net.http.HttpClient baseClient = httpClientBuilder.build();
+
+        if (builder.decorator() != null) {
+            this.delegate = builder.decorator().apply(baseClient);
+        } else {
+            this.delegate = baseClient;
+        }
+
         this.readTimeout = builder.readTimeout();
     }
 

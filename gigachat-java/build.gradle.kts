@@ -16,7 +16,7 @@ publishing {
 dependencies {
     api(project(":gigachat-http-client"))
     api(project(":gigachat-http-client-jdk"))
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.4")
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
