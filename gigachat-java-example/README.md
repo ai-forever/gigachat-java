@@ -3,7 +3,7 @@
 В этом разделе вы найдете примеры работы с библиотекой GigaChat.
 
 | Пример                                                                                                  | Описание                                                                                                                                                                       |
-| ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ------------------------------------------------------------------------------------------------------- |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | [ModelListExample](src/main/java/chat/giga/ModelListExample.java)                                       | Получение списка доступных [моделей](https://developers.sber.ru/docs/ru/gigachat/models)                                                                                       |
 | [CompletionExample](src/main/java/chat/giga/CompletionExample.java)                                     | Простой запрос на генерацию                                                                                                                                                    |
 | [CompletionStreamingExample](src/main/java/chat/giga/CompletionStreamingExample.java)                   | Пример обработки [потоковой генерации токенов](https://developers.sber.ru/docs/ru/gigachat/api/response-token-streaming)                                                       |
@@ -18,3 +18,5 @@
 | [EmbeddingExample](src/main/java/chat/giga/EmbeddingExample.java)                                       | Создание [векторного представления текста](https://developers.sber.ru/docs/ru/gigachat/api/embeddings)                                                                         |
 | [UseCertificateAuthExample](src/main/java/chat/giga/UseCertificateAuthExample.java)                     | Пример аутентификации с помощью TLS-сертификатов                                                                                                                               |
 | [UseUserPasswordAuthExample](src/main/java/chat/giga/UseUserPasswordAuthExample.java)                   | Пример аутентификации с помощью имени пользователя и пароля                                                                                                                    |
+| [MetricsClientExample](src/main/java/chat/giga/MetricsClientExample.java)                   | Пример подключение micrometer метрик и логирования logback                                                                                                                            |
+
