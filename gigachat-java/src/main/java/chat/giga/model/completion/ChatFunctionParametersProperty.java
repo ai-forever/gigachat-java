@@ -7,6 +7,7 @@ import lombok.Value;
 import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +15,13 @@ import java.util.Map;
 @Builder
 @Jacksonized
 @Accessors(fluent = true)
-public class ChatFunctionParametersProperty {
+public class ChatFunctionParametersProperty implements Serializable {
+
+    /**
+     * Версия класса для сериализации.
+     * Изменить при несовместимых изменениях в структуре класса.
+     */
+    private static final long serialVersionUID = 1L;
 
     /**
      * Тип аргумента функции

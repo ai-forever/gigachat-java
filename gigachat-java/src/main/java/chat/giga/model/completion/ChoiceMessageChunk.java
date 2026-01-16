@@ -6,11 +6,19 @@ import lombok.Value;
 import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 
+import java.io.Serializable;
+
 @Value
 @Builder
 @Jacksonized
 @Accessors(fluent = true)
-public class ChoiceMessageChunk {
+public class ChoiceMessageChunk implements Serializable {
+
+    /**
+     * Версия класса для сериализации.
+     * Изменить при несовместимых изменениях в структуре класса.
+     */
+    private static final long serialVersionUID = 1L;
 
     /**
      * Роль автора сообщения.  Роль `function_in_progress` используется при работе встроенных функций в режиме потоковой

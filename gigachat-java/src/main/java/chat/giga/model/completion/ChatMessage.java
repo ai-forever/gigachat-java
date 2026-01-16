@@ -7,13 +7,20 @@ import lombok.Value;
 import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Value
 @Builder
 @Jacksonized
 @Accessors(fluent = true)
-public class ChatMessage {
+public class ChatMessage implements Serializable {
+
+    /**
+     * Версия класса для сериализации.
+     * Изменить при несовместимых изменениях в структуре класса.
+     */
+    private static final long serialVersionUID = 1L;
 
     /**
      * Роль автора сообщения: `system` — системный промпт, который задает роль модели, например, должна модель отвечать
