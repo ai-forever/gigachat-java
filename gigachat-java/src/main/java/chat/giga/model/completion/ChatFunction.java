@@ -7,13 +7,20 @@ import lombok.Value;
 import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Value
 @Builder
 @Jacksonized
 @Accessors(fluent = true)
-public class ChatFunction {
+public class ChatFunction implements Serializable {
+
+    /**
+     * Версия класса для сериализации.
+     * Изменить при несовместимых изменениях в структуре класса.
+     */
+    private static final long serialVersionUID = 1L;
 
     /**
      * Название пользовательской функции, для которой будут сгенерированы аргументы.
