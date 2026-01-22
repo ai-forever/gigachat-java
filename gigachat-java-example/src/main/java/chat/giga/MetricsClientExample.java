@@ -28,14 +28,16 @@ public class MetricsClientExample {
                         .withCertificatesAuth(new JdkHttpClientBuilder()
                                 .decorator(metricsDecorator)
                                 .ssl(SSL.builder()
-                                        .verifySslCerts(false)
-                                        .keystorePassword("pass")
+                                        .truststorePassword(System.getenv("TRUST_PASSWORD"))
+                                        .trustStoreType("PKCS12")
+                                        .truststorePath(System.getenv("TRUST_PATH"))
+                                        .keystorePassword(System.getenv("KEY_PASSWORD"))
                                         .keystoreType("PKCS12")
-                                        .keystorePath("/Users/test/ssl/client_keystore.p12")
+                                        .keystorePath(System.getenv("KEY_PATH"))
                                         .build())
                                 .build())
                         .build())
-                .apiUrl("test.ru/v1")
+                .apiUrl("https://gigachat-ift.sberdevices.delta.sbrf.ru/v1")
                 .build();
         try {
             System.out.println(client.models());
