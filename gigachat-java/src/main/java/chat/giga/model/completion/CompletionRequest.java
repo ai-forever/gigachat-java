@@ -123,6 +123,15 @@ public class CompletionRequest implements Serializable {
     @Default
     Integer updateInterval = 0;
 
+    /**
+     * Позволяет задать для ответа структурированный формат, в соответствии с заданной JSON-схемой
+     * Если type = json_schema, то
+     * Должно быть обязательно заполнено поле schema и опционально strict
+     * Если type = text, то дополнительных полей быть не должно
+     */
+    @JsonProperty("response_format")
+    ResponseFormat responseFormat;
+
     public static CompletionRequestBuilder builder() {
         return new CompletionRequestBuilder();
     }
