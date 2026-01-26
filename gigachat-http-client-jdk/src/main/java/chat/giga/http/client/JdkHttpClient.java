@@ -76,14 +76,21 @@ public class JdkHttpClient implements HttpClient {
     @Override
     public HttpResponse execute(HttpRequest request) {
         try {
-            var jdkResponse = delegate.send(mapJdkRequest(request), BodyHandlers.ofInputStream());
+            var jdkResponse = delegate.send(mapJdkRequest(request), BodyHandlers.ofByteArray());
 
             if (!isSuccessful(jdkResponse)) {
-                throw getClientException(jdkResponse);
+                throw new HttpClientException(jdkResponse.statusCode(), jdkResponse.body());
             }
 
-            return mapResponse(jdkResponse);
-        } catch (IOException | InterruptedException e) {
+            return HttpResponse.builder()
+                    .statusCode(jdkResponse.statusCode())
+                    .headers(jdkResponse.headers().map())
+                    .body(jdkResponse.body())
+                    .build();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -128,7 +135,7 @@ public class JdkHttpClient implements HttpClient {
                 });
     }
 
-    private static boolean isSuccessful(java.net.http.HttpResponse<InputStream> jdkResponse) {
+    private static boolean isSuccessful(java.net.http.HttpResponse<?> jdkResponse) {
         var statusCode = jdkResponse.statusCode();
         return statusCode >= 200 && statusCode < 300;
     }
