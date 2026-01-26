@@ -38,6 +38,9 @@ class JdkHttpClientTest {
     java.net.http.HttpClient delegate;
     @Mock
     HttpResponse<InputStream> jdkResponse;
+
+    @Mock
+    HttpResponse<byte[]> jdkResponseWithBytes;
     @Mock
     SseListener sseListener;
 
@@ -67,10 +70,10 @@ class JdkHttpClientTest {
                 .build();
 
         var captor = ArgumentCaptor.forClass(java.net.http.HttpRequest.class);
-        when(delegate.<InputStream>send(captor.capture(), any())).thenReturn(jdkResponse);
-        when(jdkResponse.statusCode()).thenReturn(200);
-        when(jdkResponse.headers()).thenReturn(HttpHeaders.of(headers, (hn, hv) -> true));
-        when(jdkResponse.body()).thenReturn(new ByteArrayInputStream("ok".getBytes()));
+        when(delegate.<byte[]>send(captor.capture(), any())).thenReturn(jdkResponseWithBytes);
+        when(jdkResponseWithBytes.statusCode()).thenReturn(200);
+        when(jdkResponseWithBytes.headers()).thenReturn(HttpHeaders.of(headers, (hn, hv) -> true));
+        when(jdkResponseWithBytes.body()).thenReturn("ok".getBytes());
 
         var response = httpClient.execute(request);
 
@@ -246,10 +249,10 @@ class JdkHttpClientTest {
                 .build();
 
         var captor = ArgumentCaptor.forClass(java.net.http.HttpRequest.class);
-        when(delegate.<InputStream>send(captor.capture(), any())).thenReturn(jdkResponse);
-        when(jdkResponse.statusCode()).thenReturn(200);
-        when(jdkResponse.headers()).thenReturn(HttpHeaders.of(headers, (hn, hv) -> true));
-        when(jdkResponse.body()).thenReturn(new ByteArrayInputStream("ok".getBytes()));
+        when(delegate.<byte[]>send(captor.capture(), any())).thenReturn(jdkResponseWithBytes);
+        when(jdkResponseWithBytes.statusCode()).thenReturn(200);
+        when(jdkResponseWithBytes.headers()).thenReturn(HttpHeaders.of(headers, (hn, hv) -> true));
+        when(jdkResponseWithBytes.body()).thenReturn("ok".getBytes());
 
         httpClient.execute(request);
 
