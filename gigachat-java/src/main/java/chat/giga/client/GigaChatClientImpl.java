@@ -64,7 +64,7 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
     @Override
     public EmbeddingResponse embeddings(EmbeddingRequest request) {
         try {
-            var httpResponse = RetryUtils.retry401(() -> httpClient.execute(createEmbendingHttpRequest(request)),
+            var httpResponse = RetryUtils.retry401(() -> httpClient.execute(createEmbeddingHttpRequest(request)),
                     maxRetriesOnAuthError);
 
             return objectMapper.readValue(httpResponse.body(), EmbeddingResponse.class);

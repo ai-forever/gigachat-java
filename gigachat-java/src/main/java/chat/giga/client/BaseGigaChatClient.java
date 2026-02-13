@@ -104,7 +104,7 @@ abstract class BaseGigaChatClient {
         return builder.build();
     }
 
-    protected HttpRequest createEmbendingHttpRequest(EmbeddingRequest request) {
+    protected HttpRequest createEmbeddingHttpRequest(EmbeddingRequest request) {
         HttpRequestBuilder builder;
         try {
             builder = HttpRequest.builder()
@@ -125,6 +125,11 @@ abstract class BaseGigaChatClient {
     }
 
     protected HttpRequest createUploadFileHttpRequest(UploadFileRequest request) {
+        Objects.requireNonNull(request.purpose(), "purpose must not be null");
+        Objects.requireNonNull(request.file(), "file must not be null");
+        Objects.requireNonNull(request.mimeType(), "mimeType must not be null");
+        Objects.requireNonNull(request.fileName(), "fileName must not be null");
+
         var boundary = Long.toHexString(System.currentTimeMillis());
         var requestBody = FileUtils.createMultiPartBody(request.file(), boundary, request.purpose(),
                 request.mimeType(), request.fileName());
@@ -143,6 +148,8 @@ abstract class BaseGigaChatClient {
     }
 
     protected HttpRequest createDownloadFileHttpRequest(String fileId, String clientId) {
+        Objects.requireNonNull(fileId, "fileId must not be null");
+
         var builder = HttpRequest.builder()
                 .url(apiUrl + "/files/" + fileId + "/content")
                 .method(HttpMethod.GET)
@@ -168,6 +175,8 @@ abstract class BaseGigaChatClient {
     }
 
     protected HttpRequest createFileInfoHttpRequest(String fileId) {
+        Objects.requireNonNull(fileId, "fileId must not be null");
+
         var builder = HttpRequest.builder()
                 .url(apiUrl + "/files/" + fileId)
                 .method(HttpMethod.GET)
@@ -180,6 +189,8 @@ abstract class BaseGigaChatClient {
     }
 
     protected HttpRequest createDeleteFileHttpRequest(String fileId) {
+        Objects.requireNonNull(fileId, "fileId must not be null");
+
         var builder = HttpRequest.builder()
                 .url(apiUrl + "/files/" + fileId + "/delete")
                 .method(HttpMethod.POST)

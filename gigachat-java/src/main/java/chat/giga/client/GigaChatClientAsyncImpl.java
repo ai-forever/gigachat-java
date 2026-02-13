@@ -127,7 +127,7 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
 
     @Override
     public CompletableFuture<EmbeddingResponse> embeddings(EmbeddingRequest request) {
-        return RetryUtils.retry401Async(() -> httpClient.executeAsync(createEmbendingHttpRequest(request))
+        return RetryUtils.retry401Async(() -> httpClient.executeAsync(createEmbeddingHttpRequest(request))
                 .thenApply(r -> {
                     try {
                         return objectMapper.readValue(r.body(), EmbeddingResponse.class);
