@@ -125,7 +125,7 @@ class OAuthClientTest {
 
     @Test
     public void shouldCallGetTokenOnlyOnceUnderContention() throws Exception {
-        OAuthClient authClient = spy(new OAuthClient(null, "client","secret",null, Scope.GIGACHAT_API_B2B,"url"));
+        OAuthClient authClient = spy(new OAuthClient(null, "client", "secret", null, Scope.GIGACHAT_API_B2B, "url"));
 
         AccessTokenResponse mockResponse = AccessTokenResponse.builder()
                 .accessToken(token)
