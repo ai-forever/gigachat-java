@@ -22,13 +22,20 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -114,6 +121,54 @@ class OAuthClientTest {
             assertThat(r.headers()).containsKey(OAuthClient.RQ_UID_HEADER);
             assertThat(new String(r.body(), StandardCharsets.UTF_8)).isEqualTo("scope=" + scope.name());
         });
+    }
+
+    @Test
+    public void shouldCallGetTokenOnlyOnceUnderContention() throws Exception {
+        OAuthClient authClient = spy(new OAuthClient(null, "client", "secret", null, Scope.GIGACHAT_API_B2B, "url"));
+
+        AccessTokenResponse mockResponse = AccessTokenResponse.builder()
+                .accessToken(token)
+                .expiresAt(Instant.now()
+                        .plusSeconds(1000L).toEpochMilli())
+                .build();
+
+        // Имитируем задержку сети, чтобы увеличить окно конкуренции
+        doAnswer(invocation -> {
+            Thread.sleep(100);
+            return mockResponse;
+        }).when(authClient).oauth();
+
+        int threadCount = 10;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch finishLatch = new CountDownLatch(threadCount);
+        HttpRequestBuilder requestBuilder = HttpRequest.builder()
+                .url("test.ru/models");
+
+        for (int i = 0; i < threadCount; i++) {
+            executor.submit(() -> {
+                try {
+                    startLatch.await(); // Ждем сигнала к одновременному старту
+                    authClient.authenticate(requestBuilder);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } finally {
+                    finishLatch.countDown();
+                }
+            });
+        }
+
+        startLatch.countDown();
+
+        // Ждем завершения всех потоков
+        boolean completed = finishLatch.await(2, TimeUnit.SECONDS);
+        assertTrue(completed, "Threads did not finish in time");
+
+        // Проверяем, что сетевой запрос был выполнен ровно 1 раз
+        verify(authClient, times(1)).getToken();
+
+        executor.shutdown();
     }
 
     @Test
