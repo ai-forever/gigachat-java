@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static chat.giga.http.client.HttpHeaders.USER_AGENT;
 import static chat.giga.http.client.MediaType.APPLICATION_JSON;
@@ -24,6 +25,7 @@ abstract class TokenBasedAuthClient {
     protected final ObjectMapper objectMapper = JsonUtils.objectMapper();
 
     private final AtomicReference<AccessToken> accessToken = new AtomicReference<>();
+    private final ReentrantLock lock = new ReentrantLock();
 
     protected HttpRequestBuilder getTokenRequest(String url, Scope scope, String user, String password) {
         var credentials = user + ":" + password;
@@ -48,10 +50,20 @@ abstract class TokenBasedAuthClient {
     }
 
     protected String retrieveTokenIfExpired() {
-        return accessToken.updateAndGet(t -> {
-            var expiresAt = t == null ? null : t.expiresAt();
-            return expiresAt != null && Instant.now().isBefore(expiresAt) ? t : getToken();
-        }).token();
+        AccessToken token = accessToken.get();
+        if (token == null || Instant.now().isAfter(token.expiresAt())) {
+            lock.lock();
+            try {
+                token = accessToken.get();
+                if (token == null || Instant.now().isAfter(token.expiresAt())) {
+                    token = getToken();
+                    accessToken.set(token);
+                }
+            } finally {
+                lock.unlock();
+            }
+        }
+        return token.token();
     }
 
     protected abstract AccessToken getToken();
