@@ -6,12 +6,18 @@ import chat.giga.model.Model;
 import chat.giga.model.ModelResponse;
 import chat.giga.model.TokenCount;
 import chat.giga.model.TokenCountRequest;
+import chat.giga.model.batch.BatchCreateResponse;
+import chat.giga.model.batch.BatchItem;
+import chat.giga.model.batch.BatchMethod;
+import chat.giga.model.batch.BatchStatus;
+import chat.giga.model.batch.RequestCounts;
 import chat.giga.model.completion.ChatFunction;
 import chat.giga.model.completion.ChatFunctionCall;
 import chat.giga.model.completion.ChatFunctionFewShotExample;
 import chat.giga.model.completion.ChatFunctionParameters;
 import chat.giga.model.completion.ChatFunctionParametersProperty;
 import chat.giga.model.completion.ChatMessage;
+import chat.giga.model.completion.ChatMessageRole;
 import chat.giga.model.completion.Choice;
 import chat.giga.model.completion.ChoiceChunk;
 import chat.giga.model.completion.ChoiceFinishReason;
@@ -21,7 +27,6 @@ import chat.giga.model.completion.ChoiceMessageFunctionCall;
 import chat.giga.model.completion.CompletionChunkResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
-import chat.giga.model.completion.ChatMessageRole;
 import chat.giga.model.completion.Usage;
 import chat.giga.model.embedding.Embedding;
 import chat.giga.model.embedding.EmbeddingRequest;
@@ -226,5 +231,28 @@ public class TestData {
                         .value(100)
                         .build())
                 .build();
+    }
+
+    public BatchCreateResponse batchCreateResponse() {
+        return BatchCreateResponse.builder()
+                .id("batch-id-123")
+                .method(BatchMethod.CHAT_COMPLETIONS)
+                .requestCounts(RequestCounts.builder().total(0).build())
+                .status(BatchStatus.CREATED)
+                .createdAt(0L)
+                .updatedAt(0L)
+                .build();
+    }
+
+    public List<BatchItem> batchStatusResponse() {
+        return List.of(BatchItem.builder()
+                .id("batch-id-123")
+                .method(BatchMethod.CHAT_COMPLETIONS)
+                .requestCounts(RequestCounts.builder().total(0).build())
+                .status(BatchStatus.COMPLETED)
+                .outputFileId("file-123")
+                .createdAt(0L)
+                .updatedAt(0L)
+                .build());
     }
 }
