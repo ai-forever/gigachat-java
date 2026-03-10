@@ -252,8 +252,10 @@ abstract class BaseGigaChatClient {
     }
 
     protected HttpRequest createBatchStatusHttpRequest(String batchId) {
+        var url = batchId != null ? apiUrl + "/batches?batch_id=" + batchId : apiUrl + "/batches";
+
         var builder = HttpRequest.builder()
-                .url(apiUrl + "/batches?batch_id=" + batchId)
+                .url(url)
                 .method(HttpMethod.GET)
                 .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
