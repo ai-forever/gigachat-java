@@ -26,7 +26,7 @@ public class CompletionStreamingExample {
                 .build();
 
         client.completions(CompletionRequest.builder()
-                        .model(ModelName.GIGA_CHAT_MAX)
+                        .model(ModelName.GIGA_CHAT_MAX_2)
                         .message(ChatMessage.builder()
                                 .content("Как дела")
                                 .role(ChatMessageRole.USER)

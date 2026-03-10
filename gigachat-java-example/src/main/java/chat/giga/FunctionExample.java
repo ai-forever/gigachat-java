@@ -87,7 +87,7 @@ public class FunctionExample {
                     .build();
 
             var response = client.completions(CompletionRequest.builder()
-                    .model(ModelName.GIGA_CHAT_PRO)
+                    .model(ModelName.GIGA_CHAT_PRO_2)
                     .messages(messages)
                     .function(function)
                     .build());
@@ -102,7 +102,7 @@ public class FunctionExample {
                     .build());
 
             response = client.completions(CompletionRequest.builder()
-                    .model(ModelName.GIGA_CHAT_PRO)
+                    .model(ModelName.GIGA_CHAT_PRO_2)
                     .messages(messages)
                     .function(function)
                     .build());

@@ -7,9 +7,9 @@ import chat.giga.http.client.HttpClientException;
 import chat.giga.model.ModelName;
 import chat.giga.model.Scope;
 import chat.giga.model.completion.ChatMessage;
+import chat.giga.model.completion.ChatMessageRole;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
-import chat.giga.model.completion.ChatMessageRole;
 
 public class CompletionConversationExample {
 
@@ -28,7 +28,7 @@ public class CompletionConversationExample {
                 .build();
 
         CompletionRequest.CompletionRequestBuilder builder = CompletionRequest.builder()
-                .model(ModelName.GIGA_CHAT_PRO)
+                .model(ModelName.GIGA_CHAT_PRO_2)
                 .message(ChatMessage.builder()
                         .content("Отвечай как программист")
                         .role(ChatMessageRole.SYSTEM)

@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+import static chat.giga.model.ModelName.GIGA_CHAT_ULTRA_3;
+
 
 public class BatchExample {
 
@@ -40,14 +42,14 @@ public class BatchExample {
 
             BatchCreateResponse createResponse = client.createBatch(List.of(
                     BatchRequest.completion("task-1", CompletionRequest.builder()
-                            .model("GigaChat-3-Ultra")
+                            .model(GIGA_CHAT_ULTRA_3)
                             .message(ChatMessage.builder()
                                     .role(ChatMessageRole.USER)
                                     .content("Какие факторы влияют на стоимость страховки на дом?")
                                     .build())
                             .build()),
                     BatchRequest.completion("task-2", CompletionRequest.builder()
-                            .model("GigaChat-3-Ultra")
+                            .model(GIGA_CHAT_ULTRA_3)
                             .message(ChatMessage.builder()
                                     .role(ChatMessageRole.USER)
                                     .content("Кратко перечисли три вида страхования.")
