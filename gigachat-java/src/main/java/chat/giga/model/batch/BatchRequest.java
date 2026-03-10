@@ -68,11 +68,10 @@ public class BatchRequest implements Serializable {
      * @return байты JSONL-тела запроса
      */
     public static byte[] toJsonl(List<BatchRequest> requests) {
-        var objectMapper = JsonUtils.objectMapper();
         var sb = new StringBuilder();
         for (BatchRequest request : requests) {
             try {
-                sb.append(objectMapper.writeValueAsString(request)).append("\n");
+                sb.append(JsonUtils.objectMapper().writeValueAsString(request)).append("\n");
             } catch (JsonProcessingException e) {
                 throw new UncheckedIOException(e);
             }
