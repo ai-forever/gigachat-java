@@ -37,6 +37,10 @@ import chat.giga.model.file.AvailableFilesResponse;
 import chat.giga.model.file.FileDeletedResponse;
 import chat.giga.model.file.FileResponse;
 import chat.giga.model.file.UploadFileRequest;
+import chat.giga.model.filter.FilterCheckRequest;
+import chat.giga.model.filter.FilterCheckResponse;
+import chat.giga.model.filter.FilterCheckSettings;
+import chat.giga.model.filter.FilterCheckUsage;
 import lombok.experimental.UtilityClass;
 
 import java.util.List;
@@ -254,5 +258,31 @@ public class TestData {
                 .createdAt(0L)
                 .updatedAt(0L)
                 .build());
+    }
+
+    public FilterCheckRequest filterCheckRequest() {
+        return FilterCheckRequest.builder()
+                .model("GigaFilter")
+                .settings(FilterCheckSettings.builder()
+                        .neuro(true)
+                        .blacklist(true)
+                        .whitelist(true)
+                        .build())
+                .message(ChatMessage.builder()
+                        .role(ChatMessageRole.FUNCTION)
+                        .content("{\"temperature\": \"27\"}")
+                        .functionsStateId("77d3fb14-457a-46ba-937e-8d856156d003")
+                        .attachment("e7f0b84b-3d4f-4c2c-ac31-8855b1b0db0a")
+                        .build())
+                .build();
+    }
+
+    public FilterCheckResponse filterCheckResponse() {
+        return FilterCheckResponse.builder()
+                .isProfane(true)
+                .usage(FilterCheckUsage.builder()
+                        .filterTokens(35)
+                        .build())
+                .build();
     }
 }

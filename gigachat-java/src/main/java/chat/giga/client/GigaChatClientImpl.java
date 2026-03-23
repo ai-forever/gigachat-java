@@ -17,6 +17,8 @@ import chat.giga.model.file.AvailableFilesResponse;
 import chat.giga.model.file.FileDeletedResponse;
 import chat.giga.model.file.FileResponse;
 import chat.giga.model.file.UploadFileRequest;
+import chat.giga.model.filter.FilterCheckRequest;
+import chat.giga.model.filter.FilterCheckResponse;
 import chat.giga.util.RetryUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Builder;
@@ -176,6 +178,18 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
         try {
             return objectMapper.readValue(httpResponse.body(), new TypeReference<>() {
             });
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    @Override
+    public FilterCheckResponse filterCheck(FilterCheckRequest request) {
+        try {
+            var httpResponse = RetryUtils.retry401(() -> httpClient.execute(createFilterCheckHttpRequest(request)),
+                    maxRetriesOnAuthError);
+
+            return objectMapper.readValue(httpResponse.body(), FilterCheckResponse.class);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

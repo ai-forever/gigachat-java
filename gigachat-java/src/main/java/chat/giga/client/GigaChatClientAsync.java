@@ -18,6 +18,8 @@ import chat.giga.model.file.AvailableFilesResponse;
 import chat.giga.model.file.FileDeletedResponse;
 import chat.giga.model.file.FileResponse;
 import chat.giga.model.file.UploadFileRequest;
+import chat.giga.model.filter.FilterCheckRequest;
+import chat.giga.model.filter.FilterCheckResponse;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
@@ -158,6 +160,14 @@ public interface GigaChatClientAsync {
      * completed), created_at, updated_at
      */
     CompletableFuture<List<BatchItem>> batchStatus(String batchId);
+
+    /**
+     * Проверить текст на наличие ненормативной лексики и других нежелательных элементов.
+     *
+     * @param request описание запроса на проверку текста
+     * @return ответ с признаком наличия ненормативной лексики и информацией об использовании токенов.
+     */
+    CompletableFuture<FilterCheckResponse> filterCheck(FilterCheckRequest request);
 
     static GigaChatClientAsyncImplBuilder builder() {
         return new GigaChatClientAsyncImplBuilder();

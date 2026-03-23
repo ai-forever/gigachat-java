@@ -15,6 +15,7 @@ import chat.giga.model.batch.BatchMethod;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.file.UploadFileRequest;
+import chat.giga.model.filter.FilterCheckRequest;
 import chat.giga.util.FileUtils;
 import chat.giga.util.JsonUtils;
 import chat.giga.util.Utils;
@@ -260,6 +261,26 @@ abstract class BaseGigaChatClient {
                 .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                 .header(REQUEST_ID_HEADER, UUID.randomUUID().toString());
+
+        authClient.authenticate(builder);
+
+        return builder.build();
+    }
+
+    protected HttpRequest createFilterCheckHttpRequest(FilterCheckRequest request) {
+        HttpRequestBuilder builder;
+        try {
+            builder = HttpRequest.builder()
+                    .url(apiUrl + "/filter/check")
+                    .method(HttpMethod.POST)
+                    .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                    .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
+                    .body(objectMapper.writeValueAsBytes(request));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
 
         authClient.authenticate(builder);
 
