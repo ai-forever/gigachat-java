@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Value
 @Builder
@@ -20,14 +21,27 @@ public class FilterCheckResponse implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Признак наличия ненормативной лексики или других нежелательных элементов.
-     */
-    @JsonProperty("is_profane")
-    Boolean isProfane;
-
-    /**
-     * Информация об использовании токенов при фильтрации.
+     * Результат проверки текста.
      */
     @JsonProperty
-    FilterCheckUsage usage;
+    Category category;
+
+    /**
+     * Количество символов в тексте.
+     */
+    @JsonProperty
+    Integer characters;
+
+    /**
+     * Количество токенов, использованных при проверке.
+     */
+    @JsonProperty
+    Integer tokens;
+
+    /**
+     * Список интервалов, обозначающих фрагменты текста, написанные с использованием ИИ. Каждый интервал представляет
+     * собой пару [start, end] с позициями символов.
+     */
+    @JsonProperty("ai_intervals")
+    List<List<Integer>> aiIntervals;
 }
