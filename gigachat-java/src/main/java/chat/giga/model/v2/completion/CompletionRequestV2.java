@@ -14,7 +14,6 @@ import java.util.List;
 
 /**
  * Тело запроса {@code POST v2/chat/completions}: обращение к модели с учётом истории чата пользователя с ассистентом.
- * Описание атрибутов — таблица «Параметры запроса» в документации релиза WMapi (экспорт Confluence).
  */
 @Value
 @Builder(toBuilder = true)
