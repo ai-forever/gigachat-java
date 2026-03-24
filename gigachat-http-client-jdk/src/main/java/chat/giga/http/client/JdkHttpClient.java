@@ -1,5 +1,7 @@
 package chat.giga.http.client;
 
+import chat.giga.http.client.sse.SseEventListener;
+import chat.giga.http.client.sse.SseEventParser;
 import chat.giga.http.client.sse.SseListener;
 import chat.giga.http.client.sse.SseParser;
 
@@ -108,6 +110,25 @@ public class JdkHttpClient implements HttpClient {
         var jdkRequest = mapJdkRequest(request);
 
         var parser = new SseParser(listener);
+        try {
+            var jdkResponse = delegate.send(jdkRequest, BodyHandlers.ofInputStream());
+
+            if (!isSuccessful(jdkResponse)) {
+                listener.onError(getClientException(jdkResponse));
+                return;
+            }
+
+            parser.parse(jdkResponse.body());
+        } catch (Exception e) {
+            listener.onError(e);
+        }
+    }
+
+    @Override
+    public void execute(HttpRequest request, SseEventListener listener) {
+        var jdkRequest = mapJdkRequest(request);
+
+        var parser = new SseEventParser(listener);
         try {
             var jdkResponse = delegate.send(jdkRequest, BodyHandlers.ofInputStream());
 

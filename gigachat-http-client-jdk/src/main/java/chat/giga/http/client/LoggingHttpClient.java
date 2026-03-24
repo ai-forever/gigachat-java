@@ -1,5 +1,6 @@
 package chat.giga.http.client;
 
+import chat.giga.http.client.sse.SseEventListener;
 import chat.giga.http.client.sse.SseListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,6 +118,33 @@ public class LoggingHttpClient implements HttpClient {
             @Override
             public void onComplete() {
                 listener.onComplete();
+            }
+
+            @Override
+            public void onError(Exception ex) {
+                listener.onError(ex);
+            }
+        });
+    }
+
+    @Override
+    public void execute(HttpRequest request, SseEventListener listener) {
+        if (logRequests) {
+            logRequest(request);
+        }
+
+        client.execute(request, new SseEventListener() {
+            @Override
+            public void onEvent(String eventType, String data) {
+                if (logResponses) {
+                    logResponse((eventType != null ? eventType + " " : "") + data);
+                }
+                listener.onEvent(eventType, data);
+            }
+
+            @Override
+            public void onClosed() {
+                listener.onClosed();
             }
 
             @Override
