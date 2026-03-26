@@ -36,4 +36,13 @@ public class FilterCheckSettings implements Serializable {
      */
     @JsonProperty
     Boolean whitelist;
+
+    /**
+     * Выключение нормализации содержимого.
+     * <p>Нормализация, которая применяется: <br>
+     * - заменяет role system на user, если после system нет user (System -> User) <br> - конкатенирует сообщения User и
+     * Assistant (System User User Assistant Assistant -> System User Assistant)
+     */
+    @JsonProperty("unnormalized_history")
+    Boolean unnormalizedHistory;
 }
