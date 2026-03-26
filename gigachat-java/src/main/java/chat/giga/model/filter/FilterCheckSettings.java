@@ -12,7 +12,7 @@ import java.io.Serializable;
 @Builder
 @Jacksonized
 @Accessors(fluent = true)
-public class FilterCheckResponse implements Serializable {
+public class FilterCheckSettings implements Serializable {
 
     /**
      * Версия класса для сериализации. Изменить при несовместимых изменениях в структуре класса.
@@ -20,14 +20,20 @@ public class FilterCheckResponse implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Признак наличия ненормативной лексики или других нежелательных элементов.
-     */
-    @JsonProperty("is_profane")
-    Boolean isProfane;
-
-    /**
-     * Информация об использовании токенов при фильтрации.
+     * Использовать нейросетевую проверку.
      */
     @JsonProperty
-    FilterCheckUsage usage;
+    Boolean neuro;
+
+    /**
+     * Использовать черный список слов.
+     */
+    @JsonProperty
+    Boolean blacklist;
+
+    /**
+     * Использовать белый список слов.
+     */
+    @JsonProperty
+    Boolean whitelist;
 }
