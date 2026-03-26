@@ -6,6 +6,9 @@ import chat.giga.model.BalanceResponse;
 import chat.giga.model.ModelResponse;
 import chat.giga.model.TokenCount;
 import chat.giga.model.TokenCountRequest;
+import chat.giga.model.batch.BatchCreateResponse;
+import chat.giga.model.batch.BatchItem;
+import chat.giga.model.batch.BatchMethod;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
 import chat.giga.model.embedding.EmbeddingRequest;
@@ -148,6 +151,31 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
 
         try {
             return objectMapper.readValue(httpResponse.body(), BalanceResponse.class);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    @Override
+    public BatchCreateResponse createBatch(byte[] jsonlRequest, BatchMethod method) {
+        var httpResponse = RetryUtils.retry401(() -> httpClient.execute(createBatchesHttpRequest(jsonlRequest, method)),
+                maxRetriesOnAuthError);
+
+        try {
+            return objectMapper.readValue(httpResponse.body(), BatchCreateResponse.class);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    @Override
+    public List<BatchItem> batchStatus(String batchId) {
+        var httpResponse = RetryUtils.retry401(() -> httpClient.execute(createBatchStatusHttpRequest(batchId)),
+                maxRetriesOnAuthError);
+
+        try {
+            return objectMapper.readValue(httpResponse.body(), new TypeReference<>() {
+            });
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

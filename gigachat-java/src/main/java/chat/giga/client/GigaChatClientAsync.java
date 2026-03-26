@@ -5,6 +5,10 @@ import chat.giga.model.BalanceResponse;
 import chat.giga.model.ModelResponse;
 import chat.giga.model.TokenCount;
 import chat.giga.model.TokenCountRequest;
+import chat.giga.model.batch.BatchCreateResponse;
+import chat.giga.model.batch.BatchItem;
+import chat.giga.model.batch.BatchMethod;
+import chat.giga.model.batch.BatchRequest;
 import chat.giga.model.completion.CompletionChunkResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.completion.CompletionResponse;
@@ -123,6 +127,37 @@ public interface GigaChatClientAsync {
      * токенов.
      */
     CompletableFuture<BalanceResponse> balance();
+
+    /**
+     * Создать пакет запросов (batch).
+     *
+     * @param jsonlRequest тело запроса в формате JSONL
+     * @param method       метод обработки запросов: {@link BatchMethod#CHAT_COMPLETIONS} или {@link BatchMethod#EMBEDDER}
+     * @return ответ с идентификатором, методом, количеством запросов, статусом и временными метками созданной пакетной задачи
+     */
+    CompletableFuture<BatchCreateResponse> createBatch(byte[] jsonlRequest, BatchMethod method);
+
+    /**
+     * Создать пакет запросов (batch) из списка типизированных задач. Задачи автоматически сериализуются в формат
+     * JSONL.
+     *
+     * @param requests список задач {@link BatchRequest}, каждая содержит id и тело запроса
+     * @param method   метод обработки запросов: {@link BatchMethod#CHAT_COMPLETIONS} или {@link BatchMethod#EMBEDDER}
+     * @return ответ с идентификатором, методом, количеством запросов, статусом и временными метками созданной пакетной
+     * задачи
+     */
+    default CompletableFuture<BatchCreateResponse> createBatch(List<BatchRequest> requests, BatchMethod method) {
+        return createBatch(BatchRequest.toJsonl(requests), method);
+    }
+
+    /**
+     * Получить список пакетных задач.
+     *
+     * @param batchId идентификатор пакетной задачи
+     * @return список пакетных задач, каждый элемент содержит: id, method, request_counts, status, output_file_id (при
+     * completed), created_at, updated_at
+     */
+    CompletableFuture<List<BatchItem>> batchStatus(String batchId);
 
     static GigaChatClientAsyncImplBuilder builder() {
         return new GigaChatClientAsyncImplBuilder();

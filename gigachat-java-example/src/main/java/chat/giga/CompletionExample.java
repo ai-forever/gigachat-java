@@ -25,7 +25,7 @@ public class CompletionExample {
                 .build();
         try {
             System.out.println(client.completions(CompletionRequest.builder()
-                    .model(ModelName.GIGA_CHAT_MAX)
+                    .model(ModelName.GIGA_CHAT_MAX_2)
                     .message(ChatMessage.builder()
                             .content("Какие факторы влияют на стоимость страховки на дом?")
                             .role(ChatMessageRole.USER)

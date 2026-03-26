@@ -9,6 +9,7 @@ import chat.giga.http.client.HttpRequest;
 import chat.giga.http.client.HttpResponse;
 import chat.giga.http.client.MediaType;
 import chat.giga.model.TokenCountRequest;
+import chat.giga.model.batch.BatchMethod;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.util.JsonUtils;
@@ -23,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
@@ -414,6 +416,66 @@ class GigaChatClientImplTest {
             assertThat(r.method()).isEqualTo(HttpMethod.GET);
             assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
             assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
+        });
+    }
+
+    @Test
+    void createBatch() throws JsonProcessingException {
+        var body = TestData.batchCreateResponse();
+        when(httpClient.execute(any()))
+                .thenThrow(new HttpClientException(401, null))
+                .thenReturn(HttpResponse.builder()
+                        .body(objectMapper.writeValueAsBytes(body))
+                        .build());
+
+        var jsonlBody = "{\"custom\":\"jsonl\"}".getBytes(StandardCharsets.UTF_8);
+        var method = BatchMethod.CHAT_COMPLETIONS;
+        var response = gigaChatClient.createBatch(jsonlBody, method);
+
+        assertThat(response).isEqualTo(body);
+
+        verify(authClient, times(2)).authenticate(any());
+
+        var captor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient, times(2)).execute(captor.capture());
+
+        assertThat(captor.getValue()).satisfies(r -> {
+            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/batches?method=" + method.value());
+            assertThat(r.method()).isEqualTo(HttpMethod.POST);
+            assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
+            assertThat(r.headers()).containsEntry(HttpHeaders.CONTENT_TYPE,
+                    List.of(MediaType.APPLICATION_OCTET_STREAM));
+            assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
+            assertThat(r.headers()).containsKey(GigaChatClientImpl.REQUEST_ID_HEADER);
+            assertThat(r.body()).isEqualTo(jsonlBody);
+        });
+    }
+
+    @Test
+    void batchStatus() throws JsonProcessingException {
+        var body = TestData.batchStatusResponse();
+        when(httpClient.execute(any()))
+                .thenThrow(new HttpClientException(401, null))
+                .thenReturn(HttpResponse.builder()
+                        .body(objectMapper.writeValueAsBytes(body))
+                        .build());
+
+        var batchId = "batch-id-123";
+        var response = gigaChatClient.batchStatus(batchId);
+
+        assertThat(response).isEqualTo(body);
+
+        verify(authClient, times(2)).authenticate(any());
+
+        var captor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient, times(2)).execute(captor.capture());
+
+        assertThat(captor.getValue()).satisfies(r -> {
+            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/batches?batch_id=" + batchId);
+            assertThat(r.method()).isEqualTo(HttpMethod.GET);
+            assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
+            assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
+            assertThat(r.headers()).containsKey(GigaChatClientImpl.REQUEST_ID_HEADER);
         });
     }
 

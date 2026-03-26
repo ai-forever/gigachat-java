@@ -11,6 +11,7 @@ import chat.giga.http.client.LoggingHttpClient;
 import chat.giga.http.client.MediaType;
 import chat.giga.http.client.SSL;
 import chat.giga.model.TokenCountRequest;
+import chat.giga.model.batch.BatchMethod;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.file.UploadFileRequest;
@@ -225,6 +226,36 @@ abstract class BaseGigaChatClient {
     protected HttpRequest createBalanceHttpRequest() {
         var builder = HttpRequest.builder()
                 .url(apiUrl + "/balance")
+                .method(HttpMethod.GET)
+                .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                .header(REQUEST_ID_HEADER, UUID.randomUUID().toString());
+
+        authClient.authenticate(builder);
+
+        return builder.build();
+    }
+
+    protected HttpRequest createBatchesHttpRequest(byte[] jsonlBody, BatchMethod method) {
+        var builder = HttpRequest.builder()
+                .url(apiUrl + "/batches?method=" + method.value())
+                .method(HttpMethod.POST)
+                .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
+                .body(jsonlBody);
+
+        authClient.authenticate(builder);
+
+        return builder.build();
+    }
+
+    protected HttpRequest createBatchStatusHttpRequest(String batchId) {
+        var url = batchId != null ? apiUrl + "/batches?batch_id=" + batchId : apiUrl + "/batches";
+
+        var builder = HttpRequest.builder()
+                .url(url)
                 .method(HttpMethod.GET)
                 .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
