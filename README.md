@@ -59,7 +59,7 @@ implementation("chat.giga:gigachat-java:0.1.15")
 //Укажите ключ авторизации, полученный в личном кабинете, в интерфейсе проекта GigaChat API
 public class CompletionExample {
 
-    static void main(String[] args) {
+    public static void main(String[] args) {
         GigaChatClient client = GigaChatClient.builder()
                 .verifySslCerts(false)
                 .authClient(AuthClient.builder()
