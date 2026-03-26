@@ -30,7 +30,7 @@ public class FilterCheckRequest implements Serializable {
      */
     @JsonProperty
     @Default
-    String model = ModelName.GIGA_FILTER_CLASSIFICATION;
+    String model = ModelName.GIGA_FILER;
 
     /**
      * Настройки фильтрации.
