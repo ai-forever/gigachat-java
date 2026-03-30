@@ -14,6 +14,7 @@ import chat.giga.model.completion.ChatFunctionCallEnum;
 import chat.giga.model.completion.CompletionChunkResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.embedding.EmbeddingRequest;
+import chat.giga.model.filter.FilterCheckRequest;
 import chat.giga.util.JsonUtils;
 import chat.giga.util.TestData;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -485,5 +486,35 @@ class GigaChatClientAsyncImplTest {
         assertThrows(NullPointerException.class, () -> GigaChatClientImpl.builder()
                 .apiHttpClient(httpClient)
                 .build());
+    }
+
+    @Test
+    void filterCheck() throws Exception {
+        var body = TestData.filterCheckResponse();
+        when(httpClient.executeAsync(any()))
+                .thenReturn(CompletableFuture.failedFuture(new HttpClientException(401, null)))
+                .thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
+                        .body(objectMapper.writeValueAsBytes(body))
+                        .build()));
+
+        var request = TestData.filterCheckRequest();
+        var response = gigaChatClientAsync.filterCheck(request).get();
+
+        assertThat(response).isEqualTo(body);
+
+        verify(authClient, times(2)).authenticate(any());
+
+        var captor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient, times(2)).executeAsync(captor.capture());
+
+        assertThat(captor.getValue()).satisfies(r -> {
+            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/filter/check");
+            assertThat(r.method()).isEqualTo(HttpMethod.POST);
+            assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
+            assertThat(r.headers()).containsEntry(HttpHeaders.CONTENT_TYPE, List.of(MediaType.APPLICATION_JSON));
+            assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
+            assertThat(r.headers()).containsKey(GigaChatClientImpl.REQUEST_ID_HEADER);
+            assertThat(objectMapper.readValue(r.body(), FilterCheckRequest.class)).isEqualTo(request);
+        });
     }
 }

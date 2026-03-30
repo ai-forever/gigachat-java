@@ -51,4 +51,19 @@ public class ModelName {
      * Развитая модель для создания векторного представления текста
      */
     public static final String EMBEDDINGS_GIGA_3B = "GigaEmbeddings-3B-2025-09";
+
+    /**
+     * Лучше всего подходит для анализа и разделения текста на два класса: написанный человеком или сгенерированный
+     * нейросетью (ai/human)
+     */
+    public static final String GIGA_FILTER_CLASSIFICATION = "GigaCheckClassification";
+
+    /**
+     * В модели добавляется третий класс — mixed (ai+human), что позволяет определять тексты, частично созданные с
+     * помощью ИИ.
+     */
+    public static final String GIGA_FILTER_DETECTION = "GigaCheckDetection";
+
+
+    public static final String GIGA_FILER = "GigaFilter";
 }
