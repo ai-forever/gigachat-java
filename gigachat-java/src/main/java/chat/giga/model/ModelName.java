@@ -63,4 +63,7 @@ public class ModelName {
      * помощью ИИ.
      */
     public static final String GIGA_FILTER_DETECTION = "GigaCheckDetection";
+
+
+    public static final String GIGA_FILER = "GigaFilter";
 }
