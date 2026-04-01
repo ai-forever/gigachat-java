@@ -55,6 +55,12 @@ public class CompletionRequestV2 implements Serializable {
     List<ChatMessageV2> messages;
 
     /**
+     * Потоковый режим ответа (SSE): поле верхнего уровня тела запроса по спецификации API v2.
+     */
+    @JsonProperty
+    Boolean stream;
+
+    /**
      * Настройки модели генерации.
      */
     @JsonProperty("model_options")

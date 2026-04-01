@@ -16,9 +16,11 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -125,7 +127,8 @@ public class JdkHttpClient implements HttpClient {
     }
 
     @Override
-    public void execute(HttpRequest request, SseEventListener listener) {
+    public void execute(HttpRequest request, SseEventListener listener,
+            BiConsumer<Integer, Map<String, List<String>>> onSuccessfulStreamResponseHeaders) {
         var jdkRequest = mapJdkRequest(request);
 
         var parser = new SseEventParser(listener);
@@ -135,6 +138,10 @@ public class JdkHttpClient implements HttpClient {
             if (!isSuccessful(jdkResponse)) {
                 listener.onError(getClientException(jdkResponse));
                 return;
+            }
+
+            if (onSuccessfulStreamResponseHeaders != null) {
+                onSuccessfulStreamResponseHeaders.accept(jdkResponse.statusCode(), jdkResponse.headers().map());
             }
 
             parser.parse(jdkResponse.body());

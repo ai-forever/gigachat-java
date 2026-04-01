@@ -273,7 +273,8 @@ class GigaChatClientAsyncImplTest {
             assertThat(r.url()).isEqualTo(BaseGigaChatClient.DEFAULT_API_V2_URL + "/chat/completions");
             assertThat(r.method()).isEqualTo(HttpMethod.POST);
             assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.TEXT_EVENT_STREAM));
-            assertThat(objectMapper.readTree(r.body()).path("model_options").path("stream").asBoolean()).isTrue();
+            assertThat(objectMapper.readTree(r.body()).path("stream").asBoolean()).isTrue();
+            assertThat(objectMapper.readTree(r.body()).path("model_options").path("stream").isMissingNode()).isTrue();
         });
 
         verify(completionV2StreamHandler, timeout(100)).onMessageDelta(delta);

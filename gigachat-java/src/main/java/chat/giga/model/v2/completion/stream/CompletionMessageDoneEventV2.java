@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import chat.giga.model.v2.completion.AdditionalDataV2;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Builder;
 import lombok.Singular;
@@ -62,6 +63,12 @@ public class CompletionMessageDoneEventV2 implements Serializable {
      */
     @JsonProperty
     CompletionStreamUsageV2 usage;
+
+    /**
+     * Дополнительные данные ответа (поле {@code additional_data}; см. {@link AdditionalDataV2}).
+     */
+    @JsonProperty("additional_data")
+    AdditionalDataV2 additionalData;
 
     /**
      * Тип объекта ответа API.

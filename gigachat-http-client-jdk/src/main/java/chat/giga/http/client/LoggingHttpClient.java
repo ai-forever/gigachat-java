@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 
 import static chat.giga.http.client.MediaType.APPLICATION_JSON;
 
@@ -78,6 +79,19 @@ public class LoggingHttpClient implements HttpClient {
         }
     }
 
+    private void logStreamingResponse(int statusCode, Map<String, List<String>> headers) {
+        try {
+            log.debug("""
+                            HTTP streaming response:
+                            - status code: {}
+                            - headers: {}
+                            """,
+                    statusCode, format(headers));
+        } catch (Exception e) {
+            log.error("Exception while logging HTTP streaming response: {}", e.getMessage(), e);
+        }
+    }
+
     private String format(Map<String, List<String>> headers) {
         return headers.entrySet().stream()
                 .filter(e -> !SECRET_HEADERS.contains(e.getKey().toLowerCase()))
@@ -117,20 +131,38 @@ public class LoggingHttpClient implements HttpClient {
 
             @Override
             public void onComplete() {
+                if (logResponses) {
+                    log.debug("HTTP SSE stream completed (listener onComplete)");
+                }
                 listener.onComplete();
             }
 
             @Override
             public void onError(Exception ex) {
+                if (logResponses) {
+                    log.debug("HTTP SSE stream error (SseListener onError): {}", ex.toString(), ex);
+                }
                 listener.onError(ex);
             }
         });
     }
 
     @Override
-    public void execute(HttpRequest request, SseEventListener listener) {
+    public void execute(HttpRequest request, SseEventListener listener,
+            BiConsumer<Integer, Map<String, List<String>>> onSuccessfulStreamResponseHeaders) {
         if (logRequests) {
             logRequest(request);
+        }
+
+        BiConsumer<Integer, Map<String, List<String>>> headersSink = onSuccessfulStreamResponseHeaders;
+        if (logResponses) {
+            BiConsumer<Integer, Map<String, List<String>>> user = onSuccessfulStreamResponseHeaders;
+            headersSink = (status, headers) -> {
+                logStreamingResponse(status, headers);
+                if (user != null) {
+                    user.accept(status, headers);
+                }
+            };
         }
 
         client.execute(request, new SseEventListener() {
@@ -144,14 +176,20 @@ public class LoggingHttpClient implements HttpClient {
 
             @Override
             public void onClosed() {
+                if (logResponses) {
+                    log.debug("HTTP SSE stream closed (SseEventListener onClosed)");
+                }
                 listener.onClosed();
             }
 
             @Override
             public void onError(Exception ex) {
+                if (logResponses) {
+                    log.debug("HTTP SSE stream error (SseEventListener onError): {}", ex.toString(), ex);
+                }
                 listener.onError(ex);
             }
-        });
+        }, headersSink);
     }
 
     @Override

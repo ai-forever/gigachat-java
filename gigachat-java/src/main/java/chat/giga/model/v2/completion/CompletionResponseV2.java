@@ -61,6 +61,13 @@ public class CompletionResponseV2 implements Serializable {
     Usage usage;
 
     /**
+     * Дополнительные данные ответа: {@code execution_steps} и вложенная структура по документации релиза / proto
+     * {@code AdditionalData}.
+     */
+    @JsonProperty("additional_data")
+    AdditionalDataV2 additionalData;
+
+    /**
      * Тип объекта ответа API.
      */
     @JsonProperty

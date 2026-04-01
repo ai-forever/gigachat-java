@@ -1,6 +1,8 @@
 package chat.giga.http.client.sse;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -15,6 +17,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SseEventParser {
 
+    private static final Logger log = LoggerFactory.getLogger(SseEventParser.class);
+    private static final int MAX_RAW_LINE_LOG_CHARS = 2048;
+
     private final SseEventListener listener;
 
     public void parse(InputStream body) {
@@ -25,6 +30,9 @@ public class SseEventParser {
 
             String line;
             while ((line = reader.readLine()) != null) {
+                if (log.isTraceEnabled()) {
+                    log.trace("SSE raw line: {}", truncateForLog(line));
+                }
                 if (line.isEmpty()) {
                     dispatch(dataLines, eventType, pending);
                     dataLines = new ArrayList<>();
@@ -70,5 +78,12 @@ public class SseEventParser {
             return;
         }
         listener.onEvent(eventType, String.join("\n", dataLines));
+    }
+
+    private static String truncateForLog(String line) {
+        if (line == null || line.length() <= MAX_RAW_LINE_LOG_CHARS) {
+            return line;
+        }
+        return line.substring(0, MAX_RAW_LINE_LOG_CHARS) + "…(" + line.length() + " chars)";
     }
 }

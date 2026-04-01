@@ -1,5 +1,6 @@
 package chat.giga.http.client;
 
+import chat.giga.http.client.sse.SseEventListener;
 import chat.giga.http.client.sse.SseListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,9 @@ class JdkHttpClientTest {
     HttpResponse<byte[]> jdkResponseWithBytes;
     @Mock
     SseListener sseListener;
+
+    @Mock
+    SseEventListener sseEventListener;
 
     HttpClient httpClient;
 
@@ -227,6 +231,26 @@ class JdkHttpClientTest {
 
         verify(sseListener, times(1)).onError(any(RuntimeException.class));
         verify(sseListener, never()).onComplete();
+    }
+
+    @Test
+    void executeSseEventListener_whenApplicationJson_stillParsesBodyAsSseAndCloses() throws Exception {
+        var request = HttpRequest.builder()
+                .url("http://test")
+                .method(HttpMethod.POST)
+                .body("x".getBytes())
+                .build();
+
+        when(delegate.<InputStream>send(any(), any())).thenReturn(jdkResponse);
+        when(jdkResponse.statusCode()).thenReturn(200);
+        String json = "{\"model\":\"m\"}";
+        when(jdkResponse.body()).thenReturn(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
+
+        httpClient.execute(request, sseEventListener);
+
+        verify(sseEventListener, never()).onEvent(any(), any());
+        verify(sseEventListener).onClosed();
+        verify(sseEventListener, never()).onError(any());
     }
 
     @Test

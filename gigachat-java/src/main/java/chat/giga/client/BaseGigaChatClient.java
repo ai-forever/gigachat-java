@@ -17,7 +17,6 @@ import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.file.UploadFileRequest;
 import chat.giga.model.filter.FilterCheckRequest;
 import chat.giga.model.v2.completion.CompletionRequestV2;
-import chat.giga.model.v2.completion.ModelOptionsV2;
 import chat.giga.util.FileUtils;
 import chat.giga.util.JsonUtils;
 import chat.giga.util.Utils;
@@ -32,7 +31,7 @@ import static java.time.Duration.ofSeconds;
 abstract class BaseGigaChatClient {
 
     public static final String DEFAULT_API_URL = "https://gigachat.devices.sberbank.ru/api/v1";
-    public static final String DEFAULT_API_V2_URL = "https://gigachat.devices.sberbank.ru/api/v2";
+    public static final String DEFAULT_API_V2_URL = "https://gigachat.devices.sberbank.ru/v2";
     public static final String REQUEST_ID_HEADER = "X-Request-ID";
     public static final String CLIENT_ID_HEADER = "X-Client-ID";
     public static final String SESSION_ID_HEADER = "X-Session-ID";
@@ -122,17 +121,15 @@ abstract class BaseGigaChatClient {
         }
         String suffix = "/api/v1";
         if (apiUrl.endsWith(suffix)) {
-            return apiUrl.substring(0, apiUrl.length() - suffix.length()) + "/api/v2";
+            return apiUrl.substring(0, apiUrl.length() - suffix.length()) + "/v2";
         }
         return DEFAULT_API_V2_URL;
     }
 
     protected HttpRequest createCompletionV2HttpRequest(CompletionRequestV2 request, String sessionId) {
         CompletionRequestV2 forHttp = request;
-        if (request.modelOptions() != null && Boolean.TRUE.equals(request.modelOptions().stream())) {
-            forHttp = request.toBuilder()
-                    .modelOptions(request.modelOptions().toBuilder().stream(false).build())
-                    .build();
+        if (Boolean.TRUE.equals(request.stream())) {
+            forHttp = request.toBuilder().stream(false).build();
         }
         HttpRequestBuilder builder;
         try {
@@ -156,16 +153,13 @@ abstract class BaseGigaChatClient {
 
     /**
      * Подготовка запроса потоковых completions v2 (SSE). Не вызывает {@link AuthClient#authenticate}. В теле запроса
-     * всегда выставляется {@code model_options.stream = true} (при отсутствии {@code model_options} он создаётся).
+     * всегда выставляется верхнеуровневое {@code stream: true} (по спецификации API v2).
      */
     protected HttpRequest.HttpRequestBuilder prepareCompletionV2StreamHttpRequest(CompletionRequestV2 request,
             String sessionId) {
         CompletionRequestV2 forHttp = request;
-        var mo = request.modelOptions();
-        if (mo == null) {
-            forHttp = request.toBuilder().modelOptions(ModelOptionsV2.builder().stream(true).build()).build();
-        } else if (!Boolean.TRUE.equals(mo.stream())) {
-            forHttp = request.toBuilder().modelOptions(mo.toBuilder().stream(true).build()).build();
+        if (!Boolean.TRUE.equals(request.stream())) {
+            forHttp = request.toBuilder().stream(true).build();
         }
         try {
             return HttpRequest.builder()

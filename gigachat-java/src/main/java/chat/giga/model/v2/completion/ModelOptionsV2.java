@@ -12,7 +12,8 @@ import lombok.extern.jackson.Jacksonized;
 import java.io.Serializable;
 
 /**
- * Объект {@code model_options}: настройки модели генерации (температура, лимиты токенов, стриминг и др.).
+ * Объект {@code model_options}: настройки модели генерации (температура, лимиты токенов и др.). Флаг стриминга задаётся
+ * отдельным полем {@code stream} на верхнем уровне {@link CompletionRequestV2}.
  */
 @Value
 @Builder(toBuilder = true)
@@ -90,11 +91,4 @@ public class ModelOptionsV2 implements Serializable {
      */
     @JsonProperty("response_format")
     ResponseFormat responseFormat;
-
-    /**
-     * При {@code true} ответ отдаётся по SSE частями; токены приходят по мере генерации, завершение — событием
-     * {@code data: [DONE]} в спецификации потока.
-     */
-    @JsonProperty
-    Boolean stream;
 }
