@@ -13,6 +13,7 @@ import chat.giga.model.batch.BatchMethod;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.filter.FilterCheckRequest;
+import chat.giga.model.v2.completion.ChatMessageRoleV2;
 import chat.giga.model.v2.completion.ChatMessageV2;
 import chat.giga.model.v2.completion.CompletionRequestV2;
 import chat.giga.model.v2.completion.CompletionResponseV2;
@@ -106,7 +107,7 @@ class GigaChatClientImplTest {
                 .model("GigaChat-3-Ultra:1.0")
                 .createdAt(1769508838L)
                 .finishReason("stop")
-                .message(ChatMessageV2.textMessage("assistant", "ok"))
+                .message(ChatMessageV2.textMessage(ChatMessageRoleV2.ASSISTANT, "ok"))
                 .build();
 
         when(httpClient.execute(any()))
@@ -117,7 +118,7 @@ class GigaChatClientImplTest {
 
         var request = CompletionRequestV2.builder()
                 .model("GigaChat")
-                .message(ChatMessageV2.textMessage("user", "hi"))
+                .message(ChatMessageV2.textMessage(ChatMessageRoleV2.USER, "hi"))
                 .tool(ToolV2.ofFunctions(FunctionsToolPayloadV2.builder().build()))
                 .toolConfig(ToolConfigV2.autoMode())
                 .build();
@@ -153,7 +154,7 @@ class GigaChatClientImplTest {
         var request = CompletionRequestV2.builder()
                 .model("GigaChat")
                 .message(ChatMessageV2.builder()
-                        .role("tool")
+                        .role(ChatMessageRoleV2.TOOL)
                         .contentPart(MessageContentPartV2.builder()
                                 .functionResult(FunctionResultContentV2.builder()
                                         .name("weather")

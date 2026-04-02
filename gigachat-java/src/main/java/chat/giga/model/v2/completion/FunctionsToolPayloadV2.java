@@ -1,6 +1,5 @@
 package chat.giga.model.v2.completion;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Singular;
@@ -18,8 +17,6 @@ import java.util.List;
 @Builder
 @Jacksonized
 @Accessors(fluent = true)
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE,
-        isGetterVisibility = JsonAutoDetect.Visibility.NONE)
 public class FunctionsToolPayloadV2 implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -27,7 +24,7 @@ public class FunctionsToolPayloadV2 implements Serializable {
     /**
      * Описания клиентских функций ({@code specifications} в JSON).
      */
-    @JsonProperty
+    @JsonProperty("specifications")
     @Singular
     List<FunctionSpecificationV2> specifications;
 }

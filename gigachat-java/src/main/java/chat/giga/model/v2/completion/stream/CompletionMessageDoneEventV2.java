@@ -1,12 +1,11 @@
 package chat.giga.model.v2.completion.stream;
 
 import chat.giga.model.jackson.FlexibleLongDeserializer;
+import chat.giga.model.v2.completion.AdditionalDataV2;
 import chat.giga.model.v2.completion.ChatMessageV2;
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import chat.giga.model.v2.completion.AdditionalDataV2;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Builder;
 import lombok.Singular;
@@ -26,8 +25,6 @@ import java.util.List;
 @Jacksonized
 @Accessors(fluent = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE,
-        isGetterVisibility = JsonAutoDetect.Visibility.NONE)
 public class CompletionMessageDoneEventV2 implements Serializable {
 
     private static final long serialVersionUID = 1L;

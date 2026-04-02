@@ -1,9 +1,7 @@
 package chat.giga.model.v2.completion;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Value;
 import lombok.experimental.Accessors;
@@ -20,9 +18,6 @@ import java.io.Serializable;
 @Jacksonized
 @Accessors(fluent = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE,
-        isGetterVisibility = JsonAutoDetect.Visibility.NONE)
 public class ToolConfigV2 implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -31,16 +26,19 @@ public class ToolConfigV2 implements Serializable {
      * Режим вызова: {@code auto}, {@code none} или {@code forced}. В режиме {@code forced} выполняется принудительный
      * вызов встроенного тула или функции из {@code tools.functions}.
      */
+    @JsonProperty
     String mode;
 
     /**
      * Для встроенных тулов (например {@code image_generate}) при {@code mode = forced}.
      */
+    @JsonProperty("tool_name")
     String toolName;
 
     /**
      * Имя функции из {@code tools.functions} при {@code mode = forced}.
      */
+    @JsonProperty("function_name")
     String functionName;
 
     public static ToolConfigV2 autoMode() {

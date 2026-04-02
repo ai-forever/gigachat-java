@@ -1,7 +1,6 @@
 package chat.giga.model.v2.completion;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
@@ -21,8 +20,6 @@ import java.util.List;
 @Jacksonized
 @Accessors(fluent = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE,
-        isGetterVisibility = JsonAutoDetect.Visibility.NONE)
 public class ChatMessageV2 implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -34,11 +31,10 @@ public class ChatMessageV2 implements Serializable {
     String messageId;
 
     /**
-     * Источник сообщения: {@code user}, {@code system}, {@code assistant}, {@code tool}, {@code reasoning} и прочие
-     * роли по спецификации API.
+     * Источник сообщения ({@code user}, {@code system}, {@code assistant}, {@code tool}, {@code reasoning} и т.д.).
      */
     @JsonProperty
-    String role;
+    ChatMessageRoleV2 role;
 
     /**
      * Состояние, фиксирующее работу с тулами ({@code tools_state_id} в JSON; в ответах также встречается алиас
@@ -58,7 +54,7 @@ public class ChatMessageV2 implements Serializable {
     /**
      * Одна текстовая часть (удобно для простых user/system сообщений).
      */
-    public static ChatMessageV2 textMessage(String role, String text) {
+    public static ChatMessageV2 textMessage(ChatMessageRoleV2 role, String text) {
         return ChatMessageV2.builder()
                 .role(role)
                 .contentPart(MessageContentPartV2.builder().text(text).build())

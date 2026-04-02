@@ -1,7 +1,6 @@
 package chat.giga.model.v2.completion;
 
 import chat.giga.model.v2.completion.stream.CompletionStreamUsageV2;
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -24,8 +23,6 @@ import java.util.List;
 @Accessors(fluent = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE,
-        isGetterVisibility = JsonAutoDetect.Visibility.NONE)
 public class CompletionResponseV2 implements Serializable {
 
     private static final long serialVersionUID = 1L;

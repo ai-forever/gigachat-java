@@ -6,6 +6,7 @@ import chat.giga.client.auth.AuthClientBuilder.OAuthBuilder;
 import chat.giga.http.client.HttpClientException;
 import chat.giga.model.ModelName;
 import chat.giga.model.Scope;
+import chat.giga.model.v2.completion.ChatMessageRoleV2;
 import chat.giga.model.v2.completion.ChatMessageV2;
 import chat.giga.model.v2.completion.CompletionRequestV2;
 import chat.giga.model.v2.completion.FunctionSpecificationV2;
@@ -36,7 +37,7 @@ public class CompletionV2Example {
 
         var request = CompletionRequestV2.builder()
                 .model(ModelName.GIGA_CHAT_PRO_2)
-                .message(ChatMessageV2.textMessage("user", "Погода в Москве на завтра"))
+                .message(ChatMessageV2.textMessage(ChatMessageRoleV2.USER, "Погода в Москве на завтра"))
                 .tool(ToolV2.ofFunctions(FunctionsToolPayloadV2.builder()
                         .specification(FunctionSpecificationV2.builder()
                                 .name("weather_forecast")

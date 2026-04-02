@@ -7,6 +7,7 @@ import chat.giga.client.auth.AuthClientBuilder.OAuthBuilder;
 import chat.giga.http.client.HttpHeaders;
 import chat.giga.model.AccessTokenResponse;
 import chat.giga.model.Scope;
+import chat.giga.model.v2.completion.ChatMessageRoleV2;
 import chat.giga.model.v2.completion.ChatMessageV2;
 import chat.giga.model.v2.completion.CompletionRequestV2;
 import chat.giga.model.v2.completion.CompletionResponseV2;
@@ -150,13 +151,13 @@ class GigaChatIntegrationTest {
 
         var firstRequest = CompletionRequestV2.builder()
                 .model("GigaChat")
-                .message(ChatMessageV2.textMessage("user", "Погода в Москве на завтра"))
+                .message(ChatMessageV2.textMessage(ChatMessageRoleV2.USER, "Погода в Москве на завтра"))
                 .tool(functionsTool)
                 .toolConfig(ToolConfigV2.autoMode())
                 .build();
 
         var assistantWithCall = ChatMessageV2.builder()
-                .role("assistant")
+                .role(ChatMessageRoleV2.ASSISTANT)
                 .toolsStateId("tools-state-integration-1")
                 .contentPart(MessageContentPartV2.builder()
                         .functionCall(FunctionCallContentV2.builder()
@@ -192,10 +193,10 @@ class GigaChatIntegrationTest {
 
         var secondRequest = CompletionRequestV2.builder()
                 .model("GigaChat")
-                .message(ChatMessageV2.textMessage("user", "Погода в Москве на завтра"))
+                .message(ChatMessageV2.textMessage(ChatMessageRoleV2.USER, "Погода в Москве на завтра"))
                 .message(assistantWithCall)
                 .message(ChatMessageV2.builder()
-                        .role("tool")
+                        .role(ChatMessageRoleV2.TOOL)
                         .toolsStateId("tools-state-integration-1")
                         .contentPart(MessageContentPartV2.builder()
                                 .functionResult(FunctionResultContentV2.builder()
@@ -212,7 +213,7 @@ class GigaChatIntegrationTest {
                 .model("GigaChat:1.0")
                 .createdAt(1700000002L)
                 .finishReason("stop")
-                .message(ChatMessageV2.textMessage("assistant", "Около 5 °C, облачно."))
+                .message(ChatMessageV2.textMessage(ChatMessageRoleV2.ASSISTANT, "Около 5 °C, облачно."))
                 .build();
 
         mockServerClient.when(request("/chat/completions")

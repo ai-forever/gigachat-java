@@ -1,7 +1,6 @@
 package chat.giga.model.v2.completion;
 
 import chat.giga.model.completion.ResponseFormat;
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
@@ -20,8 +19,6 @@ import java.io.Serializable;
 @Jacksonized
 @Accessors(fluent = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE,
-        isGetterVisibility = JsonAutoDetect.Visibility.NONE)
 public class ModelOptionsV2 implements Serializable {
 
     private static final long serialVersionUID = 1L;

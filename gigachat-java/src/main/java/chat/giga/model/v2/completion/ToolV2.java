@@ -1,6 +1,5 @@
 package chat.giga.model.v2.completion;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
@@ -21,8 +20,6 @@ import java.util.Map;
 @Jacksonized
 @Accessors(fluent = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE,
-        isGetterVisibility = JsonAutoDetect.Visibility.NONE)
 public class ToolV2 implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -30,6 +27,7 @@ public class ToolV2 implements Serializable {
     /**
      * Список функций, доступных для вызова при следующей генерации ответа ({@code specifications} в JSON).
      */
+    @JsonProperty("functions")
     FunctionsToolPayloadV2 functions;
 
     /**
@@ -59,6 +57,7 @@ public class ToolV2 implements Serializable {
     /**
      * Тул ячейки памяти; в простейшем случае передаётся как пустой объект {@code {}}.
      */
+    @JsonProperty("memory")
     Map<String, Object> memory;
 
     /**

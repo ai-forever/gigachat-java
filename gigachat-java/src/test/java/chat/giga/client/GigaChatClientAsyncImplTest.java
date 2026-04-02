@@ -16,6 +16,7 @@ import chat.giga.model.completion.CompletionChunkResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.filter.FilterCheckRequest;
+import chat.giga.model.v2.completion.ChatMessageRoleV2;
 import chat.giga.model.v2.completion.ChatMessageV2;
 import chat.giga.model.v2.completion.CompletionRequestV2;
 import chat.giga.model.v2.completion.CompletionResponseV2;
@@ -147,7 +148,7 @@ class GigaChatClientAsyncImplTest {
 
         var request = CompletionRequestV2.builder()
                 .model("GigaChat")
-                .message(ChatMessageV2.textMessage("user", "hi"))
+                .message(ChatMessageV2.textMessage(ChatMessageRoleV2.USER, "hi"))
                 .tool(ToolV2.memory())
                 .toolConfig(ToolConfigV2.autoMode())
                 .build();
@@ -240,7 +241,7 @@ class GigaChatClientAsyncImplTest {
     @Test
     void completionsV2Stream() throws Exception {
         var delta = CompletionMessageDeltaEventV2.builder()
-                .delta(ChatMessageV2.textMessage("assistant", "x"))
+                .delta(ChatMessageV2.textMessage(ChatMessageRoleV2.ASSISTANT, "x"))
                 .build();
         var done = CompletionMessageDoneEventV2.builder()
                 .finishReason("stop")
@@ -260,7 +261,7 @@ class GigaChatClientAsyncImplTest {
 
         var request = CompletionRequestV2.builder()
                 .model("GigaChat")
-                .message(ChatMessageV2.textMessage("user", "hi"))
+                .message(ChatMessageV2.textMessage(ChatMessageRoleV2.USER, "hi"))
                 .build();
         gigaChatClientAsync.completionsV2Stream(request, completionV2StreamHandler);
 
@@ -287,7 +288,7 @@ class GigaChatClientAsyncImplTest {
     void completionsV2Stream_toolLifecycleEvents() throws Exception {
         var toolProgress = CompletionToolLifecycleEventV2.builder()
                 .message(ChatMessageV2.builder()
-                        .role("reasoning")
+                        .role(ChatMessageRoleV2.REASONING)
                         .contentPart(MessageContentPartV2.builder()
                                 .toolExecution(ToolExecutionContentV2.builder()
                                         .name("code_interpreter")
@@ -297,7 +298,7 @@ class GigaChatClientAsyncImplTest {
                 .build();
         var toolDone = CompletionToolLifecycleEventV2.builder()
                 .message(ChatMessageV2.builder()
-                        .role("reasoning")
+                        .role(ChatMessageRoleV2.REASONING)
                         .contentPart(MessageContentPartV2.builder()
                                 .toolExecution(ToolExecutionContentV2.builder()
                                         .name("code_interpreter")
@@ -323,7 +324,7 @@ class GigaChatClientAsyncImplTest {
         gigaChatClientAsync.completionsV2Stream(
                 CompletionRequestV2.builder()
                         .model("GigaChat")
-                        .message(ChatMessageV2.textMessage("user", "hi"))
+                        .message(ChatMessageV2.textMessage(ChatMessageRoleV2.USER, "hi"))
                         .build(),
                 completionV2StreamHandler);
 
