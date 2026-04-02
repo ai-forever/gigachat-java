@@ -61,6 +61,31 @@ public class CompletionRequestV2 implements Serializable {
     Boolean stream;
 
     /**
+     * Отключение фильтрации (в доке — замена {@code profanity_check}).
+     */
+    @JsonProperty("disable_filter")
+    Boolean disableFilter;
+
+    /**
+     * Настройки фильтрации ({@code request_content} / {@code response_content}).
+     */
+    @JsonProperty("filter_config")
+    FilterConfigV2 filterConfig;
+
+    /**
+     * Флаги, включающие особые возможности (например {@code preprocess}).
+     */
+    @JsonProperty
+    @Singular("flag")
+    List<String> flags;
+
+    /**
+     * Данные хранения контекста на стороне GigaChat.
+     */
+    @JsonProperty
+    CompletionStorageV2 storage;
+
+    /**
      * Настройки модели генерации.
      */
     @JsonProperty("model_options")

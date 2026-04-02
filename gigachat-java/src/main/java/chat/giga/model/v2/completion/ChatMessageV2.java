@@ -28,6 +28,12 @@ public class ChatMessageV2 implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
+     * Идентификатор сообщения (в т.ч. при включённом режиме хранения контекста).
+     */
+    @JsonProperty("message_id")
+    String messageId;
+
+    /**
      * Источник сообщения: {@code user}, {@code system}, {@code assistant}, {@code tool}, {@code reasoning} и прочие
      * роли по спецификации API.
      */

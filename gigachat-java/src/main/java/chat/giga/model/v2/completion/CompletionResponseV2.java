@@ -1,7 +1,8 @@
 package chat.giga.model.v2.completion;
 
-import chat.giga.model.completion.Usage;
+import chat.giga.model.v2.completion.stream.CompletionStreamUsageV2;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
@@ -22,6 +23,7 @@ import java.util.List;
 @Jacksonized
 @Accessors(fluent = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY, getterVisibility = JsonAutoDetect.Visibility.NONE,
         isGetterVisibility = JsonAutoDetect.Visibility.NONE)
 public class CompletionResponseV2 implements Serializable {
@@ -33,6 +35,12 @@ public class CompletionResponseV2 implements Serializable {
      */
     @JsonProperty
     String model;
+
+    /**
+     * Идентификатор треда при непустом {@code storage} в запросе.
+     */
+    @JsonProperty("thread_id")
+    String threadId;
 
     /**
      * Дата/время создания ответа (unix time).
@@ -55,10 +63,11 @@ public class CompletionResponseV2 implements Serializable {
     String finishReason;
 
     /**
-     * Информация о потреблении токенов.
+     * Информация о потреблении токенов ({@code input_tokens}, {@code output_tokens}, {@code input_tokens_details} и
+     * т.д. — см. «Состав ответа» в документации).
      */
     @JsonProperty
-    Usage usage;
+    CompletionStreamUsageV2 usage;
 
     /**
      * Дополнительные данные ответа: {@code execution_steps} и вложенная структура по документации релиза / proto
