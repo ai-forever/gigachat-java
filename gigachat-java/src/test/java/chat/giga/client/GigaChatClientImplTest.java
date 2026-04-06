@@ -71,7 +71,7 @@ class GigaChatClientImplTest {
     @Test
     void deriveApiV2Url() {
         assertThat(BaseGigaChatClient.deriveApiV2Url("https://example.com/api/v1")).isEqualTo(
-                "https://example.com/api/v2");
+                "https://example.com/v2");
         assertThat(BaseGigaChatClient.deriveApiV2Url(null)).isEqualTo(BaseGigaChatClient.DEFAULT_API_V2_URL);
     }
 

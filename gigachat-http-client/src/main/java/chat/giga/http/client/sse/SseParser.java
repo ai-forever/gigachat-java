@@ -22,8 +22,8 @@ public class SseParser {
                             return;
                         }
 
-                        var data = l.split(": ");
-                        if ("data".equals(data[0])) {
+                        var data = l.split(": ", 2);
+                        if (data.length == 2 && "data".equals(data[0])) {
                             if ("[DONE]".equals(data[1])) {
                                 done.set(true);
                                 listener.onComplete();
