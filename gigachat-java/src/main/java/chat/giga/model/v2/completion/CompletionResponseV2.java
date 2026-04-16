@@ -1,9 +1,11 @@
 package chat.giga.model.v2.completion;
 
+import chat.giga.model.jackson.FlexibleLongDeserializer;
 import chat.giga.model.v2.completion.stream.CompletionStreamUsageV2;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
@@ -43,6 +45,7 @@ public class CompletionResponseV2 implements Serializable {
      * Дата/время создания ответа (unix time).
      */
     @JsonProperty("created_at")
+    @JsonDeserialize(using = FlexibleLongDeserializer.class)
     Long createdAt;
 
     /**
@@ -84,4 +87,10 @@ public class CompletionResponseV2 implements Serializable {
      */
     @JsonProperty
     String id;
+
+    /**
+     * Состояние, фиксирующее работу с тулами ({@code tools_state_id} / алиас {@code tool_state_id}).
+     */
+    @JsonProperty("tools_state_id")
+    String toolsStateId;
 }

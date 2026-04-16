@@ -1,6 +1,7 @@
 package chat.giga.model.v2.completion.stream;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Value;
@@ -17,6 +18,7 @@ import java.io.Serializable;
 @Builder
 @Jacksonized
 @Accessors(fluent = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CompletionStreamUsageV2 implements Serializable {
 
@@ -63,4 +65,16 @@ public class CompletionStreamUsageV2 implements Serializable {
      */
     @JsonProperty("input_tokens_details")
     InputTokensDetailsStreamV2 inputTokensDetails;
+
+    /**
+     * Системные токены.
+     */
+    @JsonProperty("system_tokens")
+    Integer systemTokens;
+
+    /**
+     * Токены, затраченные функцией-саджестором.
+     */
+    @JsonProperty("function_suggester_tokens")
+    Integer functionSuggesterTokens;
 }

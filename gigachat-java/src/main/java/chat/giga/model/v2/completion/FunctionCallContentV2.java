@@ -1,13 +1,14 @@
 package chat.giga.model.v2.completion;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Builder;
+import lombok.Singular;
 import lombok.Value;
 import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * Объект {@code function_call} в части контента: имя функции и аргументы.
@@ -30,5 +31,6 @@ public class FunctionCallContentV2 implements Serializable {
      * Аргументы функции: объект «ключ — значение» по спецификации вызова.
      */
     @JsonProperty
-    JsonNode arguments;
+    @Singular
+    Map<String, Object> arguments;
 }

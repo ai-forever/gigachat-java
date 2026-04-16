@@ -66,6 +66,12 @@ public class ToolV2 implements Serializable {
     @JsonProperty("code_interpreter")
     Map<String, Object> codeInterpreter;
 
+    /**
+     * Встроенный тул генерации 3D-моделей.
+     */
+    @JsonProperty("model_3d_generate")
+    Map<String, Object> model3dGenerate;
+
     public static ToolV2 ofFunctions(FunctionsToolPayloadV2 functions) {
         return ToolV2.builder().functions(functions).build();
     }

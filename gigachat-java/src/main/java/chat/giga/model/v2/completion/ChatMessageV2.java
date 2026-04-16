@@ -2,6 +2,7 @@ package chat.giga.model.v2.completion;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Singular;
@@ -19,6 +20,7 @@ import java.util.List;
 @Builder
 @Jacksonized
 @Accessors(fluent = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ChatMessageV2 implements Serializable {
 

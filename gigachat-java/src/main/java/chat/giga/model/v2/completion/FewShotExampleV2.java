@@ -1,13 +1,14 @@
 package chat.giga.model.v2.completion;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Builder;
+import lombok.Singular;
 import lombok.Value;
 import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * Один элемент {@code few_shot_examples}: обучающий пример для функции.
@@ -30,5 +31,6 @@ public class FewShotExampleV2 implements Serializable {
      * Ожидаемые параметры вызова в формате {@code "key": "value"}.
      */
     @JsonProperty
-    JsonNode params;
+    @Singular
+    Map<String, Object> params;
 }

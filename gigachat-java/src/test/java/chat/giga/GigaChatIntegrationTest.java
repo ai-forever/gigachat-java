@@ -162,7 +162,7 @@ class GigaChatIntegrationTest {
                 .contentPart(MessageContentPartV2.builder()
                         .functionCall(FunctionCallContentV2.builder()
                                 .name("weather_forecast")
-                                .arguments(objectMapper.readTree("{\"location\":\"Moscow\"}"))
+                                .argument("location", "Moscow")
                                 .build())
                         .build())
                 .build();

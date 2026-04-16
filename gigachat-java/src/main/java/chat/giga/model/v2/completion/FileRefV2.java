@@ -1,5 +1,6 @@
 package chat.giga.model.v2.completion;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Value;
@@ -16,6 +17,7 @@ import java.io.Serializable;
 @Builder
 @Jacksonized
 @Accessors(fluent = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class FileRefV2 implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -25,4 +27,16 @@ public class FileRefV2 implements Serializable {
      */
     @JsonProperty
     String id;
+
+    /**
+     * Назначение файла: {@code image}, {@code audio}, {@code cover}, {@code video}, {@code 3dmodel}.
+     */
+    @JsonProperty
+    String target;
+
+    /**
+     * MIME-тип файла.
+     */
+    @JsonProperty
+    String mime;
 }
