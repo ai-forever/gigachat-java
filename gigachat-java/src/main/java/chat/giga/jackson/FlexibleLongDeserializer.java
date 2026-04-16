@@ -1,4 +1,4 @@
-package chat.giga.model.jackson;
+package chat.giga.jackson;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;

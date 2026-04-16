@@ -1,6 +1,6 @@
 package chat.giga.model.v2.completion;
 
-import chat.giga.model.jackson.FlexibleLongDeserializer;
+import chat.giga.jackson.FlexibleLongDeserializer;
 import chat.giga.model.v2.completion.stream.CompletionStreamUsageV2;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
