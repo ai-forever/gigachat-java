@@ -1,8 +1,7 @@
 package chat.giga.model.v2.completion.stream;
 
 /**
- * Имена SSE-событий потокового ответа API v2 (вместо {@code data: [DONE]} в v1). См. раздел SSE в документации релиза
- * WMapi.
+ * Имена SSE-событий потокового ответа API v2 (вместо {@code data: [DONE]} в v1).
  */
 public final class CompletionV2SseEvents {
 

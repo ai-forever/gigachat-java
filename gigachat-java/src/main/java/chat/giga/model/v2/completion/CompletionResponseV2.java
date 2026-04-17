@@ -16,8 +16,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * Тело ответа {@code v2/chat/completions} (несинхронный JSON). Состав полей — таблица «Состав ответа» в документации
- * релиза WMapi.
+ * Тело ответа {@code v2/chat/completions} (несинхронный JSON).
  */
 @Value
 @Builder
