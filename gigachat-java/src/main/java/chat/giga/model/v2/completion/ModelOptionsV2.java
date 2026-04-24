@@ -4,6 +4,7 @@ import chat.giga.model.completion.ResponseFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Value;
 import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
@@ -62,7 +63,8 @@ public class ModelOptionsV2 implements Serializable {
      * отправлять по мере генерации.
      */
     @JsonProperty("update_interval")
-    Float updateInterval;
+    @Default
+    Integer updateInterval = 0;
 
     /**
      * Отключение нормализации истории (замена ролей и слияние подряд идущих сообщений user/assistant по правилам API).

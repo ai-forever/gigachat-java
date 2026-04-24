@@ -20,8 +20,7 @@ public class ReasoningV2 implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Степень «усилия» reasoning: {@code low}, {@code medium} или {@code high} (на момент документации доступен в
-     * основном {@code medium}).
+     * Степень «усилия» reasoning: {@code low}, {@code medium} или {@code high} или {@code off}.
      */
     @JsonProperty
     String effort;
