@@ -112,7 +112,7 @@ abstract class BaseGigaChatClient {
     }
 
     /**
-     * База URL для API v2. Если {@code apiUrl} оканчивается на {@code /api/v1}, заменяется на {@code /api/v2}; иначе
+     * База URL для API v2. Если {@code apiUrl} оканчивается на {@code /api/v1} или {@code /v1}, заменяется на {@code /v2}; иначе
      * используется {@link #DEFAULT_API_V2_URL}.
      */
     public static String deriveApiV2Url(String apiUrl) {
@@ -120,8 +120,11 @@ abstract class BaseGigaChatClient {
             return DEFAULT_API_V2_URL;
         }
         String suffix = "/api/v1";
+        String suffixShort = "/v1";
         if (apiUrl.endsWith(suffix)) {
             return apiUrl.substring(0, apiUrl.length() - suffix.length()) + "/v2";
+        } else if (apiUrl.endsWith(suffixShort)) {
+            return apiUrl.substring(0, apiUrl.length() - suffixShort.length()) + "/v2";
         }
         return DEFAULT_API_V2_URL;
     }

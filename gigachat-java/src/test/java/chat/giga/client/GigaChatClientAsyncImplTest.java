@@ -241,7 +241,7 @@ class GigaChatClientAsyncImplTest {
     @Test
     void completionsV2Stream() throws Exception {
         var delta = CompletionMessageDeltaEventV2.builder()
-                .delta(ChatMessageV2.textMessage(ChatMessageRoleV2.ASSISTANT, "x"))
+                .message(ChatMessageV2.textMessage(ChatMessageRoleV2.ASSISTANT, "x"))
                 .build();
         var done = CompletionMessageDoneEventV2.builder()
                 .finishReason("stop")
