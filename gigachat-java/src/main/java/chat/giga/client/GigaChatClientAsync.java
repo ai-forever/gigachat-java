@@ -60,6 +60,8 @@ public interface GigaChatClientAsync {
 
     /**
      * Получить ответ модели по API v2 ({@code POST /v2/chat/completions}).
+     * @param request   тело запроса в формате v2
+     * @return ответ модели, сгенерированный на основе переданных сообщений.
      */
     default CompletableFuture<CompletionResponseV2> completionsV2(CompletionRequestV2 request) {
         return completionsV2(request, null);
@@ -67,6 +69,10 @@ public interface GigaChatClientAsync {
 
     /**
      * Получить ответ модели по API v2 ({@code POST /v2/chat/completions}).
+     *
+     * @param request   тело запроса в формате v2
+     * @param sessionId идентификатор сессии (заголовок {@code X-Session-ID}), может быть {@code null}
+     * @return ответ модели, сгенерированный на основе переданных сообщений.
      */
     CompletableFuture<CompletionResponseV2> completionsV2(CompletionRequestV2 request, String sessionId);
 
@@ -81,6 +87,8 @@ public interface GigaChatClientAsync {
     /**
      * Потоковый ответ по API v2 (SSE). Завершение — событие {@link CompletionV2SseEvents#RESPONSE_MESSAGE_DONE}, не
      * {@code [DONE]}.
+     * @param request   тело запроса в формате v2
+     * @param handler обработчик сообщений, сгенерированный на основе переданных сообщений.
      */
     default void completionsV2Stream(CompletionRequestV2 request, CompletionV2StreamHandler handler) {
         completionsV2Stream(request, null, handler);
@@ -88,6 +96,10 @@ public interface GigaChatClientAsync {
 
     /**
      * Потоковый ответ по API v2 (SSE).
+     *
+     * @param request   тело запроса в формате v2
+     * @param sessionId идентификатор сессии (заголовок {@code X-Session-ID}), может быть {@code null}
+     * @param handler обработчик сообщений, сгенерированный на основе переданных сообщений.
      */
     void completionsV2Stream(CompletionRequestV2 request, String sessionId, CompletionV2StreamHandler handler);
 
