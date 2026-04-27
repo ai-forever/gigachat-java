@@ -132,6 +132,9 @@ public class CompletionRequest implements Serializable {
     @JsonProperty("response_format")
     ResponseFormat responseFormat;
 
+    @JsonProperty("reasoning_effort")
+    String reasoningEffort;
+
     public static CompletionRequestBuilder builder() {
         return new CompletionRequestBuilder();
     }

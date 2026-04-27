@@ -19,6 +19,8 @@ import chat.giga.model.file.FileResponse;
 import chat.giga.model.file.UploadFileRequest;
 import chat.giga.model.filter.FilterCheckRequest;
 import chat.giga.model.filter.FilterCheckResponse;
+import chat.giga.model.v2.completion.CompletionRequestV2;
+import chat.giga.model.v2.completion.CompletionResponseV2;
 
 import java.util.List;
 
@@ -52,6 +54,25 @@ public interface GigaChatClient {
      * @return ответ модели, сгенерированный на основе переданных сообщений.
      */
     CompletionResponse completions(CompletionRequest request, String sessionId);
+
+    /**
+     * Получить ответ модели по API v2 ({@code POST /v2/chat/completions}).
+     *
+     * @param request   тело запроса в формате v2
+     * @return ответ модели, сгенерированный на основе переданных сообщений.
+     */
+    default CompletionResponseV2 completionsV2(CompletionRequestV2 request) {
+        return completionsV2(request, null);
+    }
+
+    /**
+     * Получить ответ модели по API v2 ({@code POST /v2/chat/completions}).
+     *
+     * @param request   тело запроса в формате v2
+     * @param sessionId идентификатор сессии (заголовок {@code X-Session-ID}), может быть {@code null}
+     * @return ответ модели, сгенерированный на основе переданных сообщений.
+     */
+    CompletionResponseV2 completionsV2(CompletionRequestV2 request, String sessionId);
 
     /**
      * Создать эмбеддинг

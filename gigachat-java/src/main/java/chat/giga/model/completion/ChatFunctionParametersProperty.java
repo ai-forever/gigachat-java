@@ -55,4 +55,17 @@ public class ChatFunctionParametersProperty implements Serializable {
     @JsonProperty
     @Singular
     Map<String, ChatFunctionParametersProperty> properties;
+
+    /**
+     * Список альтернативных схем (anyOf).
+     */
+    @JsonProperty("anyOf")
+    @Singular("anyOf")
+    List<ChatFunctionParametersProperty> anyOf;
+
+    /**
+     * Ссылка на определение схемы ($ref).
+     */
+    @JsonProperty("$ref")
+    String reference;
 }

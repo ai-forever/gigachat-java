@@ -18,7 +18,7 @@ dependencies {
     api(project(":gigachat-http-client-jdk"))
     implementation("com.fasterxml.jackson.core:jackson-databind:2.20.2")
 
-    testImplementation(platform("org.junit:junit-bom:5.10.4"))
+    testImplementation(platform("org.junit:junit-bom:5.10.5"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.assertj:assertj-core:3.27.7")
     testImplementation("org.mockito:mockito-junit-jupiter:5.15.2")

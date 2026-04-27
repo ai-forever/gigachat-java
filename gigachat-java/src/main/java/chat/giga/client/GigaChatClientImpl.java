@@ -19,6 +19,8 @@ import chat.giga.model.file.FileResponse;
 import chat.giga.model.file.UploadFileRequest;
 import chat.giga.model.filter.FilterCheckRequest;
 import chat.giga.model.filter.FilterCheckResponse;
+import chat.giga.model.v2.completion.CompletionRequestV2;
+import chat.giga.model.v2.completion.CompletionResponseV2;
 import chat.giga.util.RetryUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Builder;
@@ -35,11 +37,13 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
             Integer readTimeout,
             Integer connectTimeout,
             String apiUrl,
+            String apiV2Url,
             boolean logRequests,
             boolean logResponses,
             Boolean verifySslCerts,
             Integer maxRetriesOnAuthError) {
-        super(apiHttpClient, authClient, readTimeout, connectTimeout, apiUrl, logRequests, logResponses, verifySslCerts, maxRetriesOnAuthError);
+        super(apiHttpClient, authClient, readTimeout, connectTimeout, apiUrl, apiV2Url, logRequests, logResponses,
+                verifySslCerts, maxRetriesOnAuthError);
     }
 
     @Override
@@ -61,6 +65,19 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
                     maxRetriesOnAuthError);
 
             return objectMapper.readValue(httpResponse.body(), CompletionResponse.class);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    @Override
+    public CompletionResponseV2 completionsV2(CompletionRequestV2 request, String sessionId) {
+        try {
+            var httpResponse = RetryUtils.retry401(
+                    () -> httpClient.execute(createCompletionV2HttpRequest(request, sessionId)),
+                    maxRetriesOnAuthError);
+
+            return objectMapper.readValue(httpResponse.body(), CompletionResponseV2.class);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

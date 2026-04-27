@@ -59,4 +59,71 @@ class SseParserTest {
         verify(sseListener).onError(any(UncheckedIOException.class));
         verify(sseListener, never()).onComplete();
     }
+
+    @Test
+    void parseWithEmptyLines() {
+        sseParser.parse(new ByteArrayInputStream("""
+                data: testData1
+                
+                
+                data: [DONE]
+                """.getBytes()));
+
+        var captor = ArgumentCaptor.forClass(String.class);
+        verify(sseListener, times(1)).onData(captor.capture());
+        verify(sseListener).onComplete();
+
+        assertThat(captor.getAllValues()).contains("testData1");
+    }
+
+    @Test
+    void parseWithEmptyValue() {
+        sseParser.parse(new ByteArrayInputStream("data: \ndata: [DONE]\n".getBytes()));
+
+        var captor = ArgumentCaptor.forClass(String.class);
+        verify(sseListener, times(1)).onData(captor.capture());
+        verify(sseListener).onComplete();
+
+        assertThat(captor.getAllValues()).contains("");
+    }
+
+    @Test
+    void parseWithColonInData() {
+        sseParser.parse(new ByteArrayInputStream("""
+                data: {"key": "value"}
+                data: [DONE]
+                """.getBytes()));
+
+        var captor = ArgumentCaptor.forClass(String.class);
+        verify(sseListener, times(1)).onData(captor.capture());
+        verify(sseListener).onComplete();
+
+        assertThat(captor.getAllValues()).contains("{\"key\": \"value\"}");
+    }
+
+    @Test
+    void parseWithLineWithoutColon() {
+        sseParser.parse(new ByteArrayInputStream("""
+                some line without colon
+                data: testData1
+                data: [DONE]
+                """.getBytes()));
+
+        var captor = ArgumentCaptor.forClass(String.class);
+        verify(sseListener, times(1)).onData(captor.capture());
+        verify(sseListener).onComplete();
+
+        assertThat(captor.getAllValues()).contains("testData1");
+    }
+
+    @Test
+    void parseWithLineWithoutColonSpace() {
+        sseParser.parse(new ByteArrayInputStream("data:\ndata: testData1\ndata: [DONE]\n".getBytes()));
+
+        var captor = ArgumentCaptor.forClass(String.class);
+        verify(sseListener, times(1)).onData(captor.capture());
+        verify(sseListener).onComplete();
+
+        assertThat(captor.getAllValues()).contains("testData1");
+    }
 }

@@ -1,0 +1,80 @@
+package chat.giga.model.v2.completion.stream;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Value;
+import lombok.experimental.Accessors;
+import lombok.extern.jackson.Jacksonized;
+
+import java.io.Serializable;
+
+/**
+ * Поле {@code usage} в SSE {@code response.message.done} (в т.ч. вариант с {@code input_tokens} /
+ * {@code input_tokens_details} из доки).
+ */
+@Value
+@Builder
+@Jacksonized
+@Accessors(fluent = true)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class CompletionStreamUsageV2 implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    /**
+     * Токены входного запроса.
+     */
+    @JsonProperty("input_tokens")
+    Integer inputTokens;
+
+    /**
+     * Токены сгенерированного ответа.
+     */
+    @JsonProperty("output_tokens")
+    Integer outputTokens;
+
+    /**
+     * Суммарное число израсходованных токенов.
+     */
+    @JsonProperty("total_tokens")
+    Integer totalTokens;
+
+    /**
+     * Альтернативное имя для входных токенов (совместимость с разными формами payload).
+     */
+    @JsonProperty("prompt_tokens")
+    Integer promptTokens;
+
+    /**
+     * Альтернативное имя для выходных токенов.
+     */
+    @JsonProperty("completion_tokens")
+    Integer completionTokens;
+
+    /**
+     * Предкешированные токены промпта (если присутствуют в ответе).
+     */
+    @JsonProperty("precached_prompt_tokens")
+    Integer precachedPromptTokens;
+
+    /**
+     * Детализация входных токенов (в т.ч. кешированные).
+     */
+    @JsonProperty("input_tokens_details")
+    InputTokensDetailsStreamV2 inputTokensDetails;
+
+    /**
+     * Системные токены.
+     */
+    @JsonProperty("system_tokens")
+    Integer systemTokens;
+
+    /**
+     * Токены, затраченные функцией-саджестором.
+     */
+    @JsonProperty("function_suggester_tokens")
+    Integer functionSuggesterTokens;
+}

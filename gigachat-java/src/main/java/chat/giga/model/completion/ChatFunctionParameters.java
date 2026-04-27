@@ -42,4 +42,11 @@ public class ChatFunctionParameters implements Serializable {
     @JsonProperty
     List<String> required;
 
+    /**
+     * Определения схем ($defs) для разрешения ссылок $ref.
+     */
+    @JsonProperty("$defs")
+    @Singular("definition")
+    Map<String, ChatFunctionParametersProperty> definitions;
+
 }

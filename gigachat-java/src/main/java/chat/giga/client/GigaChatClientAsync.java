@@ -20,6 +20,9 @@ import chat.giga.model.file.FileResponse;
 import chat.giga.model.file.UploadFileRequest;
 import chat.giga.model.filter.FilterCheckRequest;
 import chat.giga.model.filter.FilterCheckResponse;
+import chat.giga.model.v2.completion.CompletionRequestV2;
+import chat.giga.model.v2.completion.CompletionResponseV2;
+import chat.giga.model.v2.completion.stream.CompletionV2SseEvents;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
@@ -56,12 +59,49 @@ public interface GigaChatClientAsync {
     CompletableFuture<CompletionResponse> completions(CompletionRequest request, String sessionId);
 
     /**
+     * Получить ответ модели по API v2 ({@code POST /v2/chat/completions}).
+     * @param request   тело запроса в формате v2
+     * @return ответ модели, сгенерированный на основе переданных сообщений.
+     */
+    default CompletableFuture<CompletionResponseV2> completionsV2(CompletionRequestV2 request) {
+        return completionsV2(request, null);
+    }
+
+    /**
+     * Получить ответ модели по API v2 ({@code POST /v2/chat/completions}).
+     *
+     * @param request   тело запроса в формате v2
+     * @param sessionId идентификатор сессии (заголовок {@code X-Session-ID}), может быть {@code null}
+     * @return ответ модели, сгенерированный на основе переданных сообщений.
+     */
+    CompletableFuture<CompletionResponseV2> completionsV2(CompletionRequestV2 request, String sessionId);
+
+    /**
      * Получить ответ модели в виде потока сообщений
      *
      * @param request описание запроса на получение ответа от модели
      * @param handler обработчик сообщений, сгенерированный на основе переданных сообщений.
      */
     void completions(CompletionRequest request, ResponseHandler<CompletionChunkResponse> handler);
+
+    /**
+     * Потоковый ответ по API v2 (SSE). Завершение — событие {@link CompletionV2SseEvents#RESPONSE_MESSAGE_DONE}, не
+     * {@code [DONE]}.
+     * @param request   тело запроса в формате v2
+     * @param handler обработчик сообщений, сгенерированный на основе переданных сообщений.
+     */
+    default void completionsV2Stream(CompletionRequestV2 request, CompletionV2StreamHandler handler) {
+        completionsV2Stream(request, null, handler);
+    }
+
+    /**
+     * Потоковый ответ по API v2 (SSE).
+     *
+     * @param request   тело запроса в формате v2
+     * @param sessionId идентификатор сессии (заголовок {@code X-Session-ID}), может быть {@code null}
+     * @param handler обработчик сообщений, сгенерированный на основе переданных сообщений.
+     */
+    void completionsV2Stream(CompletionRequestV2 request, String sessionId, CompletionV2StreamHandler handler);
 
     /**
      * Создать эмбеддинг
