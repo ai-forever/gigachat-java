@@ -11,7 +11,7 @@ import java.io.Serializable;
 
 /**
  * Элемент {@code files[]}: идентификатор предзагруженного файла. В ответе API к тому же объекту могут добавляться поля
- * вроде {@code target} и {@code mime} (см. таблицу «Состав ответа» в документации).
+ * вроде {@code target} и {@code mime}
  */
 @Value
 @Builder
