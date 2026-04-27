@@ -5,7 +5,7 @@ import chat.giga.model.v2.completion.stream.CompletionMessageDoneEventV2;
 import chat.giga.model.v2.completion.stream.CompletionToolLifecycleEventV2;
 
 /**
- * Обработчик потока {@code POST /v2/chat/completions} с верхнеуровневым {@code stream: true}.
+ * Обработчик потока {@code POST /v2/chat/completions}.
  */
 public interface CompletionV2StreamHandler {
 
