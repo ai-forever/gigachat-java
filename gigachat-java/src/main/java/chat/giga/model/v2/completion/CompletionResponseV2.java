@@ -2,6 +2,7 @@ package chat.giga.model.v2.completion;
 
 import chat.giga.jackson.FlexibleLongDeserializer;
 import chat.giga.model.v2.completion.stream.CompletionStreamUsageV2;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -91,5 +92,6 @@ public class CompletionResponseV2 implements Serializable {
      * Состояние, фиксирующее работу с тулами ({@code tools_state_id} / алиас {@code tool_state_id}).
      */
     @JsonProperty("tools_state_id")
+    @JsonAlias("tool_state_id")
     String toolsStateId;
 }
