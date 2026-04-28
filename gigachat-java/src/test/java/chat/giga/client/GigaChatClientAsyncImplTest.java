@@ -8,6 +8,7 @@ import chat.giga.http.client.HttpMethod;
 import chat.giga.http.client.HttpRequest;
 import chat.giga.http.client.HttpResponse;
 import chat.giga.http.client.MediaType;
+import chat.giga.http.client.sse.SseEventListener;
 import chat.giga.http.client.sse.SseListener;
 import chat.giga.model.TokenCountRequest;
 import chat.giga.model.completion.ChatFunctionCallEnum;
@@ -15,6 +16,18 @@ import chat.giga.model.completion.CompletionChunkResponse;
 import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.filter.FilterCheckRequest;
+import chat.giga.model.v2.completion.ChatMessageRoleV2;
+import chat.giga.model.v2.completion.ChatMessageV2;
+import chat.giga.model.v2.completion.CompletionRequestV2;
+import chat.giga.model.v2.completion.CompletionResponseV2;
+import chat.giga.model.v2.completion.MessageContentPartV2;
+import chat.giga.model.v2.completion.ToolConfigV2;
+import chat.giga.model.v2.completion.ToolExecutionContentV2;
+import chat.giga.model.v2.completion.ToolV2;
+import chat.giga.model.v2.completion.stream.CompletionMessageDeltaEventV2;
+import chat.giga.model.v2.completion.stream.CompletionMessageDoneEventV2;
+import chat.giga.model.v2.completion.stream.CompletionToolLifecycleEventV2;
+import chat.giga.model.v2.completion.stream.CompletionV2SseEvents;
 import chat.giga.util.JsonUtils;
 import chat.giga.util.TestData;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,6 +61,8 @@ class GigaChatClientAsyncImplTest {
     AuthClient authClient;
     @Mock
     ResponseHandler<CompletionChunkResponse> completionChunkResponseHandler;
+    @Mock
+    CompletionV2StreamHandler completionV2StreamHandler;
 
     GigaChatClientAsync gigaChatClientAsync;
 
@@ -121,6 +136,36 @@ class GigaChatClientAsyncImplTest {
     }
 
     @Test
+    void completionsV2() throws Exception {
+        var body = CompletionResponseV2.builder()
+                .model("m")
+                .createdAt(1L)
+                .build();
+        when(httpClient.executeAsync(any()))
+                .thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
+                        .body(objectMapper.writeValueAsBytes(body))
+                        .build()));
+
+        var request = CompletionRequestV2.builder()
+                .model("GigaChat")
+                .message(ChatMessageV2.textMessage(ChatMessageRoleV2.USER, "hi"))
+                .tool(ToolV2.memory())
+                .toolConfig(ToolConfigV2.autoMode())
+                .build();
+        var response = gigaChatClientAsync.completionsV2(request).get();
+
+        assertThat(response).isEqualTo(body);
+
+        var captor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient).executeAsync(captor.capture());
+
+        assertThat(captor.getValue()).satisfies(r -> {
+            assertThat(r.url()).isEqualTo(BaseGigaChatClient.DEFAULT_API_V2_URL + "/chat/completions");
+            assertThat(r.method()).isEqualTo(HttpMethod.POST);
+        });
+    }
+
+    @Test
     void completionsProfanityCheck() throws Exception {
         var body = TestData.completionResponse();
         when(httpClient.executeAsync(any())).thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
@@ -163,7 +208,7 @@ class GigaChatClientAsyncImplTest {
             listener.onComplete();
 
             return null;
-        }).when(httpClient).execute(any(), any());
+        }).when(httpClient).execute(any(), any(SseListener.class));
 
         var request = TestData.completionRequest();
         gigaChatClientAsync.completions(request, completionChunkResponseHandler);
@@ -171,7 +216,7 @@ class GigaChatClientAsyncImplTest {
         verify(authClient, timeout(100).times(2)).authenticate(any());
 
         var requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
-        verify(httpClient, timeout(100).times(2)).execute(requestCaptor.capture(), any());
+        verify(httpClient, timeout(100).times(2)).execute(requestCaptor.capture(), any(SseListener.class));
 
         assertThat(requestCaptor.getValue()).satisfies(r -> {
             assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/chat/completions");
@@ -194,6 +239,124 @@ class GigaChatClientAsyncImplTest {
     }
 
     @Test
+    void completionsV2Stream() throws Exception {
+        var delta = CompletionMessageDeltaEventV2.builder()
+                .message(ChatMessageV2.textMessage(ChatMessageRoleV2.ASSISTANT, "x"))
+                .build();
+        var done = CompletionMessageDoneEventV2.builder()
+                .finishReason("stop")
+                .toolsStateId("ts1")
+                .build();
+        doAnswer(i -> {
+            var listener = i.getArgument(1, SseEventListener.class);
+            listener.onError(new HttpClientException(401, null));
+            return null;
+        }).doAnswer(i -> {
+            var listener = i.getArgument(1, SseEventListener.class);
+            listener.onEvent(CompletionV2SseEvents.RESPONSE_MESSAGE_DELTA, objectMapper.writeValueAsString(delta));
+            listener.onEvent(CompletionV2SseEvents.RESPONSE_MESSAGE_DONE, objectMapper.writeValueAsString(done));
+            listener.onClosed();
+            return null;
+        }).when(httpClient).execute(any(), any(SseEventListener.class));
+
+        var request = CompletionRequestV2.builder()
+                .model("GigaChat")
+                .message(ChatMessageV2.textMessage(ChatMessageRoleV2.USER, "hi"))
+                .build();
+        gigaChatClientAsync.completionsV2Stream(request, completionV2StreamHandler);
+
+        verify(authClient, timeout(100).times(2)).authenticate(any());
+
+        var requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient, timeout(100).times(2)).execute(requestCaptor.capture(), any(SseEventListener.class));
+
+        assertThat(requestCaptor.getValue()).satisfies(r -> {
+            assertThat(r.url()).isEqualTo(BaseGigaChatClient.DEFAULT_API_V2_URL + "/chat/completions");
+            assertThat(r.method()).isEqualTo(HttpMethod.POST);
+            assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.TEXT_EVENT_STREAM));
+            assertThat(objectMapper.readTree(r.body()).path("stream").asBoolean()).isTrue();
+            assertThat(objectMapper.readTree(r.body()).path("model_options").path("stream").isMissingNode()).isTrue();
+        });
+
+        verify(completionV2StreamHandler, timeout(1000)).onComplete();
+        verify(completionV2StreamHandler).onMessageDelta(delta);
+        verify(completionV2StreamHandler).onMessageDone(done);
+        verify(completionV2StreamHandler, after(200).never()).onError(any());
+    }
+
+    @Test
+    void completionsV2Stream_toolLifecycleEvents() throws Exception {
+        var toolProgress = CompletionToolLifecycleEventV2.builder()
+                .message(ChatMessageV2.builder()
+                        .role(ChatMessageRoleV2.REASONING)
+                        .contentPart(MessageContentPartV2.builder()
+                                .toolExecution(ToolExecutionContentV2.builder()
+                                        .name("code_interpreter")
+                                        .build())
+                                .build())
+                        .build())
+                .build();
+        var toolDone = CompletionToolLifecycleEventV2.builder()
+                .message(ChatMessageV2.builder()
+                        .role(ChatMessageRoleV2.REASONING)
+                        .contentPart(MessageContentPartV2.builder()
+                                .toolExecution(ToolExecutionContentV2.builder()
+                                        .name("code_interpreter")
+                                        .status("success")
+                                        .build())
+                                .build())
+                        .build())
+                .build();
+        var done = CompletionMessageDoneEventV2.builder()
+                .finishReason("stop")
+                .build();
+
+        doAnswer(i -> {
+            var listener = i.getArgument(1, SseEventListener.class);
+            listener.onEvent(CompletionV2SseEvents.RESPONSE_TOOL_IN_PROGRESS,
+                    objectMapper.writeValueAsString(toolProgress));
+            listener.onEvent(CompletionV2SseEvents.RESPONSE_TOOL_COMPLETED, objectMapper.writeValueAsString(toolDone));
+            listener.onEvent(CompletionV2SseEvents.RESPONSE_MESSAGE_DONE, objectMapper.writeValueAsString(done));
+            listener.onClosed();
+            return null;
+        }).when(httpClient).execute(any(), any(SseEventListener.class));
+
+        gigaChatClientAsync.completionsV2Stream(
+                CompletionRequestV2.builder()
+                        .model("GigaChat")
+                        .message(ChatMessageV2.textMessage(ChatMessageRoleV2.USER, "hi"))
+                        .build(),
+                completionV2StreamHandler);
+
+        verify(completionV2StreamHandler, timeout(100)).onToolInProgress(toolProgress);
+        verify(completionV2StreamHandler, timeout(100)).onToolCompleted(toolDone);
+        verify(completionV2StreamHandler, timeout(100)).onMessageDone(done);
+        verify(completionV2StreamHandler, timeout(100)).onComplete();
+    }
+
+    @Test
+    void completionsV2Stream_transportErrorThenClosed_callsOnErrorOnlyOnce() {
+        doAnswer(i -> {
+            var listener = i.getArgument(1, SseEventListener.class);
+            listener.onError(new RuntimeException("boom"));
+            listener.onClosed();
+            return null;
+        }).when(httpClient).execute(any(), any(SseEventListener.class));
+
+        gigaChatClientAsync.completionsV2Stream(
+                CompletionRequestV2.builder()
+                        .model("GigaChat")
+                        .message(ChatMessageV2.textMessage(ChatMessageRoleV2.USER, "hi"))
+                        .build(),
+                completionV2StreamHandler);
+
+        var errorCaptor = ArgumentCaptor.forClass(Throwable.class);
+        verify(completionV2StreamHandler, timeout(100).times(1)).onError(errorCaptor.capture());
+        verify(completionV2StreamHandler, after(100).never()).onComplete();
+        assertThat(errorCaptor.getValue()).isInstanceOf(RuntimeException.class);
+    }
+
+    @Test
     void completionStreamFailedWhenRetryExhausted() {
         doAnswer(i -> {
             var listener = i.getArgument(1, SseListener.class);
@@ -205,13 +368,13 @@ class GigaChatClientAsyncImplTest {
             listener.onError(new HttpClientException(401, null));
 
             return null;
-        }).when(httpClient).execute(any(), any());
+        }).when(httpClient).execute(any(), any(SseListener.class));
 
         var request = TestData.completionRequest();
         gigaChatClientAsync.completions(request, completionChunkResponseHandler);
 
         verify(authClient, timeout(100).times(2)).authenticate(any());
-        verify(httpClient, timeout(100).times(2)).execute(any(), any());
+        verify(httpClient, timeout(100).times(2)).execute(any(), any(SseListener.class));
 
         verify(completionChunkResponseHandler, timeout(100)).onError(any(IllegalStateException.class));
     }
@@ -223,7 +386,7 @@ class GigaChatClientAsyncImplTest {
             listener.onError(new RuntimeException());
 
             return null;
-        }).when(httpClient).execute(any(), any());
+        }).when(httpClient).execute(any(), any(SseListener.class));
 
         gigaChatClientAsync.completions(CompletionRequest.builder().build(),
                 completionChunkResponseHandler);

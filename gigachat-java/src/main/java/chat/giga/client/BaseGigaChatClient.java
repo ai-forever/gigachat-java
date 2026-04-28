@@ -16,6 +16,7 @@ import chat.giga.model.completion.CompletionRequest;
 import chat.giga.model.embedding.EmbeddingRequest;
 import chat.giga.model.file.UploadFileRequest;
 import chat.giga.model.filter.FilterCheckRequest;
+import chat.giga.model.v2.completion.CompletionRequestV2;
 import chat.giga.util.FileUtils;
 import chat.giga.util.JsonUtils;
 import chat.giga.util.Utils;
@@ -30,6 +31,7 @@ import static java.time.Duration.ofSeconds;
 abstract class BaseGigaChatClient {
 
     public static final String DEFAULT_API_URL = "https://gigachat.devices.sberbank.ru/api/v1";
+    public static final String DEFAULT_API_V2_URL = "https://gigachat.devices.sberbank.ru/v2";
     public static final String REQUEST_ID_HEADER = "X-Request-ID";
     public static final String CLIENT_ID_HEADER = "X-Client-ID";
     public static final String SESSION_ID_HEADER = "X-Session-ID";
@@ -40,6 +42,7 @@ abstract class BaseGigaChatClient {
     protected final AuthClient authClient;
     protected final HttpClient httpClient;
     protected final String apiUrl;
+    protected final String apiV2Url;
     protected final ObjectMapper objectMapper = JsonUtils.objectMapper();
 
     protected BaseGigaChatClient(HttpClient apiHttpClient,
@@ -47,12 +50,14 @@ abstract class BaseGigaChatClient {
             Integer readTimeout,
             Integer connectTimeout,
             String apiUrl,
+            String apiV2Url,
             boolean logRequests,
             boolean logResponses,
             Boolean verifySslCerts,
             Integer maxRetriesOnAuthError) {
         Objects.requireNonNull(authClient, "authClient must not be null");
         this.apiUrl = Utils.getOrDefault(apiUrl, DEFAULT_API_URL);
+        this.apiV2Url = apiV2Url != null ? apiV2Url : deriveApiV2Url(this.apiUrl);
         this.authClient = authClient;
         this.maxRetriesOnAuthError = Utils.getOrDefault(maxRetriesOnAuthError, MAX_RETRIES);
 
@@ -104,6 +109,74 @@ abstract class BaseGigaChatClient {
         authClient.authenticate(builder);
 
         return builder.build();
+    }
+
+    /**
+     * База URL для API v2. Если {@code apiUrl} оканчивается на {@code /api/v1} или {@code /v1}, заменяется на {@code /v2}; иначе
+     * используется {@link #DEFAULT_API_V2_URL}.
+     */
+    public static String deriveApiV2Url(String apiUrl) {
+        if (apiUrl == null || apiUrl.isEmpty()) {
+            return DEFAULT_API_V2_URL;
+        }
+        String suffix = "/api/v1";
+        String suffixShort = "/v1";
+        if (apiUrl.endsWith(suffix)) {
+            return apiUrl.substring(0, apiUrl.length() - suffix.length()) + "/v2";
+        } else if (apiUrl.endsWith(suffixShort)) {
+            return apiUrl.substring(0, apiUrl.length() - suffixShort.length()) + "/v2";
+        }
+        return DEFAULT_API_V2_URL;
+    }
+
+    protected HttpRequest createCompletionV2HttpRequest(CompletionRequestV2 request, String sessionId) {
+        CompletionRequestV2 forHttp = request;
+        if (Boolean.TRUE.equals(request.stream())) {
+            forHttp = request.toBuilder().stream(false).build();
+        }
+        HttpRequestBuilder builder;
+        try {
+            builder = HttpRequest.builder()
+                    .url(apiV2Url + "/chat/completions")
+                    .method(HttpMethod.POST)
+                    .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                    .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
+                    .headerIf(sessionId != null, SESSION_ID_HEADER, sessionId)
+                    .body(objectMapper.writeValueAsBytes(forHttp));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+        authClient.authenticate(builder);
+
+        return builder.build();
+    }
+
+    /**
+     * Подготовка запроса потоковых completions v2 (SSE). Не вызывает {@link AuthClient#authenticate}. В теле запроса
+     * всегда выставляется верхнеуровневое {@code stream: true} (по спецификации API v2).
+     */
+    protected HttpRequest.HttpRequestBuilder prepareCompletionV2StreamHttpRequest(CompletionRequestV2 request,
+            String sessionId) {
+        CompletionRequestV2 forHttp = request;
+        if (!Boolean.TRUE.equals(request.stream())) {
+            forHttp = request.toBuilder().stream(true).build();
+        }
+        try {
+            return HttpRequest.builder()
+                    .url(apiV2Url + "/chat/completions")
+                    .method(HttpMethod.POST)
+                    .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.ACCEPT, MediaType.TEXT_EVENT_STREAM)
+                    .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
+                    .headerIf(sessionId != null, SESSION_ID_HEADER, sessionId)
+                    .body(objectMapper.writeValueAsBytes(forHttp));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     protected HttpRequest createEmbeddingHttpRequest(EmbeddingRequest request) {

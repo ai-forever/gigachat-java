@@ -1,5 +1,6 @@
 package chat.giga.http.client;
 
+import chat.giga.http.client.sse.SseEventListener;
 import chat.giga.http.client.sse.SseListener;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.BiConsumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -43,6 +45,9 @@ class JdkHttpClientTest {
     HttpResponse<byte[]> jdkResponseWithBytes;
     @Mock
     SseListener sseListener;
+
+    @Mock
+    SseEventListener sseEventListener;
 
     HttpClient httpClient;
 
@@ -227,6 +232,93 @@ class JdkHttpClientTest {
 
         verify(sseListener, times(1)).onError(any(RuntimeException.class));
         verify(sseListener, never()).onComplete();
+    }
+
+    @Test
+    void executeSseEventListener_whenApplicationJson_stillParsesBodyAsSseAndCloses() throws Exception {
+        var request = HttpRequest.builder()
+                .url("http://test")
+                .method(HttpMethod.POST)
+                .body("x".getBytes())
+                .build();
+
+        when(delegate.<InputStream>send(any(), any())).thenReturn(jdkResponse);
+        when(jdkResponse.statusCode()).thenReturn(200);
+        String json = "{\"model\":\"m\"}";
+        when(jdkResponse.body()).thenReturn(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
+
+        httpClient.execute(request, sseEventListener);
+
+        verify(sseEventListener, never()).onEvent(any(), any());
+        verify(sseEventListener).onClosed();
+        verify(sseEventListener, never()).onError(any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void executeSseEventListener_withHeadersCallback_parsesStreamAndPassesHeaders() throws Exception {
+        var requestHeaders = Map.of("requestHeader", List.of("requestValue"));
+        var responseHeaders = Map.of("responseHeader", List.of("responseValue"));
+        var request = HttpRequest.builder()
+                .url("http://test")
+                .method(HttpMethod.POST)
+                .headers(requestHeaders)
+                .body("x".getBytes())
+                .build();
+        BiConsumer<Integer, Map<String, List<String>>> onHeaders = mock(BiConsumer.class);
+
+        when(delegate.<InputStream>send(any(), any())).thenReturn(jdkResponse);
+        when(jdkResponse.statusCode()).thenReturn(200);
+        when(jdkResponse.headers()).thenReturn(HttpHeaders.of(responseHeaders, (hn, hv) -> true));
+        when(jdkResponse.body()).thenReturn(
+                new ByteArrayInputStream("event: message\ndata: testData\n\n".getBytes(StandardCharsets.UTF_8)));
+
+        httpClient.execute(request, sseEventListener, onHeaders);
+
+        verify(onHeaders).accept(200, responseHeaders);
+        verify(sseEventListener).onEvent("message", "testData");
+        verify(sseEventListener).onClosed();
+        verify(sseEventListener, never()).onError(any());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void executeSseEventListener_withHeadersCallback_notCalledOnHttpError() throws Exception {
+        var request = HttpRequest.builder()
+                .url("http://test")
+                .method(HttpMethod.POST)
+                .body("x".getBytes())
+                .build();
+        BiConsumer<Integer, Map<String, List<String>>> onHeaders = mock(BiConsumer.class);
+
+        when(delegate.<InputStream>send(any(), any())).thenReturn(jdkResponse);
+        when(jdkResponse.statusCode()).thenReturn(500);
+        when(jdkResponse.body()).thenReturn(new ByteArrayInputStream("error".getBytes(StandardCharsets.UTF_8)));
+
+        httpClient.execute(request, sseEventListener, onHeaders);
+
+        verify(onHeaders, never()).accept(any(), any());
+        verify(sseEventListener).onError(any(HttpClientException.class));
+        verify(sseEventListener, never()).onClosed();
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void executeSseEventListener_withHeadersCallback_notCalledOnClientError() throws Exception {
+        var request = HttpRequest.builder()
+                .url("http://test")
+                .method(HttpMethod.POST)
+                .body("x".getBytes())
+                .build();
+        BiConsumer<Integer, Map<String, List<String>>> onHeaders = mock(BiConsumer.class);
+
+        when(delegate.<InputStream>send(any(), any())).thenThrow(new RuntimeException());
+
+        httpClient.execute(request, sseEventListener, onHeaders);
+
+        verify(onHeaders, never()).accept(any(), any());
+        verify(sseEventListener).onError(any(RuntimeException.class));
+        verify(sseEventListener, never()).onClosed();
     }
 
     @Test

@@ -7,6 +7,7 @@ import chat.giga.http.client.HttpHeaders;
 import chat.giga.http.client.HttpMethod;
 import chat.giga.http.client.HttpRequest;
 import chat.giga.http.client.MediaType;
+import chat.giga.http.client.sse.SseEventListener;
 import chat.giga.http.client.sse.SseListener;
 import chat.giga.model.BalanceResponse;
 import chat.giga.model.ModelResponse;
@@ -26,6 +27,12 @@ import chat.giga.model.file.FileResponse;
 import chat.giga.model.file.UploadFileRequest;
 import chat.giga.model.filter.FilterCheckRequest;
 import chat.giga.model.filter.FilterCheckResponse;
+import chat.giga.model.v2.completion.CompletionRequestV2;
+import chat.giga.model.v2.completion.CompletionResponseV2;
+import chat.giga.model.v2.completion.stream.CompletionMessageDeltaEventV2;
+import chat.giga.model.v2.completion.stream.CompletionMessageDoneEventV2;
+import chat.giga.model.v2.completion.stream.CompletionToolLifecycleEventV2;
+import chat.giga.model.v2.completion.stream.CompletionV2SseEvents;
 import chat.giga.util.RetryUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Builder;
@@ -36,7 +43,7 @@ import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-
+import java.util.concurrent.atomic.AtomicBoolean;
 public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaChatClientAsync {
 
     @Builder
@@ -45,11 +52,13 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
             Integer readTimeout,
             Integer connectTimeout,
             String apiUrl,
+            String apiV2Url,
             boolean logRequests,
             boolean logResponses,
             Boolean verifySslCerts,
             Integer maxRetriesOnAuthError) {
-        super(apiHttpClient, authClient, readTimeout, connectTimeout, apiUrl, logRequests, logResponses, verifySslCerts, maxRetriesOnAuthError);
+        super(apiHttpClient, authClient, readTimeout, connectTimeout, apiUrl, apiV2Url, logRequests, logResponses,
+                verifySslCerts, maxRetriesOnAuthError);
     }
 
     @Override
@@ -70,6 +79,18 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
                 .thenApply(r -> {
                     try {
                         return objectMapper.readValue(r.body(), CompletionResponse.class);
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                }), maxRetriesOnAuthError);
+    }
+
+    @Override
+    public CompletableFuture<CompletionResponseV2> completionsV2(CompletionRequestV2 request, String sessionId) {
+        return RetryUtils.retry401Async(() -> httpClient.executeAsync(createCompletionV2HttpRequest(request, sessionId))
+                .thenApply(r -> {
+                    try {
+                        return objectMapper.readValue(r.body(), CompletionResponseV2.class);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
@@ -128,6 +149,74 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    @Override
+    public void completionsV2Stream(CompletionRequestV2 request, String sessionId, CompletionV2StreamHandler handler) {
+        var builder = prepareCompletionV2StreamHttpRequest(request, sessionId);
+        CompletableFuture.runAsync(() -> {
+            try {
+                RetryUtils.retry401(() -> {
+                    authClient.authenticate(builder);
+
+                    var doneReceived = new AtomicBoolean(false);
+                    var streamFailed = new AtomicBoolean(false);
+                    httpClient.execute(builder.build(), new SseEventListener() {
+                        @Override
+                        public void onEvent(String eventType, String data) {
+                            try {
+                                if (CompletionV2SseEvents.RESPONSE_MESSAGE_DELTA.equals(eventType)) {
+                                    handler.onMessageDelta(
+                                            objectMapper.readValue(data, CompletionMessageDeltaEventV2.class));
+                                } else if (CompletionV2SseEvents.RESPONSE_MESSAGE_DONE.equals(eventType)) {
+                                    handler.onMessageDone(
+                                            objectMapper.readValue(data, CompletionMessageDoneEventV2.class));
+                                    doneReceived.set(true);
+                                } else if (CompletionV2SseEvents.RESPONSE_TOOL_IN_PROGRESS.equals(eventType)) {
+                                    handler.onToolInProgress(
+                                            objectMapper.readValue(data, CompletionToolLifecycleEventV2.class));
+                                } else if (CompletionV2SseEvents.RESPONSE_TOOL_COMPLETED.equals(eventType)) {
+                                    handler.onToolCompleted(
+                                            objectMapper.readValue(data, CompletionToolLifecycleEventV2.class));
+                                }
+                            } catch (IOException e) {
+                                if (streamFailed.compareAndSet(false, true)) {
+                                    handler.onError(e);
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onClosed() {
+                            if (streamFailed.get()) {
+                                return;
+                            }
+                            if (!doneReceived.get()) {
+                                handler.onError(new IllegalStateException(
+                                        "SSE stream closed without event \""
+                                                + CompletionV2SseEvents.RESPONSE_MESSAGE_DONE + "\""));
+                            } else {
+                                handler.onComplete();
+                            }
+                        }
+
+                        @Override
+                        public void onError(Exception ex) {
+                            if (ex instanceof HttpClientException e && e.statusCode() == 401) {
+                                throw e;
+                            }
+                            if (streamFailed.compareAndSet(false, true)) {
+                                handler.onError(ex);
+                            }
+                        }
+                    });
+
+                    return null;
+                }, maxRetriesOnAuthError);
+            } catch (IllegalStateException e) {
+                handler.onError(e);
+            }
+        });
     }
 
     @Override

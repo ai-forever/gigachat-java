@@ -34,6 +34,9 @@ public class ChoiceMessageChunk implements Serializable {
     @JsonProperty
     String content;
 
+    @JsonProperty("reasoning_content")
+    String reasoningContent;
+
     /**
      * Идентификатор, который объединяет массив функций, переданных в запросе. Возвращается в ответе модели (сообщение с
      * `\"role\": \"assistant\"`) при вызове встроенных или собственных функций.

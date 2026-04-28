@@ -30,7 +30,13 @@ public class ModelName {
      */
     public static final String GIGA_CHAT_MAX_2 = "GigaChat-2-Max";
 
+    public static final String GIGA_CHAT_REASONING_2 = "GigaChat-2-Reasoning";
+
     public static final String GIGA_CHAT_ULTRA_3 = "GigaChat-3-Ultra";
+
+    public static final String GIGA_CHAT_LIGHTING_3 = "GigaChat-3-Lightning";
+
+    public static final String GIGA_CHAT_PRO_3 = "GigaChat-3-Pro";
 
     /**
      * Базовая модель, доступная по умолчанию для векторного представления текстов
