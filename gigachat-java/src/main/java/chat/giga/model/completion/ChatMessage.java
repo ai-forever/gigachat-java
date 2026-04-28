@@ -40,6 +40,12 @@ public class ChatMessage implements Serializable {
     String content;
 
     /**
+     * Передается в контексте на основе ранее полученного messages[] с ролью assistant
+     */
+    @JsonProperty("function_call")
+    ChoiceMessageFunctionCall functionCall;
+
+    /**
      * Идентификатор, который объединяет массив функций, переданных в запросе. Возвращается в ответе модели (сообщение с
      * `\"role\": \"assistant\"`) при вызове встроенных или собственных функций.
      */
@@ -61,7 +67,8 @@ public class ChatMessage implements Serializable {
     String name;
 
     public static ChatMessage of(ChoiceMessage message) {
-        return new ChatMessage(ChatMessageRole.fromValue(message.role().value()), message.content(), message.functionsStateId(),
+        return new ChatMessage(ChatMessageRole.fromValue(message.role().value()), message.content(),
+                message.functionCall(), message.functionsStateId(),
                 null, null);
     }
 }
