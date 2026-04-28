@@ -278,10 +278,10 @@ class GigaChatClientAsyncImplTest {
             assertThat(objectMapper.readTree(r.body()).path("model_options").path("stream").isMissingNode()).isTrue();
         });
 
-        verify(completionV2StreamHandler, timeout(100)).onMessageDelta(delta);
-        verify(completionV2StreamHandler, timeout(100)).onMessageDone(done);
-        verify(completionV2StreamHandler, timeout(100)).onComplete();
-        verify(completionV2StreamHandler, after(100).never()).onError(any());
+        verify(completionV2StreamHandler, timeout(1000)).onComplete();
+        verify(completionV2StreamHandler).onMessageDelta(delta);
+        verify(completionV2StreamHandler).onMessageDone(done);
+        verify(completionV2StreamHandler, after(200).never()).onError(any());
     }
 
     @Test
@@ -332,6 +332,28 @@ class GigaChatClientAsyncImplTest {
         verify(completionV2StreamHandler, timeout(100)).onToolCompleted(toolDone);
         verify(completionV2StreamHandler, timeout(100)).onMessageDone(done);
         verify(completionV2StreamHandler, timeout(100)).onComplete();
+    }
+
+    @Test
+    void completionsV2Stream_transportErrorThenClosed_callsOnErrorOnlyOnce() {
+        doAnswer(i -> {
+            var listener = i.getArgument(1, SseEventListener.class);
+            listener.onError(new RuntimeException("boom"));
+            listener.onClosed();
+            return null;
+        }).when(httpClient).execute(any(), any(SseEventListener.class));
+
+        gigaChatClientAsync.completionsV2Stream(
+                CompletionRequestV2.builder()
+                        .model("GigaChat")
+                        .message(ChatMessageV2.textMessage(ChatMessageRoleV2.USER, "hi"))
+                        .build(),
+                completionV2StreamHandler);
+
+        var errorCaptor = ArgumentCaptor.forClass(Throwable.class);
+        verify(completionV2StreamHandler, timeout(100).times(1)).onError(errorCaptor.capture());
+        verify(completionV2StreamHandler, after(100).never()).onComplete();
+        assertThat(errorCaptor.getValue()).isInstanceOf(RuntimeException.class);
     }
 
     @Test

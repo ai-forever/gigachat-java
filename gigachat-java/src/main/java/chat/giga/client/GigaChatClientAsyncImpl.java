@@ -205,7 +205,9 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
                             if (ex instanceof HttpClientException e && e.statusCode() == 401) {
                                 throw e;
                             }
-                            handler.onError(ex);
+                            if (streamFailed.compareAndSet(false, true)) {
+                                handler.onError(ex);
+                            }
                         }
                     });
 
