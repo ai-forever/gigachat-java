@@ -10,9 +10,8 @@ import lombok.extern.jackson.Jacksonized;
 import java.io.Serializable;
 
 /**
- * Элемент {@code tool_execution} в {@code content}: сведения о вызове платформенной функции (в потоковом режиме также
- * поля вроде {@code seconds_left} — при необходимости обрабатывайте через {@code @JsonIgnoreProperties} на вышестоящем
- * уровне).
+ * Элемент {@code tool_execution} в {@code content}: сведения о вызове платформенной функции, в т.ч. в потоковом режиме
+ * SSE (поле {@code seconds_left}).
  */
 @Value
 @Builder
@@ -40,4 +39,10 @@ public class ToolExecutionContentV2 implements Serializable {
      */
     @JsonProperty
     Boolean censored;
+
+    /**
+     * Остаток времени работы инструмента (в секундах). Передаётся при запуске генерации в потоковом режиме.
+     */
+    @JsonProperty("seconds_left")
+    Integer secondsLeft;
 }

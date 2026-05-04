@@ -14,7 +14,7 @@ import java.util.Map;
 
 /**
  * Один элемент массива {@code content} сообщения v2: в JSON обычно задано ровно одно из полей-веток ({@code text},
- * {@code files}, {@code function_call}, {@code function_result}, {@code tool_execution} и т.д.).
+ * {@code files}, {@code function_call}, {@code function_result}, {@code tool_execution}, {@code logprobs} и т.д.).
  */
 @Value
 @Builder
@@ -63,4 +63,10 @@ public class MessageContentPartV2 implements Serializable {
      */
     @JsonProperty("inline_data")
     Map<String, Object> inlineData;
+
+    /**
+     * Логарифмические вероятности сгенерированных токенов.
+     */
+    @JsonProperty
+    List<LogprobsV2> logprobs;
 }
