@@ -262,4 +262,15 @@ public class JdkHttpClient implements HttpClient {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public void close() {
+        if (delegate instanceof AutoCloseable ac) {
+            try {
+                ac.close();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 }

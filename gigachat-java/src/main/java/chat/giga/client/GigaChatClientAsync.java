@@ -30,7 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public interface GigaChatClientAsync {
+public interface GigaChatClientAsync extends AutoCloseable {
 
     /**
      * Получить список моделей
@@ -210,6 +210,12 @@ public interface GigaChatClientAsync {
      * @return ответ с признаком наличия ненормативной лексики и информацией об использовании токенов.
      */
     CompletableFuture<FilterCheckResponse> filterCheck(FilterCheckRequest request);
+
+    /**
+     * Закрыть клиент и освободить все внутренние ресурсы (HTTP-клиент, подключения).
+     */
+    @Override
+    void close();
 
     /**
      * Проверить текст на наличие сгенерированного с помощью нейросетевых моделей контента.

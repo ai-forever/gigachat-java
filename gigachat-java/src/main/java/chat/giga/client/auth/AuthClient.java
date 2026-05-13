@@ -16,4 +16,10 @@ public interface AuthClient {
     }
 
     AccessToken getToken();
+
+    /**
+     * Закрыть клиент аутентификации и освободить ресурсы. По умолчанию операция пустая.
+     */
+    default void close() {
+    }
 }

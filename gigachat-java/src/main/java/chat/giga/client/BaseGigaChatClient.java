@@ -389,4 +389,8 @@ abstract class BaseGigaChatClient {
             return null;
         }
     }
+
+    public void close() {
+        httpClient.close();
+    }
 }

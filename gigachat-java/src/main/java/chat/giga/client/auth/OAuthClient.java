@@ -12,7 +12,7 @@ import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
 
-import static chat.giga.util.Utils.*;
+import static chat.giga.util.Utils.getOrDefault;
 
 class OAuthClient extends TokenBasedAuthClient implements AuthClient {
 
@@ -80,4 +80,8 @@ class OAuthClient extends TokenBasedAuthClient implements AuthClient {
         return new AccessToken(token.accessToken(), Instant.ofEpochMilli(token.expiresAt()));
     }
 
+    @Override
+    public void close() {
+        httpClient.close();
+    }
 }

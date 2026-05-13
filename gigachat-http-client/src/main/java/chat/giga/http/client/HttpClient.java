@@ -31,4 +31,12 @@ public interface HttpClient {
     }
 
     CompletableFuture<HttpResponse> executeAsync(HttpRequest request);
+
+
+    /**
+     * Закрыть клиент и освободить ресурсы. По умолчанию операция пустая.
+     */
+    default void close() {
+    }
+
 }

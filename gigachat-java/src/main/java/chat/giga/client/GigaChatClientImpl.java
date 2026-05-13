@@ -226,4 +226,10 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
             throw new UncheckedIOException(e);
         }
     }
+
+    @Override
+    public void close() {
+        super.close();
+        authClient.close();
+    }
 }

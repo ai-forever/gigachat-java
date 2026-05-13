@@ -76,4 +76,9 @@ class UserPasswordAuthClient extends TokenBasedAuthClient implements AuthClient 
             throw new UncheckedIOException(e);
         }
     }
+
+    @Override
+    public void close() {
+        httpClient.close();
+    }
 }

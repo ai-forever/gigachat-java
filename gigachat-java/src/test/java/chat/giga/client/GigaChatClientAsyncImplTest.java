@@ -712,4 +712,12 @@ class GigaChatClientAsyncImplTest {
             assertThat(objectMapper.readValue(r.body(), FilterCheckRequest.class)).isEqualTo(request);
         });
     }
+
+    @Test
+    void close() {
+        gigaChatClientAsync.close();
+
+        verify(httpClient).close();
+        verify(authClient).close();
+    }
 }

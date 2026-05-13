@@ -361,4 +361,10 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
                     }
                 }), maxRetriesOnAuthError);
     }
+
+    @Override
+    public void close() {
+        super.close();
+        authClient.close();
+    }
 }
