@@ -2,6 +2,8 @@ package chat.giga.client;
 
 import chat.giga.client.auth.AuthClient;
 import chat.giga.http.client.HttpClient;
+import chat.giga.model.AiCheckRequest;
+import chat.giga.model.AiCheckResponse;
 import chat.giga.model.BalanceResponse;
 import chat.giga.model.ModelResponse;
 import chat.giga.model.TokenCount;
@@ -195,6 +197,19 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
         try {
             return objectMapper.readValue(httpResponse.body(), new TypeReference<>() {
             });
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+
+    @Override
+    public AiCheckResponse aiCheck(AiCheckRequest request) {
+        try {
+            var httpResponse = RetryUtils.retry401(() -> httpClient.execute(createAiCheckHttpRequest(request)),
+                    maxRetriesOnAuthError);
+
+            return objectMapper.readValue(httpResponse.body(), AiCheckResponse.class);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

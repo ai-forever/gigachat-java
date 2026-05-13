@@ -9,6 +9,8 @@ import chat.giga.http.client.HttpRequest;
 import chat.giga.http.client.MediaType;
 import chat.giga.http.client.sse.SseEventListener;
 import chat.giga.http.client.sse.SseListener;
+import chat.giga.model.AiCheckRequest;
+import chat.giga.model.AiCheckResponse;
 import chat.giga.model.BalanceResponse;
 import chat.giga.model.ModelResponse;
 import chat.giga.model.TokenCount;
@@ -329,6 +331,19 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
                     try {
                         return objectMapper.readValue(r.body(), new TypeReference<>() {
                         });
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                }), maxRetriesOnAuthError);
+    }
+
+
+    @Override
+    public CompletableFuture<AiCheckResponse> aiCheck(AiCheckRequest request) {
+        return RetryUtils.retry401Async(() -> httpClient.executeAsync(createAiCheckHttpRequest(request))
+                .thenApply(r -> {
+                    try {
+                        return objectMapper.readValue(r.body(), AiCheckResponse.class);
                     } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }

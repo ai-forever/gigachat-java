@@ -10,6 +10,7 @@ import chat.giga.http.client.HttpResponse;
 import chat.giga.http.client.MediaType;
 import chat.giga.http.client.sse.SseEventListener;
 import chat.giga.http.client.sse.SseListener;
+import chat.giga.model.AiCheckRequest;
 import chat.giga.model.TokenCountRequest;
 import chat.giga.model.completion.ChatFunctionCallEnum;
 import chat.giga.model.completion.CompletionChunkResponse;
@@ -649,6 +650,37 @@ class GigaChatClientAsyncImplTest {
         assertThrows(NullPointerException.class, () -> GigaChatClientImpl.builder()
                 .apiHttpClient(httpClient)
                 .build());
+    }
+
+
+    @Test
+    void aiCheck() throws Exception {
+        var body = TestData.aiCheckResponse();
+        when(httpClient.executeAsync(any()))
+                .thenReturn(CompletableFuture.failedFuture(new HttpClientException(401, null)))
+                .thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
+                        .body(objectMapper.writeValueAsBytes(body))
+                        .build()));
+
+        var request = TestData.aiCheckRequest();
+        var response = gigaChatClientAsync.aiCheck(request).get();
+
+        assertThat(response).isEqualTo(body);
+
+        verify(authClient, times(2)).authenticate(any());
+
+        var captor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient, times(2)).executeAsync(captor.capture());
+
+        assertThat(captor.getValue()).satisfies(r -> {
+            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/ai/check");
+            assertThat(r.method()).isEqualTo(HttpMethod.POST);
+            assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
+            assertThat(r.headers()).containsEntry(HttpHeaders.CONTENT_TYPE, List.of(MediaType.APPLICATION_JSON));
+            assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
+            assertThat(r.headers()).containsKey(GigaChatClientImpl.REQUEST_ID_HEADER);
+            assertThat(objectMapper.readValue(r.body(), AiCheckRequest.class)).isEqualTo(request);
+        });
     }
 
     @Test
