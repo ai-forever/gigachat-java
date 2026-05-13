@@ -30,7 +30,7 @@ public class FunctionRanker implements Serializable {
      * Количество тулов/функций, которые будут переданы в модель после ранжирования. Если параметр не передан, то
      * дефолтное значение кол-ва из конфига.
      */
-    @JsonProperty
+    @JsonProperty("top_n")
     Integer topN;
 
 }
