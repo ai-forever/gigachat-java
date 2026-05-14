@@ -27,6 +27,7 @@ import chat.giga.model.v2.completion.CompletionResponseV2;
 import chat.giga.model.v2.completion.stream.CompletionV2SseEvents;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -125,6 +126,18 @@ public interface GigaChatClientAsync extends AutoCloseable {
     CompletableFuture<FileResponse> uploadFile(UploadFileRequest request);
 
     /**
+     * Загрузить файл через InputStream (без загрузки в память). Подходит для больших файлов.
+     *
+     * @param purpose    назначение загружаемого файла (например, "general")
+     * @param fileStream поток с содержимым файла
+     * @param mimeType   MIME-тип файла
+     * @param fileName   наименование файла
+     * @return данные загруженного файла
+     */
+    CompletableFuture<FileResponse> uploadFileAsStream(String purpose, InputStream fileStream, String mimeType,
+            String fileName);
+
+    /**
      * Скачать файл
      *
      * @param fileId   Идентификатор изображения, полученный в ответ на запрос пользователя о генерации изображений
@@ -132,6 +145,15 @@ public interface GigaChatClientAsync extends AutoCloseable {
      * @return массив байт файла.
      */
     CompletableFuture<ByteArrayInputStream> downloadFile(String fileId, String clientId);
+
+    /**
+     * Скачать файл как InputStream (без загрузки в память).
+     *
+     * @param fileId   идентификатор файла
+     * @param clientId идентификатор клиента
+     * @return поток с содержимым файла
+     */
+    CompletableFuture<InputStream> downloadFileAsStream(String fileId, String clientId);
 
     /**
      * Получить список доступных файлов

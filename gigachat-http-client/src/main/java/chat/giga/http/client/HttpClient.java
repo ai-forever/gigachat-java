@@ -32,6 +32,13 @@ public interface HttpClient {
 
     CompletableFuture<HttpResponse> executeAsync(HttpRequest request);
 
+    /**
+     * Выполнить запрос и вернуть ответ, где тело доступно как InputStream (без загрузки в память). Вызывающая сторона
+     * ОБЯЗАНА закрыть InputStream после чтения.
+     */
+    default HttpResponse executeWithInputStream(HttpRequest request) {
+        return execute(request);
+    }
 
     /**
      * Закрыть клиент и освободить ресурсы. По умолчанию операция пустая.

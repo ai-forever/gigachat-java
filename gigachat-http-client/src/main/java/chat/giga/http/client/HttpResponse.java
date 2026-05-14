@@ -5,6 +5,7 @@ import lombok.Builder.Default;
 import lombok.Value;
 import lombok.experimental.Accessors;
 
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +20,11 @@ public class HttpResponse {
     @Default
     Map<String, List<String>> headers = new HashMap<>();
     byte[] body;
+    InputStream bodyStream;
+
+    public InputStream bodyAsStream() {
+        return bodyStream;
+    }
 
     public String bodyAsString() {
         if (body != null && body.length > 0) {

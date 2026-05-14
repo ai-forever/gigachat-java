@@ -41,6 +41,7 @@ import lombok.Builder;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.UUID;
@@ -246,9 +247,43 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
     }
 
     @Override
+    public CompletableFuture<FileResponse> uploadFileAsStream(String purpose, InputStream fileStream, String mimeType,
+            String fileName) {
+        var request = UploadFileRequest.builder()
+                .purpose(purpose)
+                .mimeType(mimeType)
+                .fileName(fileName)
+                .bodyAsStream(fileStream)
+                .build();
+
+        return RetryUtils.retry401Async(
+                () -> httpClient.executeAsync(createUploadFileHttpRequestStreaming(request))
+                        .thenApply(r -> {
+                            try {
+                                return objectMapper.readValue(r.body(), FileResponse.class);
+                            } catch (IOException e) {
+                                throw new UncheckedIOException(e);
+                            }
+                        }), maxRetriesOnAuthError);
+    }
+
+    @Override
     public CompletableFuture<ByteArrayInputStream> downloadFile(String fileId, String clientId) {
         return RetryUtils.retry401Async(() -> httpClient.executeAsync(createDownloadFileHttpRequest(fileId, clientId))
                 .thenApply(r -> new ByteArrayInputStream(r.body())), 1);
+    }
+
+    @Override
+    public CompletableFuture<InputStream> downloadFileAsStream(String fileId, String clientId) {
+        return RetryUtils.retry401Async(
+                () -> httpClient.executeAsync(createDownloadFileHttpRequest(fileId, clientId))
+                        .thenApply(r -> {
+                            if (r.bodyAsStream() != null) {
+                                return r.bodyAsStream();
+                            }
+                            return new ByteArrayInputStream(r.body());
+                        }),
+                maxRetriesOnAuthError);
     }
 
     @Override

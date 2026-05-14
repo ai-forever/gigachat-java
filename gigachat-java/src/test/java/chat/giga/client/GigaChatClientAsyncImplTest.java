@@ -39,6 +39,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -711,6 +712,42 @@ class GigaChatClientAsyncImplTest {
             assertThat(r.headers()).containsKey(GigaChatClientImpl.REQUEST_ID_HEADER);
             assertThat(objectMapper.readValue(r.body(), FilterCheckRequest.class)).isEqualTo(request);
         });
+    }
+
+    @Test
+    void uploadFileStreaming() throws Exception {
+        var body = TestData.fileResponse();
+        when(httpClient.executeAsync(any()))
+                .thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
+                        .body(objectMapper.writeValueAsBytes(body))
+                        .build()));
+
+        var fileStream = new ByteArrayInputStream("test async content".getBytes());
+        var response = gigaChatClientAsync.uploadFileAsStream("general", fileStream, "text/plain", "test.txt").get();
+
+        assertThat(response).isEqualTo(body);
+
+        var captor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient).executeAsync(captor.capture());
+
+        assertThat(captor.getValue()).satisfies(r -> {
+            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/files");
+            assertThat(r.method()).isEqualTo(HttpMethod.POST);
+            assertThat(r.bodyAsStream()).isNotNull();
+        });
+    }
+
+    @Test
+    void downloadFileAsStream() throws Exception {
+        var fileContent = "async downloaded".getBytes();
+        when(httpClient.executeAsync(any()))
+                .thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
+                        .statusCode(200)
+                        .bodyStream(new ByteArrayInputStream(fileContent))
+                        .build()));
+
+        var stream = gigaChatClientAsync.downloadFileAsStream("file-id", "client-id").get();
+        assertThat(stream.readAllBytes()).isEqualTo(fileContent);
     }
 
     @Test

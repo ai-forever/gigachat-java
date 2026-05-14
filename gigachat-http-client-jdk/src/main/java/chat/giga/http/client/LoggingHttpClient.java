@@ -208,6 +208,20 @@ public class LoggingHttpClient implements HttpClient {
     }
 
     @Override
+    public HttpResponse executeWithInputStream(HttpRequest request) {
+        if (logRequests) {
+            logRequest(request);
+        }
+
+        var response = client.executeWithInputStream(request);
+        if (logResponses) {
+            logStreamingResponse(response.statusCode(), response.headers());
+        }
+
+        return response;
+    }
+
+    @Override
     public void close() {
         client.close();
     }

@@ -223,6 +223,32 @@ abstract class BaseGigaChatClient {
         return builder.build();
     }
 
+    /**
+     * Создать HTTP-запрос для загрузки файла через InputStream (без загрузки в память).
+     */
+    protected HttpRequest createUploadFileHttpRequestStreaming(UploadFileRequest request) {
+        Objects.requireNonNull(request.purpose(), "purpose must not be null");
+        Objects.requireNonNull(request.bodyAsStream(), "bodyStream must not be null");
+        Objects.requireNonNull(request.mimeType(), "mimeType must not be null");
+        Objects.requireNonNull(request.fileName(), "fileName must not be null");
+
+        var boundary = Long.toHexString(System.currentTimeMillis());
+        var bodyStream = FileUtils.createMultiPartBodyAsStream(
+                request.bodyAsStream(), boundary, request.purpose(), request.mimeType(), request.fileName());
+
+        var builder = HttpRequest.builder()
+                .url(apiUrl + "/files")
+                .method(HttpMethod.POST)
+                .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.MULTIPART_FORM_DATA + "; boundary=" + boundary)
+                .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                .bodyAsStream(bodyStream);
+
+        authClient.authenticate(builder);
+
+        return builder.build();
+    }
+
     protected HttpRequest createDownloadFileHttpRequest(String fileId, String clientId) {
         Objects.requireNonNull(fileId, "fileId must not be null");
 
