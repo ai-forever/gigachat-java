@@ -8,6 +8,7 @@ import chat.giga.http.client.HttpMethod;
 import chat.giga.http.client.HttpRequest;
 import chat.giga.http.client.HttpResponse;
 import chat.giga.http.client.MediaType;
+import chat.giga.model.AiCheckRequest;
 import chat.giga.model.TokenCountRequest;
 import chat.giga.model.batch.BatchMethod;
 import chat.giga.model.completion.CompletionRequest;
@@ -595,6 +596,37 @@ class GigaChatClientImplTest {
         assertThrows(NullPointerException.class, () -> GigaChatClient.builder()
                 .apiHttpClient(httpClient)
                 .build());
+    }
+
+
+    @Test
+    void aiCheck() throws JsonProcessingException {
+        var body = TestData.aiCheckResponse();
+        when(httpClient.execute(any()))
+                .thenThrow(new HttpClientException(401, null))
+                .thenReturn(HttpResponse.builder()
+                        .body(objectMapper.writeValueAsBytes(body))
+                        .build());
+
+        var request = TestData.aiCheckRequest();
+        var response = gigaChatClient.aiCheck(request);
+
+        assertThat(response).isEqualTo(body);
+
+        verify(authClient, times(2)).authenticate(any());
+
+        var captor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient, times(2)).execute(captor.capture());
+
+        assertThat(captor.getValue()).satisfies(r -> {
+            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/ai/check");
+            assertThat(r.method()).isEqualTo(HttpMethod.POST);
+            assertThat(r.headers()).containsEntry(HttpHeaders.USER_AGENT, List.of(BaseGigaChatClient.USER_AGENT_NAME));
+            assertThat(r.headers()).containsEntry(HttpHeaders.CONTENT_TYPE, List.of(MediaType.APPLICATION_JSON));
+            assertThat(r.headers()).containsEntry(HttpHeaders.ACCEPT, List.of(MediaType.APPLICATION_JSON));
+            assertThat(r.headers()).containsKey(GigaChatClientImpl.REQUEST_ID_HEADER);
+            assertThat(objectMapper.readValue(r.body(), AiCheckRequest.class)).isEqualTo(request);
+        });
     }
 
     @Test

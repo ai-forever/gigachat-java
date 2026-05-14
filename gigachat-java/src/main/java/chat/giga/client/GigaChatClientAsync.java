@@ -1,6 +1,8 @@
 package chat.giga.client;
 
 import chat.giga.client.GigaChatClientAsyncImpl.GigaChatClientAsyncImplBuilder;
+import chat.giga.model.AiCheckRequest;
+import chat.giga.model.AiCheckResponse;
 import chat.giga.model.BalanceResponse;
 import chat.giga.model.ModelResponse;
 import chat.giga.model.TokenCount;
@@ -208,6 +210,15 @@ public interface GigaChatClientAsync {
      * @return ответ с признаком наличия ненормативной лексики и информацией об использовании токенов.
      */
     CompletableFuture<FilterCheckResponse> filterCheck(FilterCheckRequest request);
+
+    /**
+     * Проверить текст на наличие сгенерированного с помощью нейросетевых моделей контента.
+     *
+     * @param request описание запроса на проверку текста
+     * @return ответ с категорией (ai/human/mixed), количеством символов, токенов и интервалами
+     */
+    CompletableFuture<AiCheckResponse> aiCheck(AiCheckRequest request);
+
 
     static GigaChatClientAsyncImplBuilder builder() {
         return new GigaChatClientAsyncImplBuilder();

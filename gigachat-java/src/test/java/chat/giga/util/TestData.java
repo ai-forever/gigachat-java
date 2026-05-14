@@ -1,5 +1,7 @@
 package chat.giga.util;
 
+import chat.giga.model.AiCheckRequest;
+import chat.giga.model.AiCheckResponse;
 import chat.giga.model.Balance;
 import chat.giga.model.BalanceResponse;
 import chat.giga.model.Model;
@@ -274,6 +276,23 @@ public class TestData {
                         .functionsStateId("77d3fb14-457a-46ba-937e-8d856156d003")
                         .attachment("e7f0b84b-3d4f-4c2c-ac31-8855b1b0db0a")
                         .build())
+                .build();
+    }
+
+
+    public AiCheckRequest aiCheckRequest() {
+        return AiCheckRequest.builder()
+                .model("GigaCheckClassification")
+                .input("Первый искусственный спутник Земли был запущен Советским Союзом 4 октября 1957 года.")
+                .build();
+    }
+
+    public AiCheckResponse aiCheckResponse() {
+        return AiCheckResponse.builder()
+                .category("ai")
+                .characters(158)
+                .tokens(38)
+                .aiIntervals(List.of(List.of(0, 100), List.of(150, 200)))
                 .build();
     }
 

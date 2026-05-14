@@ -135,6 +135,18 @@ public class CompletionRequest implements Serializable {
     @JsonProperty("reasoning_effort")
     String reasoningEffort;
 
+    /**
+     * Дополнительные данные для запроса.
+     */
+    @JsonProperty("additional_data")
+    AdditionalData additionalData;
+
+    /**
+     * Настройки ранжирования функций.
+     */
+    @JsonProperty("function_ranker")
+    FunctionRanker functionRanker;
+
     public static CompletionRequestBuilder builder() {
         return new CompletionRequestBuilder();
     }

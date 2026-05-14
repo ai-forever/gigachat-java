@@ -10,6 +10,7 @@ import chat.giga.http.client.JdkHttpClientBuilder;
 import chat.giga.http.client.LoggingHttpClient;
 import chat.giga.http.client.MediaType;
 import chat.giga.http.client.SSL;
+import chat.giga.model.AiCheckRequest;
 import chat.giga.model.TokenCountRequest;
 import chat.giga.model.batch.BatchMethod;
 import chat.giga.model.completion.CompletionRequest;
@@ -334,6 +335,27 @@ abstract class BaseGigaChatClient {
                 .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
                 .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
                 .header(REQUEST_ID_HEADER, UUID.randomUUID().toString());
+
+        authClient.authenticate(builder);
+
+        return builder.build();
+    }
+
+
+    protected HttpRequest createAiCheckHttpRequest(AiCheckRequest request) {
+        HttpRequestBuilder builder;
+        try {
+            builder = HttpRequest.builder()
+                    .url(apiUrl + "/ai/check")
+                    .method(HttpMethod.POST)
+                    .header(HttpHeaders.USER_AGENT, USER_AGENT_NAME)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+                    .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON)
+                    .header(REQUEST_ID_HEADER, UUID.randomUUID().toString())
+                    .body(objectMapper.writeValueAsBytes(request));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
 
         authClient.authenticate(builder);
 
