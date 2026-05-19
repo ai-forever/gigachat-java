@@ -1,5 +1,6 @@
 package chat.giga.model.completion;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Singular;
@@ -61,6 +62,7 @@ public class ChatFunctionParametersProperty implements Serializable {
      */
     @JsonProperty("anyOf")
     @Singular("anyOf")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     List<ChatFunctionParametersProperty> anyOf;
 
     /**
