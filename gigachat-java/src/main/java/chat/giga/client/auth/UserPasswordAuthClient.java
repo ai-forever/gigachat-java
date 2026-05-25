@@ -80,6 +80,12 @@ class UserPasswordAuthClient extends TokenBasedAuthClient implements AuthClient 
     }
 
     @Override
+    /**
+     * Закрыть клиент аутентификации и освободить ресурсы.
+     * <p>Внимание: при закрытии также закрывается {@code HttpClient},
+     * переданный в конструктор или созданный через {@code AuthClientBuilder}.
+     * Повторный вызов — no-op.
+     */
     public void close() {
         if (closed) {
             return;

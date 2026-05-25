@@ -15,9 +15,6 @@ import java.util.UUID;
 import static chat.giga.util.Utils.getOrDefault;
 
 class OAuthClient extends TokenBasedAuthClient implements AuthClient {
-
-    private volatile boolean closed;
-
     public static final String RQ_UID_HEADER = "RqUID";
 
     private static final String DEFAULT_AUTH_URL = "https://ngw.devices.sberbank.ru:9443/api/v2";
@@ -28,6 +25,7 @@ class OAuthClient extends TokenBasedAuthClient implements AuthClient {
     private final Scope scope;
     private final HttpClient httpClient;
     private final String authApiUrl;
+    private volatile boolean closed;
 
     public OAuthClient(chat.giga.http.client.HttpClient httpClient, String clientId,  String secret, String authKey,
             Scope scope, String authApiUrl) {
@@ -83,6 +81,12 @@ class OAuthClient extends TokenBasedAuthClient implements AuthClient {
     }
 
     @Override
+    /**
+     * Закрыть OAuth-клиент и освободить ресурсы.
+     * <p>Внимание: при закрытии также закрывается {@code HttpClient},
+     * переданный в конструктор или созданный через {@code AuthClientBuilder}.
+     * Повторный вызов — no-op.
+     */
     public void close() {
         if (closed) {
             return;
