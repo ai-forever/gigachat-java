@@ -13,7 +13,6 @@ public class AiCheckExample {
     public static void main(String[] args) {
 
         try (GigaChatClient client = GigaChatClient.builder()
-                .verifySslCerts(false)
                 .authClient(AuthClient.builder()
                         .withOAuth(OAuthBuilder.builder()
                                 .scope(Scope.GIGACHAT_API_PERS)
