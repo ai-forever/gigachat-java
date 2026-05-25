@@ -31,6 +31,8 @@ import static java.time.Duration.ofSeconds;
 
 abstract class BaseGigaChatClient {
 
+    protected volatile boolean closed;
+
     public static final String DEFAULT_API_URL = "https://gigachat.devices.sberbank.ru/api/v1";
     public static final String DEFAULT_API_V2_URL = "https://gigachat.devices.sberbank.ru/v2";
     public static final String REQUEST_ID_HEADER = "X-Request-ID";
@@ -391,6 +393,14 @@ abstract class BaseGigaChatClient {
     }
 
     public void close() {
-        httpClient.close();
+        if (closed) {
+            return;
+        }
+        closed = true;
+        try {
+            httpClient.close();
+        } finally {
+            authClient.close();
+        }
     }
 }

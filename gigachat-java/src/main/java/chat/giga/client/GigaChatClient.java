@@ -192,6 +192,10 @@ public interface GigaChatClient extends AutoCloseable {
 
     /**
      * Закрыть клиент и освободить все внутренние ресурсы (HTTP-клиент, подключения).
+     * <p>Внимание: при закрытии также закрывается переданный извне {@code HttpClient}
+     * (через {@code apiHttpClient} или {@code withCertificatesAuth}/{@code withOAuth}). Если вы используете
+     * общий {@code HttpClient} для нескольких компонентов, не вызывайте {@code close()} или подготовьтесь
+     * к тому, что он будет закрыт.
      */
     @Override
     void close();

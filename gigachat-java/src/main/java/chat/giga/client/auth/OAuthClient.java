@@ -16,6 +16,8 @@ import static chat.giga.util.Utils.getOrDefault;
 
 class OAuthClient extends TokenBasedAuthClient implements AuthClient {
 
+    private volatile boolean closed;
+
     public static final String RQ_UID_HEADER = "RqUID";
 
     private static final String DEFAULT_AUTH_URL = "https://ngw.devices.sberbank.ru:9443/api/v2";
@@ -82,6 +84,10 @@ class OAuthClient extends TokenBasedAuthClient implements AuthClient {
 
     @Override
     public void close() {
+        if (closed) {
+            return;
+        }
+        closed = true;
         httpClient.close();
     }
 }

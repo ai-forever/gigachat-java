@@ -14,6 +14,8 @@ import java.util.Objects;
 
 class UserPasswordAuthClient extends TokenBasedAuthClient implements AuthClient {
 
+    private volatile boolean closed;
+
     private final String user;
     private final String password;
 
@@ -79,6 +81,10 @@ class UserPasswordAuthClient extends TokenBasedAuthClient implements AuthClient 
 
     @Override
     public void close() {
+        if (closed) {
+            return;
+        }
+        closed = true;
         httpClient.close();
     }
 }
