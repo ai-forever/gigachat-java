@@ -80,13 +80,13 @@ class OAuthClient extends TokenBasedAuthClient implements AuthClient {
         return new AccessToken(token.accessToken(), Instant.ofEpochMilli(token.expiresAt()));
     }
 
-    @Override
     /**
      * Закрыть OAuth-клиент и освободить ресурсы.
      * <p>Внимание: при закрытии также закрывается {@code HttpClient},
      * переданный в конструктор или созданный через {@code AuthClientBuilder}.
      * Повторный вызов — no-op.
      */
+    @Override
     public void close() {
         if (closed) {
             return;
