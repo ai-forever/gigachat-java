@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.time.Duration.ofSeconds;
 
@@ -41,7 +42,7 @@ abstract class BaseGigaChatClient {
     protected final int maxRetriesOnAuthError;
     protected final AuthClient authClient;
     protected final HttpClient httpClient;
-    protected volatile boolean closed;
+    protected final AtomicBoolean closed = new AtomicBoolean(false);
     protected final String apiUrl;
     protected final String apiV2Url;
     protected final ObjectMapper objectMapper = JsonUtils.objectMapper();
@@ -391,10 +392,9 @@ abstract class BaseGigaChatClient {
     }
 
     public void close() {
-        if (closed) {
+        if (!closed.compareAndSet(false, true)) {
             return;
         }
-        closed = true;
         try {
             httpClient.close();
         } finally {

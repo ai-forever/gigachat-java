@@ -11,6 +11,7 @@ import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static chat.giga.util.Utils.getOrDefault;
 
@@ -25,7 +26,7 @@ class OAuthClient extends TokenBasedAuthClient implements AuthClient {
     private final Scope scope;
     private final HttpClient httpClient;
     private final String authApiUrl;
-    private volatile boolean closed;
+    private final AtomicBoolean closed = new AtomicBoolean(false);
 
     public OAuthClient(chat.giga.http.client.HttpClient httpClient, String clientId,  String secret, String authKey,
             Scope scope, String authApiUrl) {
@@ -88,10 +89,9 @@ class OAuthClient extends TokenBasedAuthClient implements AuthClient {
      */
     @Override
     public void close() {
-        if (closed) {
+        if (!closed.compareAndSet(false, true)) {
             return;
         }
-        closed = true;
         httpClient.close();
     }
 }
