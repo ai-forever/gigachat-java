@@ -27,3 +27,6 @@ spotless {
         removeUnusedImports()
     }
 }
+lombok {
+    version = "1.18.32"
+}

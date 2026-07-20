@@ -1,11 +1,12 @@
 package chat.giga.util;
 
-import lombok.experimental.UtilityClass;
 
-@UtilityClass
-public class FileUtils {
+public final class FileUtils {
 
-    public byte[] createMultiPartBody(byte[] fileBytes, String boundary, String purpose, String mimeType,
+    private FileUtils() {
+    }
+
+    public static byte[] createMultiPartBody(byte[] fileBytes, String boundary, String purpose, String mimeType,
                                       String fileName) {
 
         StringBuilder bodyBuilder = new StringBuilder();

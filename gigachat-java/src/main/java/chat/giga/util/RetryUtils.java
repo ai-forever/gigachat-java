@@ -1,16 +1,17 @@
 package chat.giga.util;
 
 import chat.giga.http.client.HttpClientException;
-import lombok.experimental.UtilityClass;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-@UtilityClass
-public class RetryUtils {
+public final class RetryUtils {
 
-    public <T> T retry401(Supplier<T> supplier, int maxRetries) {
+    private RetryUtils() {
+    }
+
+    public static <T> T retry401(Supplier<T> supplier, int maxRetries) {
         int retries = 0;
         while (retries <= maxRetries) {
             try {
@@ -26,7 +27,7 @@ public class RetryUtils {
         throw new IllegalStateException(String.format("Retries exhausted after %s attempts", maxRetries));
     }
 
-    public <T> CompletableFuture<T> retry401Async(Supplier<CompletableFuture<T>> supplier, int maxRetries) {
+    public static <T> CompletableFuture<T> retry401Async(Supplier<CompletableFuture<T>> supplier, int maxRetries) {
         var future = supplier.get();
         for (int i = 0; i <= maxRetries; i++) {
             future = future.handleAsync((r, th) -> {
