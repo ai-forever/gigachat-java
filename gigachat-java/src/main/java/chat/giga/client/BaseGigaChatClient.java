@@ -26,11 +26,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.time.Duration.ofSeconds;
 
 abstract class BaseGigaChatClient {
-
     public static final String DEFAULT_API_URL = "https://gigachat.devices.sberbank.ru/api/v1";
     public static final String DEFAULT_API_V2_URL = "https://gigachat.devices.sberbank.ru/v2";
     public static final String REQUEST_ID_HEADER = "X-Request-ID";
@@ -42,6 +42,7 @@ abstract class BaseGigaChatClient {
     protected final int maxRetriesOnAuthError;
     protected final AuthClient authClient;
     protected final HttpClient httpClient;
+    protected final AtomicBoolean closed = new AtomicBoolean(false);
     protected final String apiUrl;
     protected final String apiV2Url;
     protected final ObjectMapper objectMapper = JsonUtils.objectMapper();
@@ -387,6 +388,17 @@ abstract class BaseGigaChatClient {
             return SSL.builder().verifySslCerts(false).build();
         } else {
             return null;
+        }
+    }
+
+    public void close() {
+        if (!closed.compareAndSet(false, true)) {
+            return;
+        }
+        try {
+            httpClient.close();
+        } finally {
+            authClient.close();
         }
     }
 }

@@ -33,3 +33,7 @@ tasks.test {
 tasks.compileJava {
     options.encoding = "UTF-8"
 }
+
+lombok {
+    version = "1.18.32"
+}

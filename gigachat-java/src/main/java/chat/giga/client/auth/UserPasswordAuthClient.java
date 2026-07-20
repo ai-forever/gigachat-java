@@ -11,8 +11,11 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 class UserPasswordAuthClient extends TokenBasedAuthClient implements AuthClient {
+
+    private final AtomicBoolean closed = new AtomicBoolean(false);
 
     private final String user;
     private final String password;
@@ -75,5 +78,18 @@ class UserPasswordAuthClient extends TokenBasedAuthClient implements AuthClient 
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+    /**
+     * Закрыть клиент аутентификации и освободить ресурсы.
+     * <p>Внимание: при закрытии также закрывается {@code HttpClient},
+     * переданный в конструктор или созданный через {@code AuthClientBuilder}.
+     * Повторный вызов — no-op.
+     */
+    @Override
+    public void close() {
+        if (!closed.compareAndSet(false, true)) {
+            return;
+        }
+        httpClient.close();
     }
 }

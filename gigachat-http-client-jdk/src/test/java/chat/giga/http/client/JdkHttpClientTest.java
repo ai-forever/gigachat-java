@@ -386,4 +386,10 @@ class JdkHttpClientTest {
 
         verify(builder, times(1)).sslContext(any());
     }
+
+    @Test
+    void closeDoesNotThrow() {
+        httpClient.close();
+    }
+
 }
