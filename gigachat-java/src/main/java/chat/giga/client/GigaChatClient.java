@@ -26,7 +26,7 @@ import chat.giga.model.v2.completion.CompletionResponseV2;
 
 import java.util.List;
 
-public interface GigaChatClient {
+public interface GigaChatClient extends AutoCloseable {
 
     /**
      * Получить список моделей
@@ -189,6 +189,16 @@ public interface GigaChatClient {
      * @return ответ с категорией (ai/human/mixed), количеством символов, токенов и интервалами
      */
     AiCheckResponse aiCheck(AiCheckRequest request);
+
+    /**
+     * Закрыть клиент и освободить все внутренние ресурсы (HTTP-клиент, подключения).
+     * <p>Внимание: при закрытии также закрывается переданный извне {@code HttpClient}
+     * (через {@code apiHttpClient} или {@code withCertificatesAuth}/{@code withOAuth}). Если вы используете
+     * общий {@code HttpClient} для нескольких компонентов, не используйте try-with-resources для данного клиента,
+     * чтобы избежать его автоматического закрытия.
+     */
+    @Override
+    void close();
 
 
     static GigaChatClientImplBuilder builder() {

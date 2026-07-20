@@ -11,11 +11,11 @@ import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import static chat.giga.util.Utils.*;
+import static chat.giga.util.Utils.getOrDefault;
 
 class OAuthClient extends TokenBasedAuthClient implements AuthClient {
-
     public static final String RQ_UID_HEADER = "RqUID";
 
     private static final String DEFAULT_AUTH_URL = "https://ngw.devices.sberbank.ru:9443/api/v2";
@@ -26,6 +26,7 @@ class OAuthClient extends TokenBasedAuthClient implements AuthClient {
     private final Scope scope;
     private final HttpClient httpClient;
     private final String authApiUrl;
+    private final AtomicBoolean closed = new AtomicBoolean(false);
 
     public OAuthClient(chat.giga.http.client.HttpClient httpClient, String clientId,  String secret, String authKey,
             Scope scope, String authApiUrl) {
@@ -80,4 +81,17 @@ class OAuthClient extends TokenBasedAuthClient implements AuthClient {
         return new AccessToken(token.accessToken(), Instant.ofEpochMilli(token.expiresAt()));
     }
 
+    /**
+     * Закрыть OAuth-клиент и освободить ресурсы.
+     * <p>Внимание: при закрытии также закрывается {@code HttpClient},
+     * переданный в конструктор или созданный через {@code AuthClientBuilder}.
+     * Повторный вызов — no-op.
+     */
+    @Override
+    public void close() {
+        if (!closed.compareAndSet(false, true)) {
+            return;
+        }
+        httpClient.close();
+    }
 }

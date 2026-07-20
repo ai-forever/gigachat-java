@@ -206,4 +206,9 @@ public class LoggingHttpClient implements HttpClient {
             return e;
         });
     }
+
+    @Override
+    public void close() {
+        client.close();
+    }
 }

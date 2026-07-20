@@ -30,7 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public interface GigaChatClientAsync {
+public interface GigaChatClientAsync extends AutoCloseable {
 
     /**
      * Получить список моделей
@@ -210,6 +210,18 @@ public interface GigaChatClientAsync {
      * @return ответ с признаком наличия ненормативной лексики и информацией об использовании токенов.
      */
     CompletableFuture<FilterCheckResponse> filterCheck(FilterCheckRequest request);
+
+    /**
+     * Закрыть клиент и освободить все внутренние ресурсы (HTTP-клиент, подключения).
+     * <p>Внимание: при закрытии также закрывается переданный извне {@code HttpClient}
+     * (через {@code apiHttpClient} или {@code withCertificatesAuth}/{@code withOAuth}). Если вы используете
+     * общий {@code HttpClient} для нескольких компонентов, не используйте try-with-resources для данного клиента,
+     * чтобы избежать его автоматического закрытия.
+     * <p>Внимание: закрытие не дожидается завершения текущих запросов и не отменяет их —
+     * выполняющиеся запросы продолжат работу, но результаты могут быть недоступны после закрытия клиента.
+     */
+    @Override
+    void close();
 
     /**
      * Проверить текст на наличие сгенерированного с помощью нейросетевых моделей контента.

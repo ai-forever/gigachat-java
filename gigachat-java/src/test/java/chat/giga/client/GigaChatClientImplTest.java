@@ -658,4 +658,12 @@ class GigaChatClientImplTest {
             assertThat(objectMapper.readValue(r.body(), FilterCheckRequest.class)).isEqualTo(request);
         });
     }
+
+    @Test
+    void close() {
+        gigaChatClient.close();
+
+        verify(httpClient).close();
+        verify(authClient).close();
+    }
 }
