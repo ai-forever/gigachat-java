@@ -1,5 +1,6 @@
 package chat.giga.model.completion;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Singular;
@@ -40,6 +41,7 @@ public class ChatFunctionParametersProperty implements Serializable {
      */
     @JsonProperty
     @Singular
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     Map<String, Object> items;
 
     /**
@@ -47,6 +49,7 @@ public class ChatFunctionParametersProperty implements Serializable {
      */
     @JsonProperty("enum")
     @Singular("addEnum")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     List<String> enums;
 
     /**
@@ -54,6 +57,7 @@ public class ChatFunctionParametersProperty implements Serializable {
      */
     @JsonProperty
     @Singular
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     Map<String, ChatFunctionParametersProperty> properties;
 
     /**
@@ -61,6 +65,7 @@ public class ChatFunctionParametersProperty implements Serializable {
      */
     @JsonProperty("anyOf")
     @Singular("anyOf")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     List<ChatFunctionParametersProperty> anyOf;
 
     /**
