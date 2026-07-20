@@ -24,7 +24,7 @@ GigaChat — это Java-библиотека для работы с [REST API G
 ### Gradle
 
 ```kotlin
-implementation("chat.giga:gigachat-java:0.1.18")
+implementation("chat.giga:gigachat-java:0.1.19")
 ```
 
 ### Maven
@@ -33,7 +33,7 @@ implementation("chat.giga:gigachat-java:0.1.18")
 <dependency>
     <groupId>chat.giga</groupId>
     <artifactId>gigachat-java</artifactId>
-    <version>0.1.18</version>
+    <version>0.1.19</version>
 </dependency>
 ```
 
