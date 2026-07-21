@@ -15,7 +15,7 @@ class CompletionMessageDoneEventV2DeserTest {
         String json = """
                 {
                   "model": "GigaChat",
-                  "created_at": "167890456789",
+                  "created_at": 167890456789,
                   "finish_reason": "error",
                   "usage": {
                     "input_tokens": 0,

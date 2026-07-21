@@ -1,7 +1,6 @@
 package chat.giga.model.v2.completion;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
@@ -36,10 +35,10 @@ public class FunctionSpecificationV2 implements Serializable {
     String description;
 
     /**
-     * Параметры вызова в виде JSON Schema.
+     * Параметры вызова в виде JSON Schema (нейтральный JSON: {@code Map}/{@code List}/примитивы).
      */
     @JsonProperty
-    JsonNode parameters;
+    Object parameters;
 
     /**
      * Примеры пар «запрос пользователя — параметры вызова» для улучшения работы модели на инференсе.
@@ -49,8 +48,8 @@ public class FunctionSpecificationV2 implements Serializable {
     List<FewShotExampleV2> fewShotExamples;
 
     /**
-     * JSON Schema возвращаемых функцией параметров.
+     * JSON Schema возвращаемых функцией параметров (нейтральный JSON: {@code Map}/{@code List}/примитивы).
      */
     @JsonProperty("return_parameters")
-    JsonNode returnParameters;
+    Object returnParameters;
 }
