@@ -2,7 +2,7 @@ package chat.giga;
 
 import chat.giga.client.GigaChatClient;
 import chat.giga.client.auth.AuthClient;
-import chat.giga.client.auth.AuthClientBuilder.OAuthBuilder;
+import chat.giga.client.auth.AuthClientBuilder;
 import chat.giga.http.client.HttpClientException;
 import chat.giga.model.Scope;
 import chat.giga.model.file.FileResponse;
@@ -20,14 +20,20 @@ public class FileStreamingExample {
     public static void main(String[] args) {
 
         try (GigaChatClient client = GigaChatClient.builder()
+
                 .verifySslCerts(false)
+                .apiUrl("https://gigachat.sberdevices.ru/v1")
                 .authClient(AuthClient.builder()
-                        .withOAuth(OAuthBuilder.builder()
+                        .withUserPassword(AuthClientBuilder.UserPasswordAuthBuilder.builder()
+                                .authApiUrl("https://gigachat.sberdevices.ru/v1")
                                 .scope(Scope.GIGACHAT_API_PERS)
-                                .clientId("your-client-id")
-                                .clientSecret("your-client-secret")
+                                .user(System.getenv("AUTH_USER"))
+                                .password(System.getenv("AUTH_PASS"))
                                 .build())
                         .build())
+                .logResponses(true)
+                .logRequests(true)
+                .readTimeout(90)
                 .build()) {
 
             String fileName = "hello.txt";
