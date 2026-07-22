@@ -43,16 +43,18 @@ import chat.giga.model.filter.FilterCheckRequest;
 import chat.giga.model.filter.FilterCheckResponse;
 import chat.giga.model.filter.FilterCheckSettings;
 import chat.giga.model.filter.FilterCheckUsage;
-import lombok.experimental.UtilityClass;
 
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@UtilityClass
-public class TestData {
 
-    public ModelResponse modelResponse() {
+public final class TestData {
+
+    private TestData() {
+    }
+
+    public static ModelResponse modelResponse() {
         return ModelResponse.builder()
                 .addData(Model.builder().id("test").object("test").ownedBy("test").build())
                 .addData(Model.builder().id("test2").object("test2").ownedBy("test2").build())
@@ -60,7 +62,7 @@ public class TestData {
                 .build();
     }
 
-    public CompletionRequest completionRequest() {
+    public static CompletionRequest completionRequest() {
         return CompletionRequest.builder(ChatFunctionCall.builder()
                         .name("testFunc")
                         .partialArguments(Map.of("testArg", "testVal"))
@@ -104,7 +106,7 @@ public class TestData {
                 .build();
     }
 
-    public CompletionResponse completionResponse() {
+    public static CompletionResponse completionResponse() {
         return CompletionResponse.builder()
                 .choice(Choice.builder()
                         .message(ChoiceMessage.builder()
@@ -132,7 +134,7 @@ public class TestData {
                 .build();
     }
 
-    public CompletionChunkResponse completionChunkResponse() {
+    public static CompletionChunkResponse completionChunkResponse() {
         return CompletionChunkResponse.builder()
                 .choice(ChoiceChunk.builder()
                         .delta(ChoiceMessageChunk.builder()
@@ -152,14 +154,14 @@ public class TestData {
                 .build();
     }
 
-    public EmbeddingRequest embeddingRequest() {
+    public static EmbeddingRequest embeddingRequest() {
         return EmbeddingRequest.builder()
                 .model("Embeddings")
                 .input(List.of("Расскажи о современных технологиях"))
                 .build();
     }
 
-    public EmbeddingResponse embeddingResponse() {
+    public static EmbeddingResponse embeddingResponse() {
         return EmbeddingResponse.builder()
                 .model("Embeddings")
                 .object("list")
@@ -174,7 +176,7 @@ public class TestData {
                 .build();
     }
 
-    public UploadFileRequest uploadFileRequest() {
+    public static UploadFileRequest uploadFileRequest() {
         return UploadFileRequest.builder()
                 .file(new byte[100])
                 .purpose("general")
@@ -183,7 +185,7 @@ public class TestData {
                 .build();
     }
 
-    public FileResponse fileResponse() {
+    public static FileResponse fileResponse() {
         return FileResponse.builder()
                 .id(UUID.randomUUID())
                 .object("object")
@@ -195,7 +197,7 @@ public class TestData {
                 .build();
     }
 
-    public AvailableFilesResponse availableFilesResponse() {
+    public static AvailableFilesResponse availableFilesResponse() {
         return AvailableFilesResponse.builder()
                 .data(List.of(FileResponse.builder()
                         .accessPolicy(AccessPolicy.PRIVATE)
@@ -209,28 +211,28 @@ public class TestData {
                 .build();
     }
 
-    public FileDeletedResponse fileDeletedResponse() {
+    public static FileDeletedResponse fileDeletedResponse() {
         return FileDeletedResponse.builder()
                 .deleted(true)
                 .id(UUID.randomUUID())
                 .build();
     }
 
-    public TokenCountRequest tokenCountRequest() {
+    public static TokenCountRequest tokenCountRequest() {
         return TokenCountRequest.builder()
                 .model("testModel")
                 .addInput("test")
                 .build();
     }
 
-    public List<TokenCount> tokenCounts() {
+    public static List<TokenCount> tokenCounts() {
         return List.of(TokenCount.builder()
                 .tokens(1)
                 .characters(2)
                 .build());
     }
 
-    public BalanceResponse balanceResponse() {
+    public static BalanceResponse balanceResponse() {
         return BalanceResponse.builder()
                 .addBalance(Balance.builder()
                         .usage("testModel")
@@ -239,7 +241,7 @@ public class TestData {
                 .build();
     }
 
-    public BatchCreateResponse batchCreateResponse() {
+    public static BatchCreateResponse batchCreateResponse() {
         return BatchCreateResponse.builder()
                 .id("batch-id-123")
                 .method(BatchMethod.CHAT_COMPLETIONS)
@@ -250,7 +252,7 @@ public class TestData {
                 .build();
     }
 
-    public List<BatchItem> batchStatusResponse() {
+    public static List<BatchItem> batchStatusResponse() {
         return List.of(BatchItem.builder()
                 .id("batch-id-123")
                 .method(BatchMethod.CHAT_COMPLETIONS)
@@ -262,7 +264,7 @@ public class TestData {
                 .build());
     }
 
-    public FilterCheckRequest filterCheckRequest() {
+    public static FilterCheckRequest filterCheckRequest() {
         return FilterCheckRequest.builder()
                 .model("GigaFilter")
                 .settings(FilterCheckSettings.builder()
@@ -280,14 +282,14 @@ public class TestData {
     }
 
 
-    public AiCheckRequest aiCheckRequest() {
+    public static AiCheckRequest aiCheckRequest() {
         return AiCheckRequest.builder()
                 .model("GigaCheckClassification")
                 .input("Первый искусственный спутник Земли был запущен Советским Союзом 4 октября 1957 года.")
                 .build();
     }
 
-    public AiCheckResponse aiCheckResponse() {
+    public static AiCheckResponse aiCheckResponse() {
         return AiCheckResponse.builder()
                 .category("ai")
                 .characters(158)
@@ -296,7 +298,7 @@ public class TestData {
                 .build();
     }
 
-    public FilterCheckResponse filterCheckResponse() {
+    public static FilterCheckResponse filterCheckResponse() {
         return FilterCheckResponse.builder()
                 .isProfane(true)
                 .usage(FilterCheckUsage.builder()

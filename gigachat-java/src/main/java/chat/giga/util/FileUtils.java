@@ -1,16 +1,15 @@
 package chat.giga.util;
-
-import lombok.experimental.UtilityClass;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.SequenceInputStream;
 import java.nio.charset.StandardCharsets;
 
-@UtilityClass
-public class FileUtils {
+public final class FileUtils {
 
-    public byte[] createMultiPartBody(byte[] fileBytes, String boundary, String purpose, String mimeType,
+    private FileUtils() {
+    }
+
+    public static byte[] createMultiPartBody(byte[] fileBytes, String boundary, String purpose, String mimeType,
                                       String fileName) {
 
         StringBuilder bodyBuilder = new StringBuilder();

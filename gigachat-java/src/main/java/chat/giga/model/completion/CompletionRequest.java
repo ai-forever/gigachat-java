@@ -1,8 +1,8 @@
 package chat.giga.model.completion;
 
 import chat.giga.jackson.FunctionCallJsonDeserializer;
+import chat.giga.jackson.FunctionCallValueDeserializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Singular;
@@ -57,7 +57,8 @@ public class CompletionRequest implements Serializable {
      * случае вернется ошибка.
      */
     @JsonProperty("function_call")
-    @JsonDeserialize(using = FunctionCallJsonDeserializer.class)
+    @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using = FunctionCallJsonDeserializer.class)
+    @tools.jackson.databind.annotation.JsonDeserialize(using = FunctionCallValueDeserializer.class)
     Object functionCall;
 
     /**

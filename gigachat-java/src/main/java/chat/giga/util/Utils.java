@@ -1,11 +1,12 @@
 package chat.giga.util;
 
-import lombok.experimental.UtilityClass;
 
-@UtilityClass
-public class Utils {
+public final class Utils {
 
-    public <T> T getOrDefault(T value, T defaultValue) {
+    private Utils() {
+    }
+
+    public static <T> T getOrDefault(T value, T defaultValue) {
         return value != null ? value : defaultValue;
     }
 }

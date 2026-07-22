@@ -3,7 +3,6 @@ package chat.giga.model.v2.completion;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
@@ -42,5 +41,5 @@ public class ExecutionStepPayloadV2 implements Serializable {
     String functionExecuted;
 
     @JsonProperty("function_result")
-    JsonNode functionResult;
+    Object functionResult;
 }

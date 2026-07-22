@@ -400,6 +400,5 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
     @Override
     public void close() {
         super.close();
-        authClient.close();
     }
 }

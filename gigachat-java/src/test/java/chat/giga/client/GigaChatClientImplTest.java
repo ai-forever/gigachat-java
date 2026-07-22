@@ -662,6 +662,14 @@ class GigaChatClientImplTest {
     }
 
     @Test
+    void close() {
+        gigaChatClient.close();
+
+        verify(httpClient).close();
+        verify(authClient).close();
+    }
+
+    @Test
     void uploadFileStreaming() throws JsonProcessingException {
         var body = TestData.fileResponse();
         when(httpClient.execute(any()))
@@ -702,13 +710,5 @@ class GigaChatClientImplTest {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    @Test
-    void close() {
-        gigaChatClient.close();
-
-        verify(httpClient).close();
-        verify(authClient).close();
     }
 }

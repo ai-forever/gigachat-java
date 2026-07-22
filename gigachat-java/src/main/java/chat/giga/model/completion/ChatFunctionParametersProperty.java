@@ -41,6 +41,7 @@ public class ChatFunctionParametersProperty implements Serializable {
      */
     @JsonProperty
     @Singular
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     Map<String, Object> items;
 
     /**
@@ -48,6 +49,7 @@ public class ChatFunctionParametersProperty implements Serializable {
      */
     @JsonProperty("enum")
     @Singular("addEnum")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     List<String> enums;
 
     /**
@@ -55,6 +57,7 @@ public class ChatFunctionParametersProperty implements Serializable {
      */
     @JsonProperty
     @Singular
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     Map<String, ChatFunctionParametersProperty> properties;
 
     /**
