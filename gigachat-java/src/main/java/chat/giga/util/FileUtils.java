@@ -38,7 +38,7 @@ public final class FileUtils {
      * частей через SequenceInputStream: заголовок + файл + завершение. Вызывающая сторона ОБЯЗАНА закрыть возвращённый
      * InputStream.
      */
-    public InputStream createMultiPartBodyAsStream(InputStream fileStream, String boundary, String purpose,
+    public static InputStream createMultiPartBodyAsStream(InputStream fileStream, String boundary, String purpose,
             String mimeType, String fileName) {
         StringBuilder bodyBuilder = new StringBuilder();
         bodyBuilder.append("--").append(boundary).append("\r\n")
