@@ -17,6 +17,13 @@ GigaChat — это Java-библиотека для работы с [REST API G
 
 Для работы библиотеки установите Java версии 17 или выше.
 
+## Совместимость с Jackson
+
+Внутри SDK для HTTP-сериализации используется Jackson 2 (`jackson-databind` приходит транзитивно).
+
+Модели SDK (`CompletionRequest` и другие DTO) можно сериализовать и десериализовать как через Jackson 2, так и через
+Jackson 3 — например, через `JsonMapper` из Spring Boot 4.
+
 ## Установка
 
 Чтобы установить библиотеку, подключите ее в зависимости.
@@ -24,7 +31,7 @@ GigaChat — это Java-библиотека для работы с [REST API G
 ### Gradle
 
 ```kotlin
-implementation("chat.giga:gigachat-java:0.1.19")
+implementation("chat.giga:gigachat-java:0.1.20")
 ```
 
 ### Maven
@@ -33,7 +40,7 @@ implementation("chat.giga:gigachat-java:0.1.19")
 <dependency>
     <groupId>chat.giga</groupId>
     <artifactId>gigachat-java</artifactId>
-    <version>0.1.19</version>
+    <version>0.1.20</version>
 </dependency>
 ```
 

@@ -1,7 +1,6 @@
 package chat.giga.model.v2.completion;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Builder;
 import lombok.Value;
 import lombok.experimental.Accessors;
@@ -27,8 +26,8 @@ public class FunctionResultContentV2 implements Serializable {
     String name;
 
     /**
-     * Результат выполнения функции: объект или строка (формат согласуется с бэкендом).
+     * Результат выполнения функции: объект или строка (нейтральный JSON: {@code Map}/{@code List}/примитивы/строка).
      */
     @JsonProperty
-    JsonNode result;
+    Object result;
 }

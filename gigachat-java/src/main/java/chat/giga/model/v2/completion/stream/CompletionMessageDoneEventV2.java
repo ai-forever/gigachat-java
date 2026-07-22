@@ -1,12 +1,10 @@
 package chat.giga.model.v2.completion.stream;
 
-import chat.giga.jackson.FlexibleLongDeserializer;
 import chat.giga.model.v2.completion.AdditionalDataV2;
 import chat.giga.model.v2.completion.ChatMessageV2;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.Value;
@@ -36,10 +34,9 @@ public class CompletionMessageDoneEventV2 implements Serializable {
     String model;
 
     /**
-     * Время создания (unix time; допускается строка в JSON — см. десериализатор).
+     * Время создания (unix time).
      */
     @JsonProperty("created_at")
-    @JsonDeserialize(using = FlexibleLongDeserializer.class)
     Long createdAt;
 
     /**
