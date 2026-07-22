@@ -30,6 +30,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
 
 public interface GigaChatClientAsync extends AutoCloseable {
 
@@ -126,16 +127,18 @@ public interface GigaChatClientAsync extends AutoCloseable {
     CompletableFuture<FileResponse> uploadFile(UploadFileRequest request);
 
     /**
-     * Загрузить файл через InputStream (без загрузки в память). Подходит для больших файлов.
+     * Загрузить файл через InputStream (без загрузки в память). Принимает поставщик потока: на каждую попытку запроса
+     * (включая retry после 401) вызывается {@code fileStreamSupplier.get()}, чтобы получить новый поток. Подходит для
+     * больших файлов.
      *
-     * @param purpose    назначение загружаемого файла (например, "general")
-     * @param fileStream поток с содержимым файла
-     * @param mimeType   MIME-тип файла
-     * @param fileName   наименование файла
+     * @param purpose            назначение загружаемого файла (например, "general")
+     * @param fileStreamSupplier поставщик потока с содержимым файла
+     * @param mimeType           MIME-тип файла
+     * @param fileName           наименование файла
      * @return данные загруженного файла
      */
-    CompletableFuture<FileResponse> uploadFileAsStream(String purpose, InputStream fileStream, String mimeType,
-            String fileName);
+    CompletableFuture<FileResponse> uploadFileAsStream(String purpose, Supplier<InputStream> fileStreamSupplier,
+            String mimeType, String fileName);
 
     /**
      * Скачать файл

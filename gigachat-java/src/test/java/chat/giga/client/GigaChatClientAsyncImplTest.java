@@ -49,6 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -722,8 +723,9 @@ class GigaChatClientAsyncImplTest {
                         .body(objectMapper.writeValueAsBytes(body))
                         .build()));
 
-        var fileStream = new ByteArrayInputStream("test async content".getBytes());
-        var response = gigaChatClientAsync.uploadFileAsStream("general", fileStream, "text/plain", "test.txt").get();
+        var fileBytes = "test async content".getBytes();
+        var response = gigaChatClientAsync.uploadFileAsStream("general",
+                () -> new ByteArrayInputStream(fileBytes), "text/plain", "test.txt").get();
 
         assertThat(response).isEqualTo(body);
 
@@ -740,7 +742,7 @@ class GigaChatClientAsyncImplTest {
     @Test
     void downloadFileAsStream() throws Exception {
         var fileContent = "async downloaded".getBytes();
-        when(httpClient.executeAsync(any()))
+        when(httpClient.executeAsyncWithInputStream(any()))
                 .thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
                         .statusCode(200)
                         .bodyStream(new ByteArrayInputStream(fileContent))
@@ -748,6 +750,9 @@ class GigaChatClientAsyncImplTest {
 
         var stream = gigaChatClientAsync.downloadFileAsStream("file-id", "client-id").get();
         assertThat(stream.readAllBytes()).isEqualTo(fileContent);
+
+        verify(httpClient).executeAsyncWithInputStream(any());
+        verify(httpClient, never()).executeAsync(any());
     }
 
     @Test

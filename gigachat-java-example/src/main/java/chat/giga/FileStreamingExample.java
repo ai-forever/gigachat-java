@@ -12,8 +12,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Пример использования стриминговых методов uploadFile(InputStream, ...) и downloadFileAsStream(...), которые не
- * загружают файл целиком в память. Полезно для больших файлов (сотни МБ).
+ * Пример использования стриминговых методов uploadFileAsStream(Supplier&lt;InputStream&gt;, ...) и
+ * downloadFileAsStream(...), которые не загружают файл целиком в память. Полезно для больших файлов (сотни МБ).
  */
 public class FileStreamingExample {
 
@@ -39,9 +39,10 @@ public class FileStreamingExample {
             String fileName = "hello.txt";
             String mimeType = "text/plain";
             String fileContent = "Привет, мир! Это стриминговая загрузка.";
-            InputStream fileStream = new ByteArrayInputStream(fileContent.getBytes(StandardCharsets.UTF_8));
+            byte[] fileBytes = fileContent.getBytes(StandardCharsets.UTF_8);
 
-            FileResponse uploaded = client.uploadFileAsStream("general", fileStream, mimeType, fileName);
+            FileResponse uploaded = client.uploadFileAsStream("general",
+                    () -> new ByteArrayInputStream(fileBytes), mimeType, fileName);
             System.out.println("Загружен файл: " + uploaded.id());
 
             // Скачиваем обратно через стрим

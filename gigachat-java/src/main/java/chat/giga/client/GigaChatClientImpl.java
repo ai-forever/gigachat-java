@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatClient {
 
@@ -111,16 +112,18 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
     }
 
     @Override
-    public FileResponse uploadFileAsStream(String purpose, InputStream fileStream, String mimeType, String fileName) {
-        var request = UploadFileRequest.builder()
-                .purpose(purpose)
-                .mimeType(mimeType)
-                .fileName(fileName)
-                .bodyAsStream(fileStream)
-                .build();
-
+    public FileResponse uploadFileAsStream(String purpose, Supplier<InputStream> fileStreamSupplier, String mimeType,
+            String fileName) {
         var response = RetryUtils.retry401(
-                () -> httpClient.execute(createUploadFileHttpRequestStreaming(request)),
+                () -> {
+                    var request = UploadFileRequest.builder()
+                            .purpose(purpose)
+                            .mimeType(mimeType)
+                            .fileName(fileName)
+                            .bodyAsStream(fileStreamSupplier.get())
+                            .build();
+                    return httpClient.execute(createUploadFileHttpRequestStreaming(request));
+                },
                 maxRetriesOnAuthError);
 
         try {

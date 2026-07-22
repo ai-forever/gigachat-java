@@ -5,6 +5,7 @@ import lombok.Builder.Default;
 import lombok.Value;
 import lombok.experimental.Accessors;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -22,8 +23,18 @@ public class HttpResponse {
     byte[] body;
     InputStream bodyStream;
 
+    /**
+     * Тело ответа как поток. Если {@code bodyStream} не задан, но есть {@code body}, возвращает
+     * {@link ByteArrayInputStream} над ним.
+     */
     public InputStream bodyAsStream() {
-        return bodyStream;
+        if (bodyStream != null) {
+            return bodyStream;
+        }
+        if (body != null) {
+            return new ByteArrayInputStream(body);
+        }
+        return null;
     }
 
     public String bodyAsString() {

@@ -222,6 +222,20 @@ public class LoggingHttpClient implements HttpClient {
     }
 
     @Override
+    public CompletableFuture<HttpResponse> executeAsyncWithInputStream(HttpRequest request) {
+        if (logRequests) {
+            logRequest(request);
+        }
+
+        return client.executeAsyncWithInputStream(request).thenApply(response -> {
+            if (logResponses) {
+                logStreamingResponse(response.statusCode(), response.headers());
+            }
+            return response;
+        });
+    }
+
+    @Override
     public void close() {
         client.close();
     }

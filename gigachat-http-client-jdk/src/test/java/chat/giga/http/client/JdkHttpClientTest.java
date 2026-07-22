@@ -172,6 +172,56 @@ class JdkHttpClientTest {
     }
 
     @Test
+    void executeWithInputStream() throws Exception {
+        var headers = Map.of("testHeader", List.of("testValue"));
+        var request = HttpRequest.builder()
+                .url("http://test")
+                .method(HttpMethod.GET)
+                .headers(headers)
+                .build();
+
+        var captor = ArgumentCaptor.forClass(java.net.http.HttpRequest.class);
+        when(delegate.<InputStream>send(captor.capture(), any())).thenReturn(jdkResponse);
+        when(jdkResponse.statusCode()).thenReturn(200);
+        when(jdkResponse.headers()).thenReturn(HttpHeaders.of(headers, (hn, hv) -> true));
+        when(jdkResponse.body()).thenReturn(new ByteArrayInputStream("stream-body".getBytes()));
+
+        var response = httpClient.executeWithInputStream(request);
+
+        assertThat(response).satisfies(r -> {
+            assertThat(r.statusCode()).isEqualTo(200);
+            assertThat(r.body()).isNull();
+            assertThat(r.bodyAsStream()).isNotNull();
+            assertThat(new String(r.bodyAsStream().readAllBytes(), StandardCharsets.UTF_8)).isEqualTo("stream-body");
+        });
+    }
+
+    @Test
+    void executeAsyncWithInputStream() throws Exception {
+        var headers = Map.of("testHeader", List.of("testValue"));
+        var request = HttpRequest.builder()
+                .url("http://test")
+                .method(HttpMethod.GET)
+                .headers(headers)
+                .build();
+
+        when(delegate.<InputStream>sendAsync(any(), any()))
+                .thenReturn(CompletableFuture.completedFuture(jdkResponse));
+        when(jdkResponse.statusCode()).thenReturn(200);
+        when(jdkResponse.headers()).thenReturn(HttpHeaders.of(headers, (hn, hv) -> true));
+        when(jdkResponse.body()).thenReturn(new ByteArrayInputStream("async-stream".getBytes()));
+
+        var response = httpClient.executeAsyncWithInputStream(request).get();
+
+        assertThat(response).satisfies(r -> {
+            assertThat(r.statusCode()).isEqualTo(200);
+            assertThat(r.body()).isNull();
+            assertThat(r.bodyAsStream()).isNotNull();
+            assertThat(new String(r.bodyAsStream().readAllBytes(), StandardCharsets.UTF_8)).isEqualTo("async-stream");
+        });
+    }
+
+    @Test
     void executeWithSse() throws Exception {
         var headers = Map.of("testHeader", List.of("testValue"));
         var request = HttpRequest.builder()

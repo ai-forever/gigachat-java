@@ -81,6 +81,7 @@ public class JdkHttpClient implements HttpClient {
      * Выполнить запрос и вернуть ответ, где тело доступно как InputStream (без загрузки в память). Вызывающая сторона
      * ОБЯЗАНА закрыть InputStream после чтения.
      */
+    @Override
     public HttpResponse executeWithInputStream(HttpRequest request) {
         try {
             var jdkResponse = delegate.send(mapJdkRequest(request), BodyHandlers.ofInputStream());
@@ -101,6 +102,23 @@ public class JdkHttpClient implements HttpClient {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public CompletableFuture<HttpResponse> executeAsyncWithInputStream(HttpRequest request) {
+        var jdkRequest = mapJdkRequest(request);
+
+        return delegate.sendAsync(jdkRequest, BodyHandlers.ofInputStream())
+                .thenApply(r -> {
+                    if (!isSuccessful(r)) {
+                        throw getClientException(r);
+                    }
+                    return HttpResponse.builder()
+                            .statusCode(r.statusCode())
+                            .headers(r.headers().map())
+                            .bodyStream(r.body())
+                            .build();
+                });
     }
 
     @Override

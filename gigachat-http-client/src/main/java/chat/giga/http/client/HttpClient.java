@@ -35,9 +35,23 @@ public interface HttpClient {
     /**
      * Выполнить запрос и вернуть ответ, где тело доступно как InputStream (без загрузки в память). Вызывающая сторона
      * ОБЯЗАНА закрыть InputStream после чтения.
+     * <p>
+     * Реализация по умолчанию вызывает {@link #execute(HttpRequest)}; поток берётся из {@link HttpResponse#bodyAsStream()},
+     * который при отсутствии {@code bodyStream} отдаёт обёртку над {@code body}.
      */
     default HttpResponse executeWithInputStream(HttpRequest request) {
         return execute(request);
+    }
+
+    /**
+     * Асинхронно выполнить запрос и вернуть ответ, где тело доступно как InputStream (без загрузки в память).
+     * Вызывающая сторона ОБЯЗАНА закрыть InputStream после чтения.
+     * <p>
+     * Реализация по умолчанию вызывает {@link #executeAsync(HttpRequest)}; поток берётся из
+     * {@link HttpResponse#bodyAsStream()}.
+     */
+    default CompletableFuture<HttpResponse> executeAsyncWithInputStream(HttpRequest request) {
+        return executeAsync(request);
     }
 
     /**

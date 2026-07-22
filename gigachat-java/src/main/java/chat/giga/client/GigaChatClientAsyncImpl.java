@@ -6,6 +6,7 @@ import chat.giga.http.client.HttpClientException;
 import chat.giga.http.client.HttpHeaders;
 import chat.giga.http.client.HttpMethod;
 import chat.giga.http.client.HttpRequest;
+import chat.giga.http.client.HttpResponse;
 import chat.giga.http.client.MediaType;
 import chat.giga.http.client.sse.SseEventListener;
 import chat.giga.http.client.sse.SseListener;
@@ -47,6 +48,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaChatClientAsync {
 
     @Builder
@@ -247,24 +249,25 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
     }
 
     @Override
-    public CompletableFuture<FileResponse> uploadFileAsStream(String purpose, InputStream fileStream, String mimeType,
-            String fileName) {
-        var request = UploadFileRequest.builder()
-                .purpose(purpose)
-                .mimeType(mimeType)
-                .fileName(fileName)
-                .bodyAsStream(fileStream)
-                .build();
-
+    public CompletableFuture<FileResponse> uploadFileAsStream(String purpose, Supplier<InputStream> fileStreamSupplier,
+            String mimeType, String fileName) {
         return RetryUtils.retry401Async(
-                () -> httpClient.executeAsync(createUploadFileHttpRequestStreaming(request))
-                        .thenApply(r -> {
-                            try {
-                                return objectMapper.readValue(r.body(), FileResponse.class);
-                            } catch (IOException e) {
-                                throw new UncheckedIOException(e);
-                            }
-                        }), maxRetriesOnAuthError);
+                () -> {
+                    var request = UploadFileRequest.builder()
+                            .purpose(purpose)
+                            .mimeType(mimeType)
+                            .fileName(fileName)
+                            .bodyAsStream(fileStreamSupplier.get())
+                            .build();
+                    return httpClient.executeAsync(createUploadFileHttpRequestStreaming(request))
+                            .thenApply(r -> {
+                                try {
+                                    return objectMapper.readValue(r.body(), FileResponse.class);
+                                } catch (IOException e) {
+                                    throw new UncheckedIOException(e);
+                                }
+                            });
+                }, maxRetriesOnAuthError);
     }
 
     @Override
@@ -276,13 +279,8 @@ public class GigaChatClientAsyncImpl extends BaseGigaChatClient implements GigaC
     @Override
     public CompletableFuture<InputStream> downloadFileAsStream(String fileId, String clientId) {
         return RetryUtils.retry401Async(
-                () -> httpClient.executeAsync(createDownloadFileHttpRequest(fileId, clientId))
-                        .thenApply(r -> {
-                            if (r.bodyAsStream() != null) {
-                                return r.bodyAsStream();
-                            }
-                            return new ByteArrayInputStream(r.body());
-                        }),
+                () -> httpClient.executeAsyncWithInputStream(createDownloadFileHttpRequest(fileId, clientId))
+                        .thenApply(HttpResponse::bodyAsStream),
                 maxRetriesOnAuthError);
     }
 

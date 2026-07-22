@@ -677,8 +677,9 @@ class GigaChatClientImplTest {
                         .body(objectMapper.writeValueAsBytes(body))
                         .build());
 
-        var fileStream = new ByteArrayInputStream("test file content".getBytes(StandardCharsets.UTF_8));
-        var response = gigaChatClient.uploadFileAsStream("general", fileStream, "text/plain", "test.txt");
+        var fileBytes = "test file content".getBytes(StandardCharsets.UTF_8);
+        var response = gigaChatClient.uploadFileAsStream("general",
+                () -> new ByteArrayInputStream(fileBytes), "text/plain", "test.txt");
 
         assertThat(response).isEqualTo(body);
 
