@@ -77,6 +77,50 @@ public class JdkHttpClient implements HttpClient {
         }
     }
 
+    /**
+     * Выполнить запрос и вернуть ответ, где тело доступно как InputStream (без загрузки в память). Вызывающая сторона
+     * ОБЯЗАНА закрыть InputStream после чтения.
+     */
+    @Override
+    public HttpResponse executeWithInputStream(HttpRequest request) {
+        try {
+            var jdkResponse = delegate.send(mapJdkRequest(request), BodyHandlers.ofInputStream());
+
+            if (!isSuccessful(jdkResponse)) {
+                throw getClientException(jdkResponse);
+            }
+
+            // body оставляем null, bodyStream — живой InputStream из соединения
+            return HttpResponse.builder()
+                    .statusCode(jdkResponse.statusCode())
+                    .headers(jdkResponse.headers().map())
+                    .bodyStream(jdkResponse.body())
+                    .build();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public CompletableFuture<HttpResponse> executeAsyncWithInputStream(HttpRequest request) {
+        var jdkRequest = mapJdkRequest(request);
+
+        return delegate.sendAsync(jdkRequest, BodyHandlers.ofInputStream())
+                .thenApply(r -> {
+                    if (!isSuccessful(r)) {
+                        throw getClientException(r);
+                    }
+                    return HttpResponse.builder()
+                            .statusCode(r.statusCode())
+                            .headers(r.headers().map())
+                            .bodyStream(r.body())
+                            .build();
+                });
+    }
+
     @Override
     public HttpResponse execute(HttpRequest request) {
         try {
@@ -186,6 +230,8 @@ public class JdkHttpClient implements HttpClient {
         BodyPublisher bodyPublisher;
         if (request.body() != null) {
             bodyPublisher = BodyPublishers.ofByteArray(request.body());
+        } else if (request.bodyAsStream() != null) {
+            bodyPublisher = BodyPublishers.ofInputStream(request::bodyAsStream);
         } else {
             bodyPublisher = BodyPublishers.noBody();
         }

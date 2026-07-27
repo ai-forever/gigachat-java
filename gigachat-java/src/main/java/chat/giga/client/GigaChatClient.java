@@ -24,7 +24,9 @@ import chat.giga.model.filter.FilterCheckResponse;
 import chat.giga.model.v2.completion.CompletionRequestV2;
 import chat.giga.model.v2.completion.CompletionResponseV2;
 
+import java.io.InputStream;
 import java.util.List;
+import java.util.function.Supplier;
 
 public interface GigaChatClient extends AutoCloseable {
 
@@ -96,6 +98,20 @@ public interface GigaChatClient extends AutoCloseable {
     FileResponse uploadFile(UploadFileRequest request);
 
     /**
+     * Загрузить файл через InputStream (без загрузки в память). Принимает поставщик потока: на каждую попытку запроса
+     * (включая retry после 401) вызывается {@code fileStreamSupplier.get()}, чтобы получить новый поток. Подходит для
+     * больших файлов.
+     *
+     * @param purpose            назначение загружаемого файла (например, "general")
+     * @param fileStreamSupplier поставщик потока с содержимым файла (поток будет закрыт после отправки)
+     * @param mimeType           MIME-тип файла
+     * @param fileName           наименование файла
+     * @return данные загруженного файла
+     */
+    FileResponse uploadFileAsStream(String purpose, Supplier<InputStream> fileStreamSupplier, String mimeType,
+            String fileName);
+
+    /**
      * Скачать файл
      *
      * @param fileId   Идентификатор изображения, полученный в ответ на запрос пользователя о генерации изображений
@@ -103,6 +119,16 @@ public interface GigaChatClient extends AutoCloseable {
      * @return массив байт файла.
      */
     byte[] downloadFile(String fileId, String clientId);
+
+    /**
+     * Скачать файл как InputStream (без загрузки в память). Возвращает поток, напрямую соединённый с HTTP-ответом.
+     * Вызывающая сторона ОБЯЗАНА закрыть поток после чтения.
+     *
+     * @param fileId   идентификатор файла
+     * @param clientId идентификатор клиента
+     * @return поток с содержимым файла
+     */
+    InputStream downloadFileAsStream(String fileId, String clientId);
 
     /**
      * Получить список доступных файлов

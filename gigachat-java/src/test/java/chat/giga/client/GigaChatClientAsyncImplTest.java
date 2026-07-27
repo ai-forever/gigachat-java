@@ -39,6 +39,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -48,6 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.after;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -711,6 +713,46 @@ class GigaChatClientAsyncImplTest {
             assertThat(r.headers()).containsKey(GigaChatClientImpl.REQUEST_ID_HEADER);
             assertThat(objectMapper.readValue(r.body(), FilterCheckRequest.class)).isEqualTo(request);
         });
+    }
+
+    @Test
+    void uploadFileStreaming() throws Exception {
+        var body = TestData.fileResponse();
+        when(httpClient.executeAsync(any()))
+                .thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
+                        .body(objectMapper.writeValueAsBytes(body))
+                        .build()));
+
+        var fileBytes = "test async content".getBytes();
+        var response = gigaChatClientAsync.uploadFileAsStream("general",
+                () -> new ByteArrayInputStream(fileBytes), "text/plain", "test.txt").get();
+
+        assertThat(response).isEqualTo(body);
+
+        var captor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient).executeAsync(captor.capture());
+
+        assertThat(captor.getValue()).satisfies(r -> {
+            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/files");
+            assertThat(r.method()).isEqualTo(HttpMethod.POST);
+            assertThat(r.bodyAsStream()).isNotNull();
+        });
+    }
+
+    @Test
+    void downloadFileAsStream() throws Exception {
+        var fileContent = "async downloaded".getBytes();
+        when(httpClient.executeAsyncWithInputStream(any()))
+                .thenReturn(CompletableFuture.completedFuture(HttpResponse.builder()
+                        .statusCode(200)
+                        .bodyStream(new ByteArrayInputStream(fileContent))
+                        .build()));
+
+        var stream = gigaChatClientAsync.downloadFileAsStream("file-id", "client-id").get();
+        assertThat(stream.readAllBytes()).isEqualTo(fileContent);
+
+        verify(httpClient).executeAsyncWithInputStream(any());
+        verify(httpClient, never()).executeAsync(any());
     }
 
     @Test

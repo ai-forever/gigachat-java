@@ -28,8 +28,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Builder;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.function.Supplier;
 
 public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatClient {
 
@@ -110,10 +112,40 @@ public class GigaChatClientImpl extends BaseGigaChatClient implements GigaChatCl
     }
 
     @Override
+    public FileResponse uploadFileAsStream(String purpose, Supplier<InputStream> fileStreamSupplier, String mimeType,
+            String fileName) {
+        var response = RetryUtils.retry401(
+                () -> {
+                    var request = UploadFileRequest.builder()
+                            .purpose(purpose)
+                            .mimeType(mimeType)
+                            .fileName(fileName)
+                            .bodyAsStream(fileStreamSupplier.get())
+                            .build();
+                    return httpClient.execute(createUploadFileHttpRequestStreaming(request));
+                },
+                maxRetriesOnAuthError);
+
+        try {
+            return objectMapper.readValue(response.body(), FileResponse.class);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    @Override
     public byte[] downloadFile(String fileId, String clientId) {
         return RetryUtils.retry401(() -> httpClient.execute(createDownloadFileHttpRequest(fileId, clientId)),
                         maxRetriesOnAuthError)
                 .body();
+    }
+
+    @Override
+    public InputStream downloadFileAsStream(String fileId, String clientId) {
+        var response = RetryUtils.retry401(
+                () -> httpClient.executeWithInputStream(createDownloadFileHttpRequest(fileId, clientId)),
+                maxRetriesOnAuthError);
+        return response.bodyAsStream();
     }
 
     @Override

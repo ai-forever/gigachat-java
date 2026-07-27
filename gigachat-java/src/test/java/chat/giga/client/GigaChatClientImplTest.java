@@ -36,7 +36,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
@@ -665,5 +667,49 @@ class GigaChatClientImplTest {
 
         verify(httpClient).close();
         verify(authClient).close();
+    }
+
+    @Test
+    void uploadFileStreaming() throws JsonProcessingException {
+        var body = TestData.fileResponse();
+        when(httpClient.execute(any()))
+                .thenReturn(HttpResponse.builder()
+                        .body(objectMapper.writeValueAsBytes(body))
+                        .build());
+
+        var fileBytes = "test file content".getBytes(StandardCharsets.UTF_8);
+        var response = gigaChatClient.uploadFileAsStream("general",
+                () -> new ByteArrayInputStream(fileBytes), "text/plain", "test.txt");
+
+        assertThat(response).isEqualTo(body);
+
+        var captor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(httpClient).execute(captor.capture());
+
+        assertThat(captor.getValue()).satisfies(r -> {
+            assertThat(r.url()).isEqualTo(GigaChatClientImpl.DEFAULT_API_URL + "/files");
+            assertThat(r.method()).isEqualTo(HttpMethod.POST);
+            assertThat(r.headers().get(HttpHeaders.CONTENT_TYPE)).isNotNull()
+                    .anyMatch(v -> v.startsWith(MediaType.MULTIPART_FORM_DATA));
+            assertThat(r.bodyAsStream()).isNotNull();
+        });
+    }
+
+    @Test
+    void downloadFileAsStream() throws JsonProcessingException {
+        var fileContent = "downloaded content".getBytes(StandardCharsets.UTF_8);
+        when(httpClient.executeWithInputStream(any()))
+                .thenReturn(HttpResponse.builder()
+                        .statusCode(200)
+                        .bodyStream(new ByteArrayInputStream(fileContent))
+                        .build());
+
+        var stream = gigaChatClient.downloadFileAsStream("file-id", "client-id");
+
+        try {
+            assertThat(stream.readAllBytes()).isEqualTo(fileContent);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }
