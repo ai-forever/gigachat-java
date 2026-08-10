@@ -35,6 +35,13 @@ public class ChoiceMessage implements Serializable {
     String content;
 
     /**
+     * Рассуждения модели. Возвращаются моделями с reasoning (например, GigaChat-3) отдельно от
+     * {@link #content} и ответом пользователю не являются.
+     */
+    @JsonProperty("reasoning_content")
+    String reasoningContent;
+
+    /**
      * Передается в сообщениях с ролью`function_in_progress`. Содержит информацию о том, когда был создан фрагмент
      * сообщения.
      */
