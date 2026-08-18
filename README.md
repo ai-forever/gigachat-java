@@ -31,7 +31,7 @@ Jackson 3 — например, через `JsonMapper` из Spring Boot 4.
 ### Gradle
 
 ```kotlin
-implementation("chat.giga:gigachat-java:0.1.22")
+implementation("chat.giga:gigachat-java:0.1.23")
 ```
 
 ### Maven
@@ -40,7 +40,7 @@ implementation("chat.giga:gigachat-java:0.1.22")
 <dependency>
     <groupId>chat.giga</groupId>
     <artifactId>gigachat-java</artifactId>
-    <version>0.1.22</version>
+    <version>0.1.23</version>
 </dependency>
 ```
 
