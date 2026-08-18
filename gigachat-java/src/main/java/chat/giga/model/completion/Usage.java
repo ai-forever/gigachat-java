@@ -1,5 +1,6 @@
 package chat.giga.model.completion;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Value;
@@ -12,6 +13,7 @@ import java.io.Serializable;
 @Builder
 @Jacksonized
 @Accessors(fluent = true)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Usage implements Serializable {
 
     /**

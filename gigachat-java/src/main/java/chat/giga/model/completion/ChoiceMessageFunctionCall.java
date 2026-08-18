@@ -1,5 +1,6 @@
 package chat.giga.model.completion;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Singular;
@@ -14,6 +15,7 @@ import java.util.Map;
 @Builder
 @Jacksonized
 @Accessors(fluent = true)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ChoiceMessageFunctionCall implements Serializable {
 
     /**
@@ -21,6 +23,13 @@ public class ChoiceMessageFunctionCall implements Serializable {
      * Изменить при несовместимых изменениях в структуре класса.
      */
     private static final long serialVersionUID = 1L;
+
+    /**
+     * Идентификатор вызова функции. Возвращается моделью, можно использовать для сопоставления результата выполнения
+     * функции с конкретным вызовом.
+     */
+    @JsonProperty
+    String id;
 
     /**
      * Название функции.
