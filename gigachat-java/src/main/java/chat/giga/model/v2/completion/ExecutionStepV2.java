@@ -23,11 +23,15 @@ public class ExecutionStepV2 implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Время начала выполнения (unix-время).
+     */
     @JsonProperty("ts_start")
-    String tsStart;
+    Long tsStart;
 
+    /** Время окончания выполнения (unix-время). */
     @JsonProperty("ts_end")
-    String tsEnd;
+    Long tsEnd;
 
     @JsonProperty("event_type")
     String eventType;

@@ -42,8 +42,8 @@ class CompletionMessageDoneEventV2DeserTest {
                   "additional_data": {
                     "execution_steps": [
                       {
-                        "ts_start": "",
-                        "ts_end": "",
+                        "ts_start": 1725000000,
+                        "ts_end": 1725000010,
                         "event_type": "execute_ranker",
                         "step": {
                           "functions_in": ["text2image"],
@@ -58,7 +58,36 @@ class CompletionMessageDoneEventV2DeserTest {
         assertThat(ev.additionalData().executionSteps()).hasSize(1);
         var step0 = ev.additionalData().executionSteps().get(0);
         assertThat(step0.eventType()).isEqualTo("execute_ranker");
+        assertThat(step0.tsStart()).isEqualTo(1725000000L);
+        assertThat(step0.tsEnd()).isEqualTo(1725000010L);
         assertThat(step0.step().functionsIn()).containsExactly("text2image");
         assertThat(step0.step().functionsOut()).containsExactly("text2image");
+    }
+
+    @Test
+    void deserializesExecutionStepsFunctionCalls() throws Exception {
+        String json = """
+                {
+                  "additional_data": {
+                    "execution_steps": [
+                      {
+                        "step": {
+                          "function_calls": [
+                            {"id": "fc-1", "name": "get_weather", "arguments": {"city": "Moscow"}},
+                            {"id": "fc-2", "name": "get_rate", "arguments": {"currency": "USD"}}
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+                """;
+        var ev = mapper.readValue(json, CompletionMessageDoneEventV2.class);
+        var calls = ev.additionalData().executionSteps().get(0).step().functionCalls();
+        assertThat(calls).hasSize(2);
+        assertThat(calls.get(0).id()).isEqualTo("fc-1");
+        assertThat(calls.get(0).name()).isEqualTo("get_weather");
+        assertThat(calls.get(0).arguments()).containsEntry("city", "Moscow");
+        assertThat(calls.get(1).name()).isEqualTo("get_rate");
     }
 }

@@ -42,4 +42,12 @@ public class ExecutionStepPayloadV2 implements Serializable {
 
     @JsonProperty("function_result")
     Object functionResult;
+
+    /**
+     * Массив результатов работы с пользовательскими и встроенными функциями; заполняется при
+     * {@code model_options.parallel_tool_calls: true}.
+     */
+    @JsonProperty("function_calls")
+    @Singular("functionCallEntry")
+    List<FunctionCallContentV2> functionCalls;
 }
