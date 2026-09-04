@@ -10,7 +10,7 @@ java {
 
 allprojects {
     group = "chat.giga"
-    version = "0.1.23"
+    version = "0.1.24"
 
     repositories {
         mavenCentral()
