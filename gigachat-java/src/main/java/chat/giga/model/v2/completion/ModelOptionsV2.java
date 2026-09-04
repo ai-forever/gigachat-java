@@ -25,13 +25,6 @@ public class ModelOptionsV2 implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Пресет настроек (фильтры, модели, LoRA-адаптеры). Использование пресета должно быть согласовано с политикой
-     * безопасности.
-     */
-    @JsonProperty
-    String preset;
-
-    /**
      * Температура выборки {@code > 0}: выше — более случайный вывод, ниже — более целенаправленный. Оптимальные
      * значения подбираются и подставляются по умолчанию для конкретной модели.
      */
@@ -90,4 +83,12 @@ public class ModelOptionsV2 implements Serializable {
      */
     @JsonProperty("response_format")
     ResponseFormat responseFormat;
+
+    /**
+     * Включение параллельного использования нескольких функций/тулов. В этом режиме модель может вернуть аргументы
+     * сразу для нескольких функций или вызвать несколько встроенных функций одновременно; результаты приходят в
+     * {@code messages[].content} и {@code additional_data.execution_steps[].step.function_calls}.
+     */
+    @JsonProperty("parallel_tool_calls")
+    Boolean parallelToolCalls;
 }

@@ -3,11 +3,14 @@ package chat.giga.model.v2.completion;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
+import lombok.Singular;
 import lombok.Value;
 import lombok.experimental.Accessors;
 import lombok.extern.jackson.Jacksonized;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Объект {@code tool_config}: поведение при вызове тулов. В JSON поля в snake_case ({@code tool_name},
@@ -23,8 +26,9 @@ public class ToolConfigV2 implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * Режим вызова: {@code auto}, {@code none} или {@code forced}. В режиме {@code forced} выполняется принудительный
-     * вызов встроенного тула или функции из {@code tools.functions}.
+     * Режим вызова: {@code auto}, {@code none}, {@code forced} или {@code any}. {@code forced} — принудительный вызов
+     * встроенного тула или функции из {@code tools.functions}; {@code any} — модель гарантированно сгенерирует
+     * аргументы минимум для одной из функций {@code functions_names_any}.
      */
     @JsonProperty
     String mode;
@@ -41,6 +45,14 @@ public class ToolConfigV2 implements Serializable {
     @JsonProperty("function_name")
     String functionName;
 
+    /**
+     * Список названий функций из {@code tools.functions.specifications} для режима {@code any}. В этом режиме модель
+     * гарантированно сгенерирует аргументы минимум для одной из перечисленных функций.
+     */
+    @JsonProperty("functions_names_any")
+    @Singular("functionsNamesAny")
+    List<String> functionsNamesAny;
+
     public static ToolConfigV2 autoMode() {
         return ToolConfigV2.builder().mode("auto").build();
     }
@@ -56,4 +68,12 @@ public class ToolConfigV2 implements Serializable {
     public static ToolConfigV2 forcedTool(String toolName) {
         return ToolConfigV2.builder().mode("forced").toolName(toolName).build();
     }
+
+    public static ToolConfigV2 anyMode(String... functionNames) {
+        return ToolConfigV2.builder()
+                .mode("any")
+                .functionsNamesAny(Arrays.asList(functionNames))
+                .build();
+    }
+
 }

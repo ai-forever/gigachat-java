@@ -73,4 +73,20 @@ class CompletionV2RequestResponseJsonTest {
         assertThat(res.usage().inputTokensDetails().cachedTokens()).isEqualTo(2);
         assertThat(res.usage().outputTokens()).isEqualTo(4);
     }
+
+    @Test
+    void request_serializesParallelToolCallsAndToolConfigAny() throws Exception {
+        var req = CompletionRequestV2.builder()
+                .model("GigaChat")
+                .message(ChatMessageV2.textMessage(ChatMessageRoleV2.USER, "hi"))
+                .modelOptions(ModelOptionsV2.builder().parallelToolCalls(true).build())
+                .toolConfig(ToolConfigV2.anyMode("f1", "f2"))
+                .build();
+
+        var tree = MAPPER.readTree(MAPPER.writeValueAsString(req));
+        assertThat(tree.path("model_options").path("parallel_tool_calls").asBoolean()).isTrue();
+        assertThat(tree.path("tool_config").path("mode").asText()).isEqualTo("any");
+        assertThat(tree.path("tool_config").path("functions_names_any").get(0).asText()).isEqualTo("f1");
+        assertThat(tree.path("tool_config").path("functions_names_any").get(1).asText()).isEqualTo("f2");
+    }
 }
